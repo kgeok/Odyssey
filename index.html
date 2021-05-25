@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Odyssey</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="style.css" media="screen">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://github.com/kgeok/Odyssey/raw/main/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://github.com/kgeok/Odyssey/raw/main/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://github.com/kgeok/Odyssey/raw/main/icons/favicon-16x16.png">
+    <link rel="manifest" href="https://github.com/kgeok/Odyssey/raw/main/icons/site.webmanifest">
+    <link rel="mask-icon" href="https://github.com/kgeok/Odyssey/raw/main/icons/safari-pinned-tab.svg" color="#2b5797">
+    <link rel="shortcut icon" href="https://github.com/kgeok/Odyssey/raw/main/icons/favicon.ico">
+    <meta name="msapplication-TileColor" content="#2b5797">
+    <meta name="msapplication-config" content="https://github.com/kgeok/Odyssey/raw/main/icons/browserconfig.xml">
+    <body>
+
+      <h2>Odyssey</h2>
+
+      <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+
+        <script type="text/javascript">
+
+        let release = "debug";
+        let version = "0.1b";
+        let map;
+        let markers = [];
+        var state = document.cookie;
+
+        function initMap() {
+          map = new google.maps.Map(document.getElementById("map"), {
+            center: { lat: 41.850033, lng: -87.6500523 },
+            zoom: 4,
+          });
+
+          map.addListener("click", (e) => {
+
+            placeMarker(map, e.latLng);
+
+          });
+
+          map.addListener("rightclick", (e) => {
+
+          placeDest(map, e.latLng);
+
+          });
+
+        }
+
+        function removeMarker(){
+
+          for (let i = 0; i < markers.length; i++) {
+          markers[i].setMap(null);
+          }
+          markers = [];
+        }
+
+        function placeMarker(map, coor){
+
+         var marker =  new google.maps.Marker({
+
+          position: coor,
+          map: map,
+          icon: {
+
+            url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png"
+
+          }
+
+        });
+
+        markers.push(marker);
+        state = markers;
+
+        }
+
+        function placeDest(map, coor){
+
+        var marker =  new google.maps.Marker({
+
+        position: coor,
+        map: map,
+        icon: {
+
+          url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+
+        }
+
+        });
+
+        markers.push(marker);
+
+        }
+
+
+        </script>
+        
+
+<div id="map"></div>
+
+<script
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSHRuDqzWL6x42T7WYs9KybTz6BMYY_0g&callback=initMap&libraries=&v=weekly" async>
+</script>
+<br/>
+<button onclick="removeMarker()">Clear</button>
+<section id="footer">
+  <h4>&nbsp;&nbsp;Version 0.1b, With &#10084;&#65039; by <a href ="https://kgeok.github.io/">Kevin George</a></h4><br><br></h4>
+</section>
