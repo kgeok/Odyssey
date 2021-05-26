@@ -29,6 +29,7 @@
         let version = "0.1b";
         let map;
         let markers = [];
+        var pincolor = "red";
         var state = document.cookie;
 
         function initMap() {
@@ -43,11 +44,6 @@
 
           });
 
-          map.addListener("rightclick", (e) => {
-
-          placeDest(map, e.latLng);
-
-          });
 
         }
 
@@ -67,7 +63,7 @@
           map: map,
           icon: {
 
-            url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png"
+            url: "http://maps.google.com/mapfiles/ms/icons/"+ pincolor.toLocaleLowerCase() + "-dot.png"
 
           }
 
@@ -78,25 +74,7 @@
 
         }
 
-        function placeDest(map, coor){
-
-        var marker =  new google.maps.Marker({
-
-        position: coor,
-        map: map,
-        icon: {
-
-          url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
-
-        }
-
-        });
-
-        markers.push(marker);
-
-        }
-
-
+      
         </script>
         
 
@@ -106,7 +84,26 @@
 src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSHRuDqzWL6x42T7WYs9KybTz6BMYY_0g&callback=initMap&libraries=&v=weekly" async>
 </script>
 <br/>
-<button onclick="removeMarker()">Clear</button>
+<select id="color_picker" name="color_picker">
+<option>Red</option>
+<option>Orange</option>
+<option>Yellow</option>
+<option>Green</option>
+<option>Blue</option>
+<option>Purple</option>
+
+</select>
+<script>
+
+document.getElementById("color_picker").onchange = function(){
+
+pincolor = document.getElementById("color_picker").value;
+
+}
+
+</script>
+
+<button onclick="removeMarker()">Clear Markers</button>
 <section id="footer">
   <h4>&nbsp;&nbsp;Version 0.1b, With &#10084;&#65039; by <a href ="https://kgeok.github.io/">Kevin George</a></h4><br><br></h4>
 </section>

@@ -173,3 +173,15 @@ input[type=button], input[type=submit] {
     padding: 5px;
   
     }
+
+    select {
+
+      font-family: 'Quicksand', sans-serif;
+      background-color: rgb(255, 255, 255);
+      border-radius: 5px;
+      border: none;
+      text-align: center;
+      padding: 4px;
+    
+      }
+    
