@@ -87,6 +87,12 @@
 
         }
 
+        function About(){
+
+          alert("Version " + version + ", With <3 by Kevin George.\n" + "Powered by Google Maps.\n" + "http://kgeok.github.io")
+
+        }
+
         function exportJSONFile(){
 
         var a = document.createElement("a");
@@ -133,7 +139,5 @@ pincolor = document.getElementById("color_picker").value;
 </script>
 <button onclick="makeNote()">Make Note</button>
 <button onclick="removeMarker()">Clear Markers</button>
+<button onclick="About()">About</button>
 <br/>
-<section id="footer">
-  <h4>&nbsp;&nbsp;Version 0.1b, With &#10084;&#65039; by <a href ="https://kgeok.github.io/">Kevin George</a></h4><br><br></h4>
-</section>
