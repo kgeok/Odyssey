@@ -136,15 +136,37 @@ src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSHRuDqzWL6x42T7WYs9KybTz
 <option>Blue</option>
 <option>Purple</option>
 </select>
-<script>
 
+<script>
 document.getElementById("color_picker").onchange = function(){
 pincolor = document.getElementById("color_picker").value;
 }
 
 </script>
-<button onclick="makeNote()">Make Note</button>
-<button onclick="removeLastMarker()">Delete Last Marker</button>
-<button onclick="removeMarker()">Clear Markers</button>
+
+<select id="moption_picker" name="moption_picker">
+  <option>Marker Options</option>
+  <option>Make Note</option>
+  <option>Delete Last Marker</option>
+  <option>Clear All Markers</option>
+  </select>
+
+  <script>
+  document.getElementById("moption_picker").onchange = function(){
+  if (document.getElementById("moption_picker").value == "Marker Options"){
+    alert("Use these options to modify the properties of the Pins/Markers.")
+  }
+  if (document.getElementById("moption_picker").value == "Make Note"){
+    makeNote();
+  }
+  if (document.getElementById("moption_picker").value == "Delete Last Marker"){
+    removeLastMarker();
+  }
+  if (document.getElementById("moption_picker").value == "Clear Markers"){
+    removeMarker();
+  }
+  }
+  </script>
+
 <button onclick="About()">About</button>
 <br/>
