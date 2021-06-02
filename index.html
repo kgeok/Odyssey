@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en-us">
   <head>
@@ -18,7 +19,6 @@
     <meta name="msapplication-TileColor" content="#2b5797">
     <meta name="msapplication-config" content="https://github.com/kgeok/Odyssey/raw/main/icons/browserconfig.xml">
     <body>
-
       <h2>Odyssey</h2>
 
       <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
@@ -32,6 +32,7 @@
         var pincolor = "red";
         var state = [];
         var note;
+        var MarkerCounter = 0;
 
         function initMap() {
           map = new google.maps.Map(document.getElementById("map"), {
@@ -43,6 +44,7 @@
           map.addListener("click", (e) => {
 
             placeMarker(map, e.latLng, note);
+            MarkerCounter++;
 
           });
 
@@ -54,12 +56,22 @@
           markers[i].setMap(null);
           }
           markers = [];
+          MarkerCounter = 0;
+        }
+
+        function removeLastMarker(){
+        markers[Math.abs(MarkerCounter-1)].setMap(null);
+        MarkerCounter--;
+        if (MarkerCounter < 0){
+          removeMarker();
+        }
+  
         }
 
         function placeMarker(map, coor, title){
-         var i;
-         state[i] = coor;
-         i++
+         var m;
+         state[m] = coor;
+         m++
          var marker =  new google.maps.Marker({
 
           position: coor,
@@ -70,9 +82,7 @@
           draggable: true,
           label: title,
           icon: {
-
             url: "http://maps.google.com/mapfiles/ms/icons/"+ pincolor.toLocaleLowerCase() + "-dot.png"
-
           }
 
         });
@@ -83,7 +93,6 @@
         var decodedCookie = decodeURIComponent(document.cookie);
 
         console.log(decodedCookie);
-
 
         }
 
@@ -109,17 +118,14 @@
         }
 
         function makeNote(){
-
          note = prompt("Note");
-
         }
-
         </script>
         
 <div id="map"></div>
 
 <script
-src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSHRuDqzWL6x42T7WYs9KybTz6BMYY_0g&callback=initMap&libraries=&v=weekly" async>
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD0KUvgW3e3ts3WkIob9RBzjGP6RvU7FeQ&callback=initMap&libraries=&v=weekly" async>
 </script>
 <br/>
 <select id="color_picker" name="color_picker">
@@ -138,6 +144,7 @@ pincolor = document.getElementById("color_picker").value;
 
 </script>
 <button onclick="makeNote()">Make Note</button>
+<button onclick="removeLastMarker()">Delete Last Marker</button>
 <button onclick="removeMarker()">Clear Markers</button>
 <button onclick="About()">About</button>
 <br/>
