@@ -31,7 +31,7 @@
         let markers = [];
         var pincolor = "red";
         var state = [];
-        var note;
+        var caption;
         var MarkerCounter = 0;
 
         function initMap() {
@@ -43,10 +43,14 @@
 
           map.addListener("click", (e) => {
 
-            placeMarker(map, e.latLng, note);
+            placeMarker(map, e.latLng, caption);
             MarkerCounter++;
 
           });
+
+          var decodedCookie = decodeURIComponent(document.cookie);
+
+          console.log(decodedCookie);
 
         }
 
@@ -89,16 +93,14 @@
         
         markers.push(marker);
         state = markers;
-        note = "";
-        var decodedCookie = decodeURIComponent(document.cookie);
+        caption = "";
 
-        console.log(decodedCookie);
 
         }
 
         function About(){
 
-          prompt("Version " + version + ", With <3 by Kevin George.\n" + "Powered by Google Maps.\n", "http://kgeok.github.io")
+          prompt("Odyssey, Version " + version + ", With <3 by Kevin George.\n" + "Powered by Google Maps.\n", "http://kgeok.github.io")
 
         }
 
@@ -106,7 +108,7 @@
 
         var a = document.createElement("a");
        // a.href = URL.createObjectURL(new Blob([JSON.stringify(state, null, 2)], {
-        a.href = URL.createObjectURL(new Blob([Object.values(state)], {
+        a.href = URL.createObjectURL(new Blob([Object.entries(state)], {
         type: "application/json"
         }));
 
@@ -117,8 +119,8 @@
 
         }
 
-        function makeNote(){
-         note = prompt("Note");
+        function makeCaption(){
+         caption = prompt("Caption");
         }
         </script>
         
@@ -146,7 +148,7 @@ pincolor = document.getElementById("color_picker").value;
 
 <select id="moption_picker" name="moption_picker">
   <option selected>Marker Options</option>
-  <option>Make Note</option>
+  <option>Make Note Caption</option>
   <option>Delete Last Marker</option>
   <option>Clear All Markers</option>
   </select>
@@ -156,8 +158,8 @@ pincolor = document.getElementById("color_picker").value;
   if (document.getElementById("moption_picker").value == "Marker Options"){
     
   }
-  if (document.getElementById("moption_picker").value == "Make Note"){
-    makeNote();
+  if (document.getElementById("moption_picker").value == "Make Note Caption"){
+    makeCaption();
     document.getElementById("moption_picker").value = "Marker Options";
   }
   if (document.getElementById("moption_picker").value == "Delete Last Marker"){
