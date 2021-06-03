@@ -98,7 +98,7 @@
 
         function About(){
 
-          alert("Version " + version + ", With <3 by Kevin George.\n" + "Powered by Google Maps.\n" + "http://kgeok.github.io")
+          prompt("Version " + version + ", With <3 by Kevin George.\n" + "Powered by Google Maps.\n", "http://kgeok.github.io")
 
         }
 
@@ -158,15 +158,15 @@ pincolor = document.getElementById("color_picker").value;
   }
   if (document.getElementById("moption_picker").value == "Make Note"){
     makeNote();
-    document.getElementById("moption_picker").value == "Marker Options";
+    document.getElementById("moption_picker").value = "Marker Options";
   }
   if (document.getElementById("moption_picker").value == "Delete Last Marker"){
     removeLastMarker();
-    document.getElementById("moption_picker").value == "Marker Options";
+    document.getElementById("moption_picker").value = "Marker Options";
   }
   if (document.getElementById("moption_picker").value == "Clear Markers"){
     removeMarker();
-    document.getElementById("moption_picker").value == "Marker Options";
+    document.getElementById("moption_picker").value = "Marker Options";
   }
   }
   </script>
