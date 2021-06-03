@@ -145,7 +145,7 @@ pincolor = document.getElementById("color_picker").value;
 </script>
 
 <select id="moption_picker" name="moption_picker">
-  <option>Marker Options</option>
+  <option selected>Marker Options</option>
   <option>Make Note</option>
   <option>Delete Last Marker</option>
   <option>Clear All Markers</option>
@@ -154,16 +154,19 @@ pincolor = document.getElementById("color_picker").value;
   <script>
   document.getElementById("moption_picker").onchange = function(){
   if (document.getElementById("moption_picker").value == "Marker Options"){
-    alert("Use these options to modify the properties of the Pins/Markers.")
+    
   }
   if (document.getElementById("moption_picker").value == "Make Note"){
     makeNote();
+    document.getElementById("moption_picker").value == "Marker Options";
   }
   if (document.getElementById("moption_picker").value == "Delete Last Marker"){
     removeLastMarker();
+    document.getElementById("moption_picker").value == "Marker Options";
   }
   if (document.getElementById("moption_picker").value == "Clear Markers"){
     removeMarker();
+    document.getElementById("moption_picker").value == "Marker Options";
   }
   }
   </script>
