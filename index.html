@@ -108,7 +108,7 @@
 
         var a = document.createElement("a");
        // a.href = URL.createObjectURL(new Blob([JSON.stringify(state, null, 2)], {
-        a.href = URL.createObjectURL(new Blob([Object.entries(state)], {
+        a.href = URL.createObjectURL(new Blob([JSON.stringify(Object.entries(state))], {
         type: "application/json"
         }));
 
