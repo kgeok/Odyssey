@@ -35,8 +35,6 @@
         var MarkerCounter = 0;
         var PinNum;
 
-        //Disable after debugging!
-        document.cookie = "";
 
         function initMap() {
           map = new google.maps.Map(document.getElementById("map"), {
@@ -48,7 +46,9 @@
           map.addListener("click", (e) => {
 
             placeMarker(map, e.latLng, caption);
-            document.cookie = "Pin_" + MarkerCounter +"=" + e.latLng + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
+            document.cookie = "PinCoor_" + MarkerCounter +"=" + e.latLng + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
+            document.cookie = "PinCapt_" + MarkerCounter +"=" + caption + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
+            document.cookie = "PinColor_" + MarkerCounter +"=" + PinColor + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
             MarkerCounter++;
 
             console.log(document.cookie);
@@ -67,7 +67,9 @@
           for (let i = 0; i < markers.length; i++) {
           markers[i].setMap(null);
           
-          document.cookie = "Pin_" + i + "=" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
+          document.cookie = "PinCoor_" + i + "=" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
+          document.cookie = "PinCapt_" + i + "=" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
+          document.cookie = "PinColor_" + i + "=" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
           
           }
           markers = [];
@@ -78,8 +80,9 @@
 
         function removeLastMarker(){
         markers[Math.abs(MarkerCounter-1)].setMap(null);
-        document.cookie = "Pin_" + (Math.abs(MarkerCounter-1)) + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;"; 
-        //delete markers[Math.abs(MarkerCounter-1)];
+        document.cookie = "PinCoor_" + (Math.abs(MarkerCounter-1)) + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
+        document.cookie = "PinCapt_" + (Math.abs(MarkerCounter-1)) + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
+        document.cookie = "PinColor_" + (Math.abs(MarkerCounter-1)) + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;"; 
         MarkerCounter--;
         if (MarkerCounter == 0){
           removeMarker();
