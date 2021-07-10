@@ -81,6 +81,9 @@
         document.cookie = "Pin_" + (Math.abs(MarkerCounter-1)) + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;"; 
         //delete markers[Math.abs(MarkerCounter-1)];
         MarkerCounter--;
+        if (MarkerCounter == 0){
+          removeMarker();
+        }
         console.log(document.cookie);
         console.log(MarkerCounter);
         console.log(markers);
