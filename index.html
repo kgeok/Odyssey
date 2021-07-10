@@ -50,7 +50,7 @@
             document.cookie = "PinCapt_" + MarkerCounter +"=" + caption + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
             document.cookie = "PinColor_" + MarkerCounter +"=" + PinColor + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
             MarkerCounter++;
-
+            caption = "";
             console.log(document.cookie);
             console.log(MarkerCounter);
             console.log(markers);
@@ -119,12 +119,6 @@
         
         markers.push(marker);
         state = markers;
-
-      
-
-
-        caption = "";
-
 
 
         }
