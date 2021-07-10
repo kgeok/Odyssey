@@ -35,6 +35,9 @@
         var MarkerCounter = 0;
         var PinNum;
 
+        //Disable after debugging!
+        document.cookie = "";
+
         function initMap() {
           map = new google.maps.Map(document.getElementById("map"), {
             center: { lat: 41.850033, lng: -87.6500523 },
@@ -72,7 +75,7 @@
         }
 
         function removeLastMarker(){
-        document.cookie = document.cookie.replace("Pin_" + (MarkerCounter-1) + "=(" + markers[Math.abs(MarkerCounter-1)].position.lat() + ", " + markers[Math.abs(MarkerCounter-1)].position.lng() +")", "Pin_" + MarkerCounter + "=" + "" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;");
+        document.cookie = document.cookie.replace("Pin_" + (Math.abs(MarkerCounter-1)) + "=(" + markers[Math.abs(MarkerCounter-1)].position.lat() + ", " + markers[Math.abs(MarkerCounter-1)].position.lng() +")", "Pin_" + MarkerCounter + "=" + "" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;");
         markers[Math.abs(MarkerCounter-1)].setMap(null);
         MarkerCounter--;
         if (MarkerCounter < 0){
