@@ -75,7 +75,7 @@
         }
 
         function removeLastMarker(){
-        document.cookie = document.cookie.replace("Pin_" + (Math.abs(MarkerCounter-1)) + "=(" + markers[Math.abs(MarkerCounter-1)].position.lat() + ", " + markers[Math.abs(MarkerCounter-1)].position.lng() +")", "Pin_" + MarkerCounter + "=" + "" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;");
+        document.cookie = document.cookie.replace("Pin_" + (Math.abs(MarkerCounter-1)) + "=(" + markers[Math.abs(MarkerCounter-1)].position.lat() + ", " + markers[Math.abs(MarkerCounter-1)].position.lng() +")", "Pin_" + (Math.abs(MarkerCounter-1)) + "=" + "" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;");
         markers[Math.abs(MarkerCounter-1)].setMap(null);
         MarkerCounter--;
         console.log(document.cookie);
