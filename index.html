@@ -46,7 +46,7 @@
 
             placeMarker(map, e.latLng, caption);
             MarkerCounter++;
-            document.cookie = "Pin" + MarkerCounter +"=" + e.latLng + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
+            document.cookie = "Pin_" + MarkerCounter +"=" + e.latLng + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
 
           });
 
@@ -60,6 +60,7 @@
 
           for (let i = 0; i < markers.length; i++) {
           markers[i].setMap(null);
+          document.cookie = "Pin_" + i + "=" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
           }
           markers = [];
           MarkerCounter = 0;
@@ -68,6 +69,7 @@
 
         function removeLastMarker(){
         markers[Math.abs(MarkerCounter-1)].setMap(null);
+        document.cookie.replace("Pin_" + MarkerCounter + "=(" + markers[Math.abs(MarkerCounter-1)].position.lat() + ", " + markers[Math.abs(MarkerCounter-1)].position.lng() +"); expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;", "Pin_" + MarkerCounter + "=" + "" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;")
         MarkerCounter--;
         if (MarkerCounter < 0){
           removeMarker();
