@@ -45,9 +45,8 @@
           map.addListener("click", (e) => {
 
             placeMarker(map, e.latLng, caption);
-            MarkerCounter++;
             document.cookie = "Pin_" + MarkerCounter +"=" + e.latLng + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
-
+            MarkerCounter++;
           });
 
           var decodedCookie = decodeURIComponent(document.cookie);
@@ -60,9 +59,9 @@
 
           for (let i = 0; i < markers.length; i++) {
           markers[i].setMap(null);
-          i++
+          
           document.cookie = "Pin_" + i + "=" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
-          i--
+          
           }
           markers = [];
           MarkerCounter = 0;
