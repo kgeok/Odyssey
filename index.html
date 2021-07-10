@@ -47,7 +47,10 @@
         LoadState["Color_" + i] = decodeURIComponent(document.cookie).split("PinColor_" + i +"=").pop();  
         LoadState["Color_" + i] = LoadState["Color_" + i].split(";").shift();
 
-        
+        LoadState["Coor_" + i] = LoadState["Coor_" + i].replace("(", "{ lat: ");
+        LoadState["Coor_" + i] = LoadState["Coor_" + i].replace(", ", ", lng: ");
+        LoadState["Coor_" + i] = LoadState["Coor_" + i].replace(")", " }");
+
         PinColor = LoadState["Color_" + i]
         placeMarker(map, LoadState["Coor_" + i], LoadState["Capt_" + i]);
 
@@ -163,7 +166,7 @@
 
         var a = document.createElement("a");
        // a.href = URL.createObjectURL(new Blob([JSON.stringify(state, null, 2)], {
-        a.href = URL.createObjectURL(new Blob([JSON.stringify(Object.entries(LoadState))], {
+        a.href = URL.createObjectURL(new Blob([JSON.stringify(LoadState)], {
         type: "application/json"
         }));
 
