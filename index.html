@@ -71,7 +71,7 @@
 
         function removeLastMarker(){
         markers[Math.abs(MarkerCounter-1)].setMap(null);
-        document.cookie = document.cookie.replace("Pin_" + MarkerCounter + "=(" + markers[Math.abs(MarkerCounter-1)].position.lat() + ", " + markers[Math.abs(MarkerCounter-1)].position.lng() +"); expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;", "Pin_" + MarkerCounter + "=" + "" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;")
+        document.cookie = document.cookie.replace("Pin_" + MarkerCounter + "=(" + markers[Math.abs(MarkerCounter-1)].position.lat() + ", " + markers[Math.abs(MarkerCounter-1)].position.lng() +")", "Pin_" + MarkerCounter + "=" + "" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;")
         MarkerCounter--;
         if (MarkerCounter < 0){
           removeMarker();
