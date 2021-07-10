@@ -53,6 +53,7 @@
 
             console.log(document.cookie);
             console.log(MarkerCounter);
+            console.log(markers);
           });
 
           var decodedCookie = decodeURIComponent(document.cookie);
@@ -72,6 +73,7 @@
           markers = [];
           MarkerCounter = 0;
           state = "";
+          console.clear();
         }
 
         function removeLastMarker(){
