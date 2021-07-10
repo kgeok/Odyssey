@@ -54,7 +54,10 @@
         }
         LoadState["Counter"] = decodeURIComponent(document.cookie).split("Counter=").pop();  
         LoadState["Counter"] = LoadState["Counter"].split(";").shift();
+
+        if (LoadState["Counter"] != ""){
         MarkerCounter = LoadState["Counter"];
+        } 
         PinColor = "Red";
 
         }
