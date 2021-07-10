@@ -29,10 +29,11 @@
         let version = "0.1b";
         let map;
         let markers = [];
-        var pincolor = "red";
+        var PinColor = "red";
         var state = [];
         var caption;
         var MarkerCounter = 0;
+        var PinNum;
 
         function initMap() {
           map = new google.maps.Map(document.getElementById("map"), {
@@ -45,6 +46,7 @@
 
             placeMarker(map, e.latLng, caption);
             MarkerCounter++;
+            document.cookie = "Pin" + MarkerCounter +"=" + e.latLng + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
 
           });
 
@@ -61,6 +63,7 @@
           }
           markers = [];
           MarkerCounter = 0;
+          state = "";
         }
 
         function removeLastMarker(){
@@ -73,27 +76,32 @@
         }
 
         function placeMarker(map, coor, title){
-         var m;
-         state[m] = coor;
-         m++
+         
+         state[PinNum] = coor;
+         
+         PinNum++;
          var marker =  new google.maps.Marker({
 
           position: coor,
           map: map,
-          animation:google.maps.Animation.Drop,
+          animation: google.maps.Animation.Drop,
           title: title,
           clickable: true,
           draggable: true,
           label: title,
           icon: {
-            url: "http://maps.google.com/mapfiles/ms/icons/"+ pincolor.toLocaleLowerCase() + "-dot.png"
+            url: "http://maps.google.com/mapfiles/ms/icons/"+ PinColor.toLocaleLowerCase() + "-dot.png"
           }
 
         });
         
         markers.push(marker);
         state = markers;
+
+        
+
         caption = "";
+
 
 
         }
@@ -141,7 +149,7 @@ src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD0KUvgW3e3ts3WkIob9RBzjGP
 
 <script>
 document.getElementById("color_picker").onchange = function(){
-pincolor = document.getElementById("color_picker").value;
+PinColor = document.getElementById("color_picker").value;
 }
 
 </script>
