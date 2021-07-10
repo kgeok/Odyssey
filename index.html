@@ -70,6 +70,7 @@
             document.cookie = "PinCoor_" + MarkerCounter +"=" + e.latLng + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
             document.cookie = "PinCapt_" + MarkerCounter +"=" + caption + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
             document.cookie = "PinColor_" + MarkerCounter +"=" + PinColor + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
+            document.cookie = "Counter=" + MarkerCounter + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
             MarkerCounter++;
             caption = "";
             console.log(document.cookie);
@@ -91,6 +92,7 @@
           document.cookie = "PinCoor_" + i + "=" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
           document.cookie = "PinCapt_" + i + "=" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
           document.cookie = "PinColor_" + i + "=" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
+          document.cookie = "Counter=" + MarkerCounter + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
           
           }
           markers = [];
@@ -105,6 +107,7 @@
         document.cookie = "PinCapt_" + (Math.abs(MarkerCounter-1)) + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
         document.cookie = "PinColor_" + (Math.abs(MarkerCounter-1)) + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;"; 
         MarkerCounter--;
+        document.cookie = "Counter=" + MarkerCounter + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
         if (MarkerCounter == 0){
           removeMarker();
         }
