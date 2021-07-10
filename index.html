@@ -38,7 +38,7 @@
 
         window.onload= function(){
 
-        for (i = 0; i < document.cookie.split(";").length; i++){
+        for (i = 0; i < document.cookie.split("Coor").length; i++){
 
         LoadState["Coor_" + i] = decodeURIComponent(document.cookie).split("PinCoor_" + i +"=").pop();  
         LoadState["Coor_" + i] = LoadState["Coor_" + i].split(";").shift();
