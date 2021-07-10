@@ -47,6 +47,9 @@
             placeMarker(map, e.latLng, caption);
             document.cookie = "Pin_" + MarkerCounter +"=" + e.latLng + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
             MarkerCounter++;
+
+            console.log(document.cookie);
+            document.log(MarkerCounter);
           });
 
           var decodedCookie = decodeURIComponent(document.cookie);
