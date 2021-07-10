@@ -46,7 +46,13 @@
         LoadState["Capt_" + i] = LoadState["Capt_" + i].split(";").shift();
         LoadState["Color_" + i] = decodeURIComponent(document.cookie).split("PinColor_" + i +"=").pop();  
         LoadState["Color_" + i] = LoadState["Color_" + i].split(";").shift();
+        
+        PinColor = LoadState["Color_" + i]
+        placeMarker(map, LoadState["Coor_" + i], LoadState["Capt_" + i]);
+
         }
+
+        PinColor = "Red";
 
         }
 
@@ -148,11 +154,11 @@
 
         var a = document.createElement("a");
        // a.href = URL.createObjectURL(new Blob([JSON.stringify(state, null, 2)], {
-        a.href = URL.createObjectURL(new Blob([JSON.stringify(Object.entries(state))], {
+        a.href = URL.createObjectURL(new Blob([JSON.stringify(Object.entries(LoadState))], {
         type: "application/json"
         }));
 
-        a.setAttribute("download", "OdysseyJSON.json");
+        a.setAttribute("download", "OdysseyExport.json");
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
