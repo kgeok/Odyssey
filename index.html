@@ -34,6 +34,21 @@
         var caption = "";
         var MarkerCounter = 0;
         var PinNum;
+        var LoadState = new Object();
+
+        window.onload= function(){
+
+        for (i = 0; i < document.cookie.split(";").length; i++){
+
+        LoadState["Coor_" + i] = decodeURIComponent(document.cookie).split("PinCoor_" + i +"=").pop();  
+        LoadState["Coor_" + i] = LoadState["Coor_" + i].split(";").shift();
+        LoadState["Capt_" + i] = decodeURIComponent(document.cookie).split("PinCapt_" + i +"=").pop();  
+        LoadState["Capt_" + i] = LoadState["Capt_" + i].split(";").shift();
+        LoadState["Color_" + i] = decodeURIComponent(document.cookie).split("PinColor_" + i +"=").pop();  
+        LoadState["Color_" + i] = LoadState["Color_" + i].split(";").shift();
+        }
+
+        }
 
 
         function initMap() {
