@@ -165,7 +165,6 @@
         function exportJSONFile(){
 
         var a = document.createElement("a");
-       // a.href = URL.createObjectURL(new Blob([JSON.stringify(state, null, 2)], {
         a.href = URL.createObjectURL(new Blob([JSON.stringify(LoadState)], {
         type: "application/json"
         }));
