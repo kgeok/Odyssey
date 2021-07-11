@@ -53,7 +53,7 @@
         PinColor = LoadState["Color_" + i]
         CurrCorrX = LoadState["Coor_" + i].split(",").shift();
         CurrCorrY = LoadState["Coor_" + i].split(", ").pop();
-        placeMarker(map, { lat: CurrCorrX, lng: CurrCorrY }, LoadState["Capt_" + i]);
+        placeMarker(map, { lat: parseFloat(CurrCorrX, 10), lng: parseFloat(CurrCorrY, 10) }, LoadState["Capt_" + i]);
 
 
 
