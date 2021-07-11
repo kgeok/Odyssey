@@ -47,9 +47,6 @@
         LoadState["Color_" + i] = decodeURIComponent(document.cookie).split("PinColor_" + i +"=").pop();  
         LoadState["Color_" + i] = LoadState["Color_" + i].split(";").shift();
 
-        LoadState["Coor_" + i] = LoadState["Coor_" + i].replace("(", "{ lat: ");
-        LoadState["Coor_" + i] = LoadState["Coor_" + i].replace(", ", ", lng: ");
-        LoadState["Coor_" + i] = LoadState["Coor_" + i].replace(")", " }");
 
         PinColor = LoadState["Color_" + i]
         placeMarker(map, LoadState["Coor_" + i], LoadState["Capt_" + i]);
