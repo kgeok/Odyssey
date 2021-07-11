@@ -38,6 +38,8 @@
         var CurrCorrX;
         var CurrCorrX;
 
+
+        //Parsing document.cookie, cleaning it up into LoadState and placing markers on start
         window.onload= function(){
 
         for (i = 0; i < document.cookie.split("Coor").length-1; i++){
@@ -60,7 +62,7 @@
         }
         LoadState["Counter"] = decodeURIComponent(document.cookie).split("Counter=").pop();  
         LoadState["Counter"] = LoadState["Counter"].split(";").shift();
-
+        //Correcting new counter not showing up in new markers
         if (LoadState["Counter"] != ""){
         MarkerCounter = LoadState["Counter"];
         } 
@@ -68,7 +70,8 @@
 
         }
 
-
+        //initializing map
+        //Coords used are center of US, disabled StreetView for billing purposes
         function initMap() {
           map = new google.maps.Map(document.getElementById("map"), {
             center: { lat: 41.850033, lng: -87.6500523 },
@@ -100,13 +103,14 @@
 
           for (let i = 0; i < markers.length; i++) {
           markers[i].setMap(null);
-          
+          //parsing new document.cookie values
           document.cookie = "PinCoor_" + i + "=" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
           document.cookie = "PinCapt_" + i + "=" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
           document.cookie = "PinColor_" + i + "=" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
           document.cookie = "Counter=" + MarkerCounter + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
           
           }
+          //reset vars
           markers = [];
           MarkerCounter = 0;
           state = "";
@@ -115,6 +119,7 @@
 
         function removeLastMarker(){
         markers[Math.abs(MarkerCounter-1)].setMap(null);
+        //parsing new document.cookie values
         document.cookie = "PinCoor_" + (Math.abs(MarkerCounter-1)) + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
         document.cookie = "PinCapt_" + (Math.abs(MarkerCounter-1)) + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
         document.cookie = "PinColor_" + (Math.abs(MarkerCounter-1)) + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;"; 
@@ -134,9 +139,8 @@
         }
 
         function placeMarker(map, coor, title){
-         
+         //Using PinNum instead of MarkerCounter because of an unknown error in console otherwise
          state[PinNum] = coor;
-         
          PinNum++;
          var marker =  new google.maps.Marker({
 
@@ -187,7 +191,7 @@
 <div id="map"></div>
 
 <script
-src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD0KUvgW3e3ts3WkIob9RBzjGP6RvU7FeQ&callback=initMap&libraries=&v=weekly" async>
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSHRuDqzWL6x42T7WYs9KybTz6BMYY_0g&callback=initMap&libraries=&v=weekly" async>
 </script>
 <br/>
 <select id="color_picker" name="color_picker">
