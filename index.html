@@ -49,10 +49,11 @@
         LoadState["Coor_" + i] = LoadState["Coor_" + i].replace("(", "");
         LoadState["Coor_" + i] = LoadState["Coor_" + i].replace(")", "");
         PinColor = LoadState["Color_" + i]
-        placeMarker(map, LoadState["Coor_" + i], LoadState["Capt_" + i]);
+        var x = LoadState["Coor_" + i].split(",").shift();
+        var y = LoadState["Coor_" + i].split(", ").pop();
+        placeMarker(map, { lat: x, lng: y }, LoadState["Capt_" + i]);
 
-       // x = 
-      //  y = 
+
 
         }
         LoadState["Counter"] = decodeURIComponent(document.cookie).split("Counter=").pop();  
