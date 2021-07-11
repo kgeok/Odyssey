@@ -209,6 +209,7 @@ PinColor = document.getElementById("color_picker").value;
   <option>Make Note Caption</option>
   <option>Delete Last Marker</option>
   <option>Clear All Markers</option>
+  <option>Export Marker Data</option>
   </select>
 
   <script>
@@ -226,6 +227,10 @@ PinColor = document.getElementById("color_picker").value;
   }
   if (document.getElementById("moption_picker").value == "Clear All Markers"){
     removeMarker();
+    document.getElementById("moption_picker").value = "Marker Options";
+  }
+  if (document.getElementById("moption_picker").value == "Export Marker Data"){
+    exportJSONFile();
     document.getElementById("moption_picker").value = "Marker Options";
   }
   }
