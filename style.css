@@ -165,9 +165,10 @@ button:active {
     }
   
     .label {
-      width: 50px; 
-      height: 20px;
-      border: 1px solid #000000;
+      width: 100px; 
+      height: 100px;
+      border: 0px solid #000000;
+      overflow-wrap: break-word;
       border-radius: 5px;
       background: #ffffff;
       text-align: center;
@@ -175,4 +176,5 @@ button:active {
       font-weight: bold;
       font-size: 14px;
       color: #000000;
+      font-family: 'Quicksand', sans-serif;
     }

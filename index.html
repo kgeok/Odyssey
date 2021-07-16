@@ -69,6 +69,8 @@
 
         }
 
+
+
         //initializing map
         //Coords used are center of US, disabled StreetView for billing purposes
         function initMap() {
@@ -91,6 +93,7 @@
             console.log(MarkerCounter);
             console.log(markers);
           });
+
 
           var decodedCookie = decodeURIComponent(document.cookie);
 
@@ -148,8 +151,7 @@
           animation: google.maps.Animation.Drop,
           title: title,
           clickable: true,
-          draggable: true,
-          label: title,
+          draggable: false,
           labelInBackground: false,
           labelClass: "label",
           icon: {
@@ -163,6 +165,18 @@
  
           }
 
+        });
+
+        var infowindow = new google.maps.InfoWindow({
+            content: "<div class = 'label'>" + title + "</div>",
+          });
+
+        marker.addListener("click", () => {
+          infowindow.open({
+            anchor: marker,
+            map,
+            shouldFocus: false,
+          });
         });
         
         markers.push(marker);
@@ -203,7 +217,7 @@
 <div id="map"></div>
 
 <script
-src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD0KUvgW3e3ts3WkIob9RBzjGP6RvU7FeQ&callback=initMap&libraries=&v=weekly" async>
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSHRuDqzWL6x42T7WYs9KybTz6BMYY_0g&callback=initMap&libraries=&v=weekly" async>
 </script>
 <br/>
 <select id="color_picker" name="color_picker">
