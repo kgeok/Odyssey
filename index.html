@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="en-us">
   <head>
@@ -149,8 +150,17 @@
           clickable: true,
           draggable: true,
           label: title,
+          labelInBackground: false,
+          labelClass: "label",
           icon: {
-            url: "http://maps.google.com/mapfiles/ms/icons/"+ PinColor.toLocaleLowerCase() + "-dot.png"
+            path: "M123 1039 c-44 -22 -83 -82 -83 -129 0 -46 39 -108 80 -127 l39 -18 1 -292 0 -293 -30 0 -30 0 42 -85 c23 -47 45 -85 48 -85 3 0 25 38 48 85 l42 85 -30 0 -30 0 0 289 0 290 40 22 c42 24 80 85 80 129 0 44 -38 105 -79 128 -48 27 -84 28 -138 1z",
+            fillColor: PinColor,
+            fillOpacity: 0.6,
+            strokeWeight: 1,
+            rotation: 180,
+            scale: 0.045,
+            anchor: new google.maps.Point(190, 0),
+ 
           }
 
         });
@@ -193,7 +203,7 @@
 <div id="map"></div>
 
 <script
-src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSHRuDqzWL6x42T7WYs9KybTz6BMYY_0g&callback=initMap&libraries=&v=weekly" async>
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD0KUvgW3e3ts3WkIob9RBzjGP6RvU7FeQ&callback=initMap&libraries=&v=weekly" async>
 </script>
 <br/>
 <select id="color_picker" name="color_picker">
