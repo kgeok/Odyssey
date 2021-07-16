@@ -69,6 +69,8 @@
 
         }
 
+
+
         //initializing map
         //Coords used are center of US, disabled StreetView for billing purposes
         function initMap() {
@@ -91,6 +93,7 @@
             console.log(MarkerCounter);
             console.log(markers);
           });
+
 
           var decodedCookie = decodeURIComponent(document.cookie);
 
@@ -149,7 +152,6 @@
           title: title,
           clickable: true,
           draggable: false,
-          label: title,
           labelInBackground: false,
           labelClass: "label",
           icon: {
@@ -163,6 +165,18 @@
  
           }
 
+        });
+
+        var infowindow = new google.maps.InfoWindow({
+            content: "<div class = 'label'>" + title + "</div>",
+          });
+
+        marker.addListener("click", () => {
+          infowindow.open({
+            anchor: marker,
+            map,
+            shouldFocus: false,
+          });
         });
         
         markers.push(marker);
