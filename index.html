@@ -167,12 +167,12 @@
 
         });
 
-        var infowindow = new google.maps.InfoWindow({
+        var InfoWindow = new google.maps.InfoWindow({
             content: "<div class = 'label'>" + title + "</div>",
           });
 
         marker.addListener("click", () => {
-          infowindow.open({
+          InfoWindow.open({
             anchor: marker,
             map,
             shouldFocus: false,
@@ -182,6 +182,12 @@
         markers.push(marker);
         state = markers;
 
+
+        }
+
+        function dialogBox(message, type){
+
+        
 
         }
 
