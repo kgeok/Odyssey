@@ -70,7 +70,6 @@
         }
 
 
-
         //initializing map
         //Coords used are center of US, disabled StreetView for billing purposes
         function initMap() {
@@ -167,12 +166,12 @@
 
         });
 
-        var infowindow = new google.maps.InfoWindow({
+        var InfoWindow = new google.maps.InfoWindow({
             content: "<div class = 'label'>" + title + "</div>",
           });
 
         marker.addListener("click", () => {
-          infowindow.open({
+          InfoWindow.open({
             anchor: marker,
             map,
             shouldFocus: false,
@@ -184,6 +183,7 @@
 
 
         }
+
 
         function About(){
 
@@ -220,14 +220,7 @@
 src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSHRuDqzWL6x42T7WYs9KybTz6BMYY_0g&callback=initMap&libraries=&v=weekly" async>
 </script>
 <br/>
-<select id="color_picker" name="color_picker">
-<option>Red</option>
-<option>Orange</option>
-<option>Yellow</option>
-<option>Green</option>
-<option>Blue</option>
-<option>Purple</option>
-</select>
+<input type="color" id='color_picker' value="#ff0000">
 
 <script>
 document.getElementById("color_picker").onchange = function(){
@@ -237,33 +230,33 @@ PinColor = document.getElementById("color_picker").value;
 </script>
 
 <select id="moption_picker" name="moption_picker">
-  <option selected>Marker Options</option>
+  <option selected>Pin Options</option>
   <option>Make Note Caption</option>
-  <option>Delete Last Marker</option>
-  <option>Clear All Markers</option>
-  <option>Export Marker Data</option>
+  <option>Delete Last Pin</option>
+  <option>Clear All Pins</option>
+  <option>Export Pin Data</option>
   </select>
 
   <script>
   document.getElementById("moption_picker").onchange = function(){
-  if (document.getElementById("moption_picker").value == "Marker Options"){
+  if (document.getElementById("moption_picker").value == "Pin Options"){
     
   }
   if (document.getElementById("moption_picker").value == "Make Note Caption"){
     makeCaption();
-    document.getElementById("moption_picker").value = "Marker Options";
+    document.getElementById("moption_picker").value = "Pin Options";
   }
-  if (document.getElementById("moption_picker").value == "Delete Last Marker"){
+  if (document.getElementById("moption_picker").value == "Delete Last Pin"){
     removeLastMarker();
-    document.getElementById("moption_picker").value = "Marker Options";
+    document.getElementById("moption_picker").value = "Pin Options";
   }
-  if (document.getElementById("moption_picker").value == "Clear All Markers"){
+  if (document.getElementById("moption_picker").value == "Clear All Pins"){
     removeMarker();
-    document.getElementById("moption_picker").value = "Marker Options";
+    document.getElementById("moption_picker").value = "Pin Options";
   }
-  if (document.getElementById("moption_picker").value == "Export Marker Data"){
+  if (document.getElementById("moption_picker").value == "Export Pin Data"){
     exportJSONFile();
-    document.getElementById("moption_picker").value = "Marker Options";
+    document.getElementById("moption_picker").value = "Pin Options";
   }
   }
   </script>
