@@ -119,8 +119,24 @@ border-radius: 5px;
 border: none;
 text-align: center;
 padding: 5px;
+-webkit-appearance: none;
+-moz-appearance: none;
 
 }
+
+input[type=color] {
+  font-family: 'Quicksand', sans-serif;
+  background-color: white;
+  border-radius: 5px;
+  border: none;
+  text-align: center;
+  vertical-align:middle; 
+  padding: 2px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  
+  }
+
 input[type=button]:active, input[type=submit]:active {
   font-family: 'Quicksand', sans-serif;
 background-color: rgb(161, 160, 160);
@@ -128,6 +144,8 @@ border-radius: 5px;
 border: none;
 text-align: center;
 padding: 5px;
+-webkit-appearance: none;
+-moz-appearance: none;
 
 }
 
@@ -139,6 +157,8 @@ border-radius: 5px;
 border: none;
 text-align: center;
 padding: 5px;
+-webkit-appearance: none;
+-moz-appearance: none;
 
 }
 
@@ -150,6 +170,8 @@ button:active {
   border: none;
   text-align: center;
   padding: 5px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
 
   }
 
@@ -160,7 +182,9 @@ button:active {
     border-radius: 5px;
     border: none;
     text-align: center;
-    padding: 4px;
+    padding: 5px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
   
     }
   
@@ -177,4 +201,7 @@ button:active {
       font-size: 14px;
       color: #000000;
       font-family: 'Quicksand', sans-serif;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+
     }
