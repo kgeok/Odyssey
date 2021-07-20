@@ -1,0 +1,14 @@
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500&display=swap" rel="stylesheet">
+<script>
+function dialogBox(message, type){
+
+    let dialog = document.createElement('div');
+    dialog.id = 'dialog';
+    dialog.setAttribute('onclick', 'console.log("test")');
+    dialog.setAttribute('style', 'padding: 14px 20px; width: 50%; height: 25%; text-align: center; -webkit-border-radius:10px; font-size:18px; border-radius: 10px; background-color: #6b6b6b; font-size: 40px; color: #FFFFFF; font-family: &apos; Quicksand &apos;, sans-serif; font-weight: bolder; animation: fadeIn ease 0.25s; -webkit-animation: fadeIn ease 0.25s; -moz-animation: fadeIn ease 0.25s; -o-animation: fadeIn ease 0.25s; -ms-animation: fadeIn ease 0.25s;');
+    dialog.textContent = message;
+    dialog.innerHTML = 
+   message +  '<br/><button>Test</button>'
+    document.body.appendChild(dialog);
+  }
+</script>
