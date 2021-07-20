@@ -26,8 +26,8 @@
 
         <script type="text/javascript">
 
-        let release = "debug";
-        let version = "0.1b";
+        let release = "prod";
+        let version = "0.1";
         let map;
         let markers = [];
         var PinColor = "#ff0000";
@@ -220,6 +220,7 @@
 src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSHRuDqzWL6x42T7WYs9KybTz6BMYY_0g&callback=initMap&libraries=&v=weekly" async>
 </script>
 <br/>
+<section id ="footer"></section>
 <input type="color" id='color_picker' value="#ff0000">
 
 <script>
@@ -228,6 +229,8 @@ PinColor = document.getElementById("color_picker").value;
 }
 
 </script>
+
+
 
 <select id="moption_picker" name="moption_picker">
   <option selected>Pin Options</option>
@@ -263,3 +266,4 @@ PinColor = document.getElementById("color_picker").value;
 
 <button onclick="About()">About</button>
 <br/>
+</section>
