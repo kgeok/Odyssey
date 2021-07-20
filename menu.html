@@ -1,0 +1,106 @@
+<style>
+   
+    #menu {
+    
+     width: 50vw;
+     height: 100%;
+     background-color: #006994;
+     z-index: 100000;
+     display: none;
+     justify-content: center;
+      line-height: 20px;
+      font-weight: bold;
+      font-size: 30px;
+      color: #ffffff;
+      position: fixed;
+      font-size: 14px;
+      opacity: 0.95;
+      top: 0;
+      left: 0;
+     transition: 0.3s;
+    
+    }
+
+
+    #menu-content{
+   
+    position: relative;
+    top: 5%;
+    width: 100%;
+    text-align: center;
+    margin-top: 30px;
+
+    }
+
+    #menu-back{
+       
+        top: 5%;
+        left: 5%;
+        margin-top: 10px;
+        margin-left: 10px;
+        font-size: 30px;
+
+    }
+
+    #menu-item {
+    display: flex;
+    margin-left: 10px;
+    justify-content: space-between;
+    border: 0px solid grey;
+    font-size: larger;
+    width: 100%;
+    text-align: center;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    padding: 0px;
+
+    }
+
+    #button {
+
+    border-radius: 5px;
+    border: 1px solid white;
+    color:black;
+    background-color: white;
+    width:fit-content;
+    padding:2px;
+
+    }
+    
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+<script>
+function mmenu(){
+
+   
+    if (document.getElementById("menu").style.display == "none"){
+    document.getElementById("menu").style.display = "block";
+     
+       } else {
+       
+        document.getElementById("menu").style.display = "none";
+        
+       }
+   }
+   
+</script>
+<div id="button" onclick="mmenu()">☰</div>
+   <div id="menu">
+       <div id ="menu-back">
+     <div id="button" onclick="mmenu()">☰</div>
+       </div>
+       
+    <div id ="menu-content">
+        <div id="menu-item">Make Pin Caption</div><br/>
+        <div id="menu-item">Delete Last Pin</div><br/>
+        <div id="menu-item">Clear All Pins</div><br/>
+        <div id="menu-item">Export Pin Data</div><br/>
+        <br/>
+        <br/>
+        <div id="menu-item">About</div><br/>
+   </div>
+   </div>
+   <br/>
+   Test2
+   
