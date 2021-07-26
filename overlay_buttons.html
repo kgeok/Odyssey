@@ -1,24 +1,138 @@
 <!--This is a Test for Overlay Buttons on GM JS API-->
+
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Submarine</title>
+    <meta name = "viewport" content = "width=device-width, minimum-scale=1.0, maximum-scale = 1.0, user-scalable = no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="style.css" media="screen">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://github.com/kgeok/Odyssey/raw/main/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://github.com/kgeok/Odyssey/raw/main/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://github.com/kgeok/Odyssey/raw/main/icons/favicon-16x16.png">
+    <link rel="manifest" href="https://github.com/kgeok/Odyssey/raw/main/icons/site.webmanifest">
+    <link rel="mask-icon" href="https://github.com/kgeok/Odyssey/raw/main/icons/safari-pinned-tab.svg" color="#2b5797">
+    <link rel="shortcut icon" href="https://github.com/kgeok/Odyssey/raw/main/icons/favicon.ico">
+    <meta name="msapplication-TileColor" content="#2b5797">
+    <meta name="msapplication-config" content="https://github.com/kgeok/Odyssey/raw/main/icons/browserconfig.xml">
+
 <center>
 <b>Submarine</b>
 </center>
-<style>
-
-#map {
-height: 95%;
-}
-
-</style>
 
 <script>
+let sample_btn1 = document.createElement('div');
+          sample_btn1.id = 'sample_btn1';
+          sample_btn1.setAttribute('text', '+');
+          sample_btn1.innerHTML = "<svg height='15' width='15'><path fill-rule='evenodd' fill='#FFFFFF' d='M403 163.75 431.5 163.75 431.5 154 451 173.5 431.5 193 431.5 183.25 403 183.25Z' /></svg>";
+          sample_btn1.setAttribute('onclick', 'alert()');
+          sample_btn1.style.textAlign = "center";
+          sample_btn1.style.padding = "20px 20px";
+          sample_btn1.style.height = "30px";
+          sample_btn1.style.width = "30px";
+          sample_btn1.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
+          sample_btn1.style.marginBottom = "5px";
+          sample_btn1.style.marginRight = "5px";
+          sample_btn1.style.opacity = "0.9";
+          sample_btn1.style.borderRadius = "50%";
+          sample_btn1.style.verticalAlign = "middle";
+          sample_btn1.style.fontSize = "26px";
+          sample_btn1.style.backgroundColor = "#6b6b6b";
+          sample_btn1.style.color = "#FFFFFF";
+          sample_btn1.style.fontFamily = "'Quicksand', sans-serif";
+          sample_btn1.style.fontWeight = "bolder";
+          sample_btn1.style.cursor = "pointer";
 
-let export_btn = document.createElement('input');
-          export_btn.setAttribute('type', 'submit');
-          export_btn.id = 'export_btn';
-          export_btn.setAttribute('value', '+');
-          export_btn.setAttribute('onclick', 'alert()');
-          export_btn.setAttribute('style', 'padding: 20px 20px; width: 30px; -webkit-border-radius:7px; font-size:18px; border-radius: 7px; background-color: #6b6b6b; color: #FFFFFF; font-family: &apos;Raleway&apos;, sans-serif; font-weight: bolder; animation: fadeIn ease 0.25s; -webkit-animation: fadeIn ease 0.25s; -moz-animation: fadeIn ease 0.25s; -o-animation: fadeIn ease 0.25s; -ms-animation: fadeIn ease 0.25s;');
+let sample_btn2 = document.createElement('div');
+          sample_btn2.id = 'sample_btn2';
+          sample_btn2.setAttribute('text', '(-)');
+          sample_btn2.innerHTML = "(-)";
+          sample_btn2.setAttribute('onclick', 'alert()');
+          sample_btn2.style.textAlign = "center";
+          sample_btn2.style.padding = "20px 20px";
+          sample_btn2.style.height = "30px";
+          sample_btn2.style.width = "30px";
+          sample_btn2.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
+          sample_btn2.style.marginBottom = "5px";
+          sample_btn2.style.marginRight = "5px";
+          sample_btn2.style.opacity = "0.9";
+          sample_btn2.style.borderRadius = "50%";
+          sample_btn2.style.verticalAlign = "middle";
+          sample_btn2.style.fontSize = "26px";
+          sample_btn2.style.backgroundColor = "#6b6b6b";
+          sample_btn2.style.color = "#FFFFFF";
+          sample_btn2.style.fontFamily = "'Quicksand', sans-serif";
+          sample_btn2.style.fontWeight = "bolder";
+          sample_btn2.style.cursor = "pointer";
 
+let sample_btn3 = document.createElement('div');
+          sample_btn3.id = 'sample_btn3';
+          sample_btn3.setAttribute('text', '#');
+          sample_btn3.innerHTML = "#";
+          sample_btn3.setAttribute('onclick', 'alert()');
+          sample_btn3.style.textAlign = "center";
+          sample_btn3.style.padding = "20px 20px";
+          sample_btn3.style.height = "30px";
+          sample_btn3.style.width = "30px";
+          sample_btn3.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
+          sample_btn3.style.marginBottom = "5px";
+          sample_btn3.style.marginRight = "5px";
+          sample_btn3.style.opacity = "0.9";
+          sample_btn3.style.borderRadius = "50%";
+          sample_btn3.style.verticalAlign = "middle";
+          sample_btn3.style.fontSize = "26px";
+          sample_btn3.style.backgroundColor = "#6b6b6b";
+          sample_btn3.style.color = "#FFFFFF";
+          sample_btn3.style.fontFamily = "'Quicksand', sans-serif";
+          sample_btn3.style.fontWeight = "bolder";
+          sample_btn3.style.cursor = "pointer";
+
+let sample_btn4 = document.createElement('div');
+          sample_btn4.id = 'sample_btn4';
+          sample_btn4.setAttribute('text', '@');
+          sample_btn4.innerHTML = "@";
+          sample_btn4.setAttribute('onclick', 'alert()');
+          sample_btn4.style.textAlign = "center";
+          sample_btn4.style.padding = "20px 20px";
+          sample_btn4.style.height = "30px";
+          sample_btn4.style.width = "30px";
+          sample_btn4.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
+          sample_btn4.style.marginBottom = "5px";
+          sample_btn4.style.marginRight = "5px";
+          sample_btn4.style.opacity = "0.9";
+          sample_btn4.style.borderRadius = "50%";
+          sample_btn4.style.verticalAlign = "middle";
+          sample_btn4.style.fontSize = "26px";
+          sample_btn4.style.backgroundColor = "#6b6b6b";
+          sample_btn4.style.color = "#FFFFFF";
+          sample_btn4.style.fontFamily = "'Quicksand', sans-serif";
+          sample_btn4.style.fontWeight = "bolder";
+          sample_btn4.style.cursor = "pointer";
+
+let sample_btn5 = document.createElement('div');
+          sample_btn5.id = 'sample_btn5';
+          sample_btn5.setAttribute('text', '$');
+          sample_btn5.innerHTML = "$";
+          sample_btn5.setAttribute('onclick', 'alert()');
+          sample_btn5.style.textAlign = "center";
+          sample_btn5.style.padding = "20px 20px";
+          sample_btn5.style.height = "30px";
+          sample_btn5.style.width = "30px";
+          sample_btn5.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
+          sample_btn5.style.marginBottom = "5px";
+          sample_btn5.style.marginRight = "5px";
+          sample_btn5.style.opacity = "0.9";
+          sample_btn5.style.borderRadius = "50%";
+          sample_btn5.style.verticalAlign = "middle";
+          sample_btn5.style.fontSize = "26px";
+          sample_btn5.style.backgroundColor = "#6b6b6b";
+          sample_btn5.style.color = "#FFFFFF";
+          sample_btn5.style.fontFamily = "'Quicksand', sans-serif";
+          sample_btn5.style.fontWeight = "bolder";
+          sample_btn5.style.cursor = "pointer";
 
 function initMap() {
     map = new google.maps.Map(document.getElementById("map"), {
@@ -26,11 +140,16 @@ function initMap() {
       streetViewControl: false,
       zoom: 4,
       zoomControlOptions: {
-      position: google.maps.ControlPosition.RIGHT_CENTER,
+      position: google.maps.ControlPosition.RIGHT_TOP,
     },
     });
 
-    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(export_btn);
+    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(sample_btn1);
+    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(sample_btn2);
+    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(sample_btn3);
+    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(sample_btn4);
+    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(sample_btn5);
+
 
     map.addListener("click", (e) => {
 
