@@ -9,6 +9,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="style.css" media="screen">
     <link rel="apple-touch-icon" sizes="180x180" href="https://github.com/kgeok/Odyssey/raw/main/icons/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="https://github.com/kgeok/Odyssey/raw/main/icons/favicon-32x32.png">
@@ -26,7 +27,7 @@
 <script>
 let sample_btn1 = document.createElement('div');
           sample_btn1.id = 'sample_btn1';
-          sample_btn1.setAttribute('text', '+');
+          sample_btn1.setAttribute('text', '');
           sample_btn1.innerHTML = "<svg height='15' width='15'><path fill-rule='evenodd' fill='#FFFFFF' d='M403 163.75 431.5 163.75 431.5 154 451 173.5 431.5 193 431.5 183.25 403 183.25Z' /></svg>";
           sample_btn1.setAttribute('onclick', 'alert()');
           sample_btn1.style.textAlign = "center";
@@ -46,93 +47,93 @@ let sample_btn1 = document.createElement('div');
           sample_btn1.style.fontWeight = "bolder";
           sample_btn1.style.cursor = "pointer";
 
-let sample_btn2 = document.createElement('div');
-          sample_btn2.id = 'sample_btn2';
-          sample_btn2.setAttribute('text', '(-)');
-          sample_btn2.innerHTML = "(-)";
-          sample_btn2.setAttribute('onclick', 'alert()');
-          sample_btn2.style.textAlign = "center";
-          sample_btn2.style.padding = "20px 20px";
-          sample_btn2.style.height = "30px";
-          sample_btn2.style.width = "30px";
-          sample_btn2.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
-          sample_btn2.style.marginBottom = "5px";
-          sample_btn2.style.marginRight = "5px";
-          sample_btn2.style.opacity = "0.9";
-          sample_btn2.style.borderRadius = "50%";
-          sample_btn2.style.verticalAlign = "middle";
-          sample_btn2.style.fontSize = "26px";
-          sample_btn2.style.backgroundColor = "#006994";
-          sample_btn2.style.color = "#FFFFFF";
-          sample_btn2.style.fontFamily = "'Quicksand', sans-serif";
-          sample_btn2.style.fontWeight = "bolder";
-          sample_btn2.style.cursor = "pointer";
+let download_btn = document.createElement('div');
+          download_btn.id = 'download_btn';
+          download_btn.setAttribute('text', '');
+          download_btn.innerHTML = "<span class='material-icons md-light'>download</span>";
+          download_btn.setAttribute('onclick', 'alert()');
+          download_btn.style.textAlign = "center";
+          download_btn.style.padding = "20px 20px";
+          download_btn.style.height = "30px";
+          download_btn.style.width = "30px";
+          download_btn.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
+          download_btn.style.marginBottom = "5px";
+          download_btn.style.marginRight = "5px";
+          download_btn.style.opacity = "0.9";
+          download_btn.style.borderRadius = "50%";
+          download_btn.style.verticalAlign = "middle";
+          download_btn.style.fontSize = "26px";
+          download_btn.style.backgroundColor = "#006994";
+          download_btn.style.color = "#FFFFFF";
+          download_btn.style.fontFamily = "'Quicksand', sans-serif";
+          download_btn.style.fontWeight = "bolder";
+          download_btn.style.cursor = "pointer";
 
-let sample_btn3 = document.createElement('div');
-          sample_btn3.id = 'sample_btn3';
-          sample_btn3.setAttribute('text', '#');
-          sample_btn3.innerHTML = "#";
-          sample_btn3.setAttribute('onclick', 'alert()');
-          sample_btn3.style.textAlign = "center";
-          sample_btn3.style.padding = "20px 20px";
-          sample_btn3.style.height = "30px";
-          sample_btn3.style.width = "30px";
-          sample_btn3.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
-          sample_btn3.style.marginBottom = "5px";
-          sample_btn3.style.marginRight = "5px";
-          sample_btn3.style.opacity = "0.9";
-          sample_btn3.style.borderRadius = "50%";
-          sample_btn3.style.verticalAlign = "middle";
-          sample_btn3.style.fontSize = "26px";
-          sample_btn3.style.backgroundColor = "#006994";
-          sample_btn3.style.color = "#FFFFFF";
-          sample_btn3.style.fontFamily = "'Quicksand', sans-serif";
-          sample_btn3.style.fontWeight = "bolder";
-          sample_btn3.style.cursor = "pointer";
+let clear_btn = document.createElement('div');
+          clear_btn.id = 'clear_btn';
+          clear_btn.setAttribute('text', '');
+          clear_btn.innerHTML = "<span class='material-icons md-36'>clear</span>";
+          clear_btn.setAttribute('onclick', 'alert()');
+          clear_btn.style.textAlign = "center";
+          clear_btn.style.padding = "20px 20px";
+          clear_btn.style.height = "30px";
+          clear_btn.style.width = "30px";
+          clear_btn.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
+          clear_btn.style.marginBottom = "5px";
+          clear_btn.style.marginRight = "5px";
+          clear_btn.style.opacity = "0.9";
+          clear_btn.style.borderRadius = "50%";
+          clear_btn.style.verticalAlign = "middle";
+          clear_btn.style.fontSize = "26px";
+          clear_btn.style.backgroundColor = "#006994";
+          clear_btn.style.color = "#FFFFFF";
+          clear_btn.style.fontFamily = "'Quicksand', sans-serif";
+          clear_btn.style.fontWeight = "bolder";
+          clear_btn.style.cursor = "pointer";
 
-let sample_btn4 = document.createElement('div');
-          sample_btn4.id = 'sample_btn4';
-          sample_btn4.setAttribute('text', '@');
-          sample_btn4.innerHTML = "@";
-          sample_btn4.setAttribute('onclick', 'alert()');
-          sample_btn4.style.textAlign = "center";
-          sample_btn4.style.padding = "20px 20px";
-          sample_btn4.style.height = "30px";
-          sample_btn4.style.width = "30px";
-          sample_btn4.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
-          sample_btn4.style.marginBottom = "5px";
-          sample_btn4.style.marginRight = "5px";
-          sample_btn4.style.opacity = "0.9";
-          sample_btn4.style.borderRadius = "50%";
-          sample_btn4.style.verticalAlign = "middle";
-          sample_btn4.style.fontSize = "26px";
-          sample_btn4.style.backgroundColor = "#006994";
-          sample_btn4.style.color = "#FFFFFF";
-          sample_btn4.style.fontFamily = "'Quicksand', sans-serif";
-          sample_btn4.style.fontWeight = "bolder";
-          sample_btn4.style.cursor = "pointer";
+let deletelp_btn = document.createElement('div');
+          deletelp_btn.id = 'deletelp_btn';
+          deletelp_btn.setAttribute('text', '');
+          deletelp_btn.innerHTML = "<span class='material-icons md-36'>delete_outline</span>";
+          deletelp_btn.setAttribute('onclick', 'alert()');
+          deletelp_btn.style.textAlign = "center";
+          deletelp_btn.style.padding = "20px 20px";
+          deletelp_btn.style.height = "30px";
+          deletelp_btn.style.width = "30px";
+          deletelp_btn.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
+          deletelp_btn.style.marginBottom = "5px";
+          deletelp_btn.style.marginRight = "5px";
+          deletelp_btn.style.opacity = "0.9";
+          deletelp_btn.style.borderRadius = "50%";
+          deletelp_btn.style.verticalAlign = "middle";
+          deletelp_btn.style.fontSize = "26px";
+          deletelp_btn.style.backgroundColor = "#006994";
+          deletelp_btn.style.color = "#FFFFFF";
+          deletelp_btn.style.fontFamily = "'Quicksand', sans-serif";
+          deletelp_btn.style.fontWeight = "bolder";
+          deletelp_btn.style.cursor = "pointer";
 
-let sample_btn5 = document.createElement('div');
-          sample_btn5.id = 'sample_btn5';
-          sample_btn5.setAttribute('text', '$');
-          sample_btn5.innerHTML = "$";
-          sample_btn5.setAttribute('onclick', 'alert()');
-          sample_btn5.style.textAlign = "center";
-          sample_btn5.style.padding = "20px 20px";
-          sample_btn5.style.height = "30px";
-          sample_btn5.style.width = "30px";
-          sample_btn5.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
-          sample_btn5.style.marginBottom = "5px";
-          sample_btn5.style.marginRight = "5px";
-          sample_btn5.style.opacity = "0.9";
-          sample_btn5.style.borderRadius = "50%";
-          sample_btn5.style.verticalAlign = "middle";
-          sample_btn5.style.fontSize = "26px";
-          sample_btn5.style.backgroundColor = "#006994";
-          sample_btn5.style.color = "#FFFFFF";
-          sample_btn5.style.fontFamily = "'Quicksand', sans-serif";
-          sample_btn5.style.fontWeight = "bolder";
-          sample_btn5.style.cursor = "pointer";
+let caption_btn = document.createElement('div');
+          caption_btn.id = 'caption_btn';
+          caption_btn.setAttribute('text', '');
+          caption_btn.innerHTML = "<span class='material-icons md-light md-36'>subtitles</span>";
+          caption_btn.setAttribute('onclick', 'alert()');
+          caption_btn.style.textAlign = "center";
+          caption_btn.style.padding = "20px 20px";
+          caption_btn.style.height = "30px";
+          caption_btn.style.width = "30px";
+          caption_btn.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
+          caption_btn.style.marginBottom = "5px";
+          caption_btn.style.marginRight = "5px";
+          caption_btn.style.opacity = "0.9";
+          caption_btn.style.borderRadius = "50%";
+          caption_btn.style.verticalAlign = "middle";
+          caption_btn.style.fontSize = "26px";
+          caption_btn.style.backgroundColor = "#006994";
+          caption_btn.style.color = "#FFFFFF";
+          caption_btn.style.fontFamily = "'Quicksand', sans-serif";
+          caption_btn.style.fontWeight = "bolder";
+          caption_btn.style.cursor = "pointer";
 
 function initMap() {
     map = new google.maps.Map(document.getElementById("map"), {
@@ -144,11 +145,11 @@ function initMap() {
     },
     });
 
+    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(caption_btn);
+    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(deletelp_btn);
+    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(clear_btn);
+    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(download_btn);
     map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(sample_btn1);
-    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(sample_btn2);
-    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(sample_btn3);
-    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(sample_btn4);
-    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(sample_btn5);
 
 
     map.addListener("click", (e) => {

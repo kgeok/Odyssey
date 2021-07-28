@@ -10,6 +10,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="style.css" media="screen">
     <link rel="apple-touch-icon" sizes="180x180" href="https://github.com/kgeok/Odyssey/raw/main/icons/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="https://github.com/kgeok/Odyssey/raw/main/icons/favicon-32x32.png">
@@ -20,14 +21,14 @@
     <meta name="msapplication-TileColor" content="#2b5797">
     <meta name="msapplication-config" content="https://github.com/kgeok/Odyssey/raw/main/icons/browserconfig.xml">
     <body>
-      <h2>Odyssey</h2>
+      <h2 onclick="About()">Odyssey</h2>
 
       <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
 
         <script type="text/javascript">
 
         let release = "prod";
-        let version = "0.1";
+        let version = "0.2";
         let map;
         let markers = [];
         var PinColor = "#ff0000";
@@ -38,6 +39,95 @@
         var LoadState = new Object();
         var CurrCorrX;
         var CurrCorrX;
+
+        let download_btn = document.createElement('div');
+          download_btn.id = 'download_btn';
+          download_btn.setAttribute('text', '');
+          download_btn.innerHTML = "<span class='material-icons md-light'>download</span>";
+          download_btn.setAttribute('onclick', 'exportJSONFile()');
+          download_btn.style.textAlign = "center";
+          download_btn.style.padding = "20px 20px";
+          download_btn.style.height = "30px";
+          download_btn.style.width = "30px";
+          download_btn.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
+          download_btn.style.marginBottom = "5px";
+          download_btn.style.marginRight = "5px";
+          download_btn.style.opacity = "0.9";
+          download_btn.style.borderRadius = "50%";
+          download_btn.style.verticalAlign = "middle";
+          download_btn.style.fontSize = "26px";
+          download_btn.style.backgroundColor = "#006994";
+          download_btn.style.color = "#FFFFFF";
+          download_btn.style.fontFamily = "'Quicksand', sans-serif";
+          download_btn.style.fontWeight = "bolder";
+          download_btn.style.cursor = "pointer";
+
+let clear_btn = document.createElement('div');
+          clear_btn.id = 'clear_btn';
+          clear_btn.setAttribute('text', '');
+          clear_btn.innerHTML = "<span class='material-icons md-36'>clear</span>";
+          clear_btn.setAttribute('onclick', 'removeMarker()');
+          clear_btn.style.textAlign = "center";
+          clear_btn.style.padding = "20px 20px";
+          clear_btn.style.height = "30px";
+          clear_btn.style.width = "30px";
+          clear_btn.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
+          clear_btn.style.marginBottom = "5px";
+          clear_btn.style.marginRight = "5px";
+          clear_btn.style.opacity = "0.9";
+          clear_btn.style.borderRadius = "50%";
+          clear_btn.style.verticalAlign = "middle";
+          clear_btn.style.fontSize = "26px";
+          clear_btn.style.backgroundColor = "#006994";
+          clear_btn.style.color = "#FFFFFF";
+          clear_btn.style.fontFamily = "'Quicksand', sans-serif";
+          clear_btn.style.fontWeight = "bolder";
+          clear_btn.style.cursor = "pointer";
+
+let deletelp_btn = document.createElement('div');
+          deletelp_btn.id = 'deletelp_btn';
+          deletelp_btn.setAttribute('text', '');
+          deletelp_btn.innerHTML = "<span class='material-icons md-36'>delete_outline</span>";
+          deletelp_btn.setAttribute('onclick', 'removeLastMarker()');
+          deletelp_btn.style.textAlign = "center";
+          deletelp_btn.style.padding = "20px 20px";
+          deletelp_btn.style.height = "30px";
+          deletelp_btn.style.width = "30px";
+          deletelp_btn.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
+          deletelp_btn.style.marginBottom = "5px";
+          deletelp_btn.style.marginRight = "5px";
+          deletelp_btn.style.opacity = "0.9";
+          deletelp_btn.style.borderRadius = "50%";
+          deletelp_btn.style.verticalAlign = "middle";
+          deletelp_btn.style.fontSize = "26px";
+          deletelp_btn.style.backgroundColor = "#006994";
+          deletelp_btn.style.color = "#FFFFFF";
+          deletelp_btn.style.fontFamily = "'Quicksand', sans-serif";
+          deletelp_btn.style.fontWeight = "bolder";
+          deletelp_btn.style.cursor = "pointer";
+
+let caption_btn = document.createElement('div');
+          caption_btn.id = 'caption_btn';
+          caption_btn.setAttribute('text', '');
+          caption_btn.innerHTML = "<span class='material-icons md-light md-36'>subtitles</span>";
+          caption_btn.setAttribute('onclick', 'makeCaption()');
+          caption_btn.style.textAlign = "center";
+          caption_btn.style.padding = "20px 20px";
+          caption_btn.style.height = "30px";
+          caption_btn.style.width = "30px";
+          caption_btn.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
+          caption_btn.style.marginBottom = "5px";
+          caption_btn.style.marginRight = "5px";
+          caption_btn.style.opacity = "0.9";
+          caption_btn.style.borderRadius = "50%";
+          caption_btn.style.verticalAlign = "middle";
+          caption_btn.style.fontSize = "26px";
+          caption_btn.style.backgroundColor = "#006994";
+          caption_btn.style.color = "#FFFFFF";
+          caption_btn.style.fontFamily = "'Quicksand', sans-serif";
+          caption_btn.style.fontWeight = "bolder";
+          caption_btn.style.cursor = "pointer";
+
 
         //Parsing document.cookie, cleaning it up into LoadState and placing markers on start
         window.onload= function(){
@@ -78,9 +168,14 @@
             streetViewControl: false,
             zoom: 4,
             zoomControlOptions: {
-            position: google.maps.ControlPosition.RIGHT_CENTER,
+            position: google.maps.ControlPosition.RIGHT_TOP,
           },
           });
+
+          map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(caption_btn);
+          map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(deletelp_btn);
+          map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(clear_btn);
+          map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(download_btn);
 
           map.addListener("click", (e) => {
 
@@ -220,7 +315,7 @@
 <div id="map"></div>
 
 <script
-src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSHRuDqzWL6x42T7WYs9KybTz6BMYY_0g&callback=initMap&libraries=&v=weekly" async>
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD0KUvgW3e3ts3WkIob9RBzjGP6RvU7FeQ&callback=initMap&libraries=&v=weekly" async>
 </script>
 <br/>
 <section id ="footer"></section>
@@ -234,39 +329,4 @@ PinColor = document.getElementById("color_picker").value;
 </script>
 
 
-
-<select id="moption_picker" name="moption_picker">
-  <option selected>Pin Options</option>
-  <option>Make Note Caption</option>
-  <option>Delete Last Pin</option>
-  <option>Clear All Pins</option>
-  <option>Export Pin Data</option>
-  </select>
-
-  <script>
-  document.getElementById("moption_picker").onchange = function(){
-  if (document.getElementById("moption_picker").value == "Pin Options"){
-    
-  }
-  if (document.getElementById("moption_picker").value == "Make Note Caption"){
-    makeCaption();
-    document.getElementById("moption_picker").value = "Pin Options";
-  }
-  if (document.getElementById("moption_picker").value == "Delete Last Pin"){
-    removeLastMarker();
-    document.getElementById("moption_picker").value = "Pin Options";
-  }
-  if (document.getElementById("moption_picker").value == "Clear All Pins"){
-    removeMarker();
-    document.getElementById("moption_picker").value = "Pin Options";
-  }
-  if (document.getElementById("moption_picker").value == "Export Pin Data"){
-    exportJSONFile();
-    document.getElementById("moption_picker").value = "Pin Options";
-  }
-  }
-  </script>
-
-<button onclick="About()">About</button>
-<br/>
 </section>
