@@ -21,7 +21,23 @@
     <meta name="msapplication-TileColor" content="#2b5797">
     <meta name="msapplication-config" content="https://github.com/kgeok/Odyssey/raw/main/icons/browserconfig.xml">
     <body>
-      <h2 onclick="About()">Odyssey</h2>
+      <header width="100%" style="display: table;">
+        <div style="text-align:center; padding:10px; vertical-align: middle; float:left; top: 50%;"><h3><span style="font-size: 35px;" onclick="mmenu()" class='material-icons md-36'>menu</span></h3></div>
+        <div style="text-align:center;position:relative; padding:10px; vertical-align: middle;top: 50%; float:left"><h2 onclick="About()">Odyssey</h2></div>
+        </header>
+        <nav id="menu">
+        <div id ="menu-back">
+        <h3><span style="font-size: 35px;" onclick="mmenu()" class='material-icons md-36'>menu</span></h3>
+        </div>       
+            <div id ="menu-content">
+                <div id="menu-item">Journal</div><br/>
+                <br/>
+                <br/>
+                (Coming Soon)
+           </div>
+        </nav>
+
+
 
       <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
 
