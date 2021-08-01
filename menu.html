@@ -1,6 +1,8 @@
 <!--This is a Test for Menus-->
 <link rel="stylesheet" type="text/css" href="style.css" media="screen">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 
 <script>
@@ -17,12 +19,20 @@ function mmenu(){
        }
    }
    
+function sample(){
+
+alert();
+
+}
 </script>
-<div id="button" onclick="mmenu()" style="text-align:left; margin-top: 10px; margin-left: 10px;">☰</div>
-   <div id="menu">
-       <div id ="menu-back">
-     <div id="button" onclick="mmenu()">☰</div>
-       </div>
+<header width="100%">
+<div style="text-align:center; padding:10px; vertical-align: middle; float:left;top: 50%;"><h3><span style="font-size: 35px;" onclick="mmenu()" class='material-icons md-36'>menu</span></h3></div>
+<div style="text-align:center;position:relative; padding:10px; vertical-align: middle;top: 50%; float:left"><h2 onclick="sample()">Odyssey</h2></div>
+</header>
+<nav id="menu">
+<div id ="menu-back">
+<span id="button" onclick="mmenu()">☰</span>
+</div>
        
     <div id ="menu-content">
         <div id="menu-item">Journal</div><br/>
@@ -30,7 +40,38 @@ function mmenu(){
         <br/>
         
    </div>
-   </div>
-   <br/>
-   Test2
-   
+</nav>
+
+<script>
+
+    
+    function initMap() {
+        map = new google.maps.Map(document.getElementById("map"), {
+          center: { lat: 41.850033, lng: -87.6500523 },
+          streetViewControl: false,
+          zoom: 4,
+          zoomControlOptions: {
+          position: google.maps.ControlPosition.RIGHT_TOP,
+        },
+        });
+    
+    
+        map.addListener("click", (e) => {
+    
+          placeMarker(map, e.latLng, caption);
+    
+        });
+    
+    
+        var decodedCookie = decodeURIComponent(document.cookie);
+    
+        console.log(decodedCookie);
+    
+      }
+    </script>
+    
+    <div id="map"></div>
+    
+      <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD0KUvgW3e3ts3WkIob9RBzjGP6RvU7FeQ&callback=initMap&libraries=&v=weekly" async>
+    </script>
