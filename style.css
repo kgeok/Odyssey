@@ -79,6 +79,7 @@ body {
      box-shadow: 0 2px 6px rgba(0,0,0,.3);
      top: 0;
      left: 0;
+     border-radius: 0px 5px 5px 0px;
      animation: fadeinout 4s linear forwards;
    
    }
@@ -104,6 +105,7 @@ body {
        box-shadow: 0 2px 6px rgba(0,0,0,.3);
        top: 0;
        left: 0;
+       border-radius: 0px 5px 5px 0px;
        animation: fadeinout 4s linear forwards;
      
      }
@@ -203,6 +205,7 @@ body {
      box-shadow: 0 2px 6px rgba(0,0,0,.3);
      top: 0;
      left: 0;
+     border-radius: 0px 5px 5px 0px;
      animation: fadeinout 4s linear forwards;
    
    }
@@ -228,6 +231,7 @@ body {
        box-shadow: 0 2px 6px rgba(0,0,0,.3);
        top: 0;
        left: 0;
+       border-radius: 0px 5px 5px 0px;
        animation: fadeinout 4s linear forwards;
      
      }
@@ -449,6 +453,8 @@ button:active {
       justify-content: center;
       line-height: 20px;
       font-weight: bold;
+      margin-left: 1.5px;
+      margin-right: 1.5px;
       font-size: 14px;
       color: #000000;
       font-family: 'Quicksand', sans-serif;
