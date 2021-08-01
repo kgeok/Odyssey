@@ -18,12 +18,20 @@
 
 header {
 
+width: 100%;
+display: table;
 display: inline flex;
-
-
 
 }
 
+#tagline {
+
+  text-align:center; 
+  position:relative; 
+  vertical-align: middle; 
+  float:left;
+
+}
 
 
 @media (prefers-color-scheme: light) {
@@ -138,7 +146,7 @@ body {
   
   }
 
-  .circlebtn {
+  .circlebtn:active {
 
     text-align: center;
     padding: 20px 20px;
@@ -227,7 +235,7 @@ input[type=color] {
   border: none;
   text-align: center;
   vertical-align:middle; 
-  padding: 2px;
+  padding: 1px;
   -webkit-appearance: none;
   -moz-appearance: none;
   
@@ -239,7 +247,7 @@ background-color: rgb(161, 160, 160);
 border-radius: 5px;
 border: none;
 text-align: center;
-padding: 5px;
+padding: 1px;
 -webkit-appearance: none;
 -moz-appearance: none;
 
@@ -268,7 +276,7 @@ padding: 5px;
  
  }
 
- #menu-content{
+ #menu-content {
    
   position: relative;
   top: 5%;
@@ -278,13 +286,14 @@ padding: 5px;
 
   }
 
-  #menu-back{
-     
-      top: 5%;
-      left: 5%;
-      margin-top: 10px;
-      margin-left: 10px;
-      font-size: 30px;
+
+  #menu-btn {
+
+    text-align:center; 
+    vertical-align: middle; 
+    float:left; 
+    margin-left: 10px;
+    margin-right: 10px;
 
   }
 
