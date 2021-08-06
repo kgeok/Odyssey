@@ -57,7 +57,7 @@
 
         let download_btn = document.createElement('div');
           download_btn.id = 'download_btn';
-          download_btn.setAttribute('title', 'Download Pin Data Button');
+          download_btn.setAttribute('aria-label', 'Download Pin Data Button');
           download_btn.innerHTML = "<span class='material-icons md-light'>download</span>";
           download_btn.setAttribute('onclick', 'exportJSONFile()');
           download_btn.setAttribute('class', 'circlebtn');
@@ -66,14 +66,14 @@
         let color_picker = document.createElement('input');
           color_picker.id = 'color_picker';
           color_picker.setAttribute('type', 'color');
-          color_picker.setAttribute('title', 'Color Picker');
+          color_picker.setAttribute('aria-label', 'Color Picker');
           color_picker.setAttribute('value', '#ff0000');
           color_picker.setAttribute('onchange', 'changePinColor()');
 
 
         let clear_btn = document.createElement('div');
           clear_btn.id = 'clear_btn';
-          clear_btn.setAttribute('title', 'Clear Pins Button');
+          clear_btn.setAttribute('aria-label', 'Clear Pins Button');
           clear_btn.innerHTML = "<span class='material-icons md-36'>clear</span>";
           clear_btn.setAttribute('onclick', 'removeMarker()');
           clear_btn.setAttribute('class', 'circlebtn');
@@ -81,7 +81,7 @@
 
         let deletelp_btn = document.createElement('div');
           deletelp_btn.id = 'deletelp_btn';
-          deletelp_btn.setAttribute('title', 'Remove Last Pin Button');
+          deletelp_btn.setAttribute('aria-label', 'Remove Last Pin Button');
           deletelp_btn.innerHTML = "<span class='material-icons md-36'>delete_outline</span>";
           deletelp_btn.setAttribute('onclick', 'removeLastMarker()');
           deletelp_btn.setAttribute('class', 'circlebtn');
@@ -89,7 +89,7 @@
 
         let caption_btn = document.createElement('div');
           caption_btn.id = 'caption_btn';
-          caption_btn.setAttribute('title', 'Caption Pin Button');
+          caption_btn.setAttribute('aria-label', 'Caption Pin Button');
           caption_btn.innerHTML = "<span class='material-icons md-light md-36'>subtitles</span>";
           caption_btn.setAttribute('onclick', 'makeCaption()');
           caption_btn.setAttribute('class', 'circlebtn');
