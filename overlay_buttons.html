@@ -25,6 +25,20 @@
 </center>
 
 <script>
+
+let release = "prod";
+        let version = "0.3";
+        let map;
+        let markers = [];
+        var PinColor = "#ff0000";
+        var state = [];
+        var caption = " ";
+        var MarkerCounter = 0;
+        var PinNum;
+        var LoadState = new Object();
+        var CurrCorrX;
+        var CurrCorrX;
+
 let sample_btn1 = document.createElement('div');
           sample_btn1.id = 'sample_btn1';
           sample_btn1.setAttribute('text', '');
@@ -47,11 +61,23 @@ let sample_btn1 = document.createElement('div');
           sample_btn1.style.fontWeight = "bolder";
           sample_btn1.style.cursor = "pointer";
 
-let download_btn = document.createElement('div');
-          download_btn.id = 'download_btn';
-          download_btn.setAttribute('class', 'circlebtn');
-          download_btn.innerHTML = "<span class='material-icons md-light'>download</span>";
-          download_btn.setAttribute('onclick', 'alert()');
+          let sample_btn2 = document.createElement('input');
+          sample_btn2.id = 'sample_btn2';
+          sample_btn2.setAttribute('type', 'color');
+          sample_btn2.setAttribute('onchange', 'changePinColor()');
+          sample_btn2.style.textAlign = "center";
+          sample_btn2.style.padding = "20px 20px";
+          sample_btn2.style.height = "70px";
+          sample_btn2.style.width = "70px";
+          sample_btn2.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
+          sample_btn2.style.marginBottom = "5px";
+          sample_btn2.style.marginRight = "5px";
+          sample_btn2.style.opacity = "0.9";
+          sample_btn2.style.borderRadius = "50%";
+          sample_btn2.style.verticalAlign = "middle";
+          sample_btn2.style.cursor = "pointer";
+
+
 
 
 let clear_btn = document.createElement('div');
@@ -76,49 +102,8 @@ let clear_btn = document.createElement('div');
           clear_btn.style.fontWeight = "bolder";
           clear_btn.style.cursor = "pointer";
 
-let deletelp_btn = document.createElement('div');
-          deletelp_btn.id = 'deletelp_btn';
-          deletelp_btn.setAttribute('text', '');
-          deletelp_btn.innerHTML = "<span class='material-icons md-36'>delete_outline</span>";
-          deletelp_btn.setAttribute('onclick', 'alert()');
-          deletelp_btn.style.textAlign = "center";
-          deletelp_btn.style.padding = "20px 20px";
-          deletelp_btn.style.height = "30px";
-          deletelp_btn.style.width = "30px";
-          deletelp_btn.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
-          deletelp_btn.style.marginBottom = "5px";
-          deletelp_btn.style.marginRight = "5px";
-          deletelp_btn.style.opacity = "0.9";
-          deletelp_btn.style.borderRadius = "50%";
-          deletelp_btn.style.verticalAlign = "middle";
-          deletelp_btn.style.fontSize = "26px";
-          deletelp_btn.style.backgroundColor = "#006994";
-          deletelp_btn.style.color = "#FFFFFF";
-          deletelp_btn.style.fontFamily = "'Quicksand', sans-serif";
-          deletelp_btn.style.fontWeight = "bolder";
-          deletelp_btn.style.cursor = "pointer";
 
-let caption_btn = document.createElement('div');
-          caption_btn.id = 'caption_btn';
-          caption_btn.setAttribute('text', '');
-          caption_btn.innerHTML = "<span class='material-icons md-light md-36'>subtitles</span>";
-          caption_btn.setAttribute('onclick', 'alert()');
-          caption_btn.style.textAlign = "center";
-          caption_btn.style.padding = "20px 20px";
-          caption_btn.style.height = "30px";
-          caption_btn.style.width = "30px";
-          caption_btn.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
-          caption_btn.style.marginBottom = "5px";
-          caption_btn.style.marginRight = "5px";
-          caption_btn.style.opacity = "0.9";
-          caption_btn.style.borderRadius = "50%";
-          caption_btn.style.verticalAlign = "middle";
-          caption_btn.style.fontSize = "26px";
-          caption_btn.style.backgroundColor = "#006994";
-          caption_btn.style.color = "#FFFFFF";
-          caption_btn.style.fontFamily = "'Quicksand', sans-serif";
-          caption_btn.style.fontWeight = "bolder";
-          caption_btn.style.cursor = "pointer";
+
 
 function initMap() {
     map = new google.maps.Map(document.getElementById("map"), {
@@ -130,12 +115,11 @@ function initMap() {
     },
     });
 
-    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(caption_btn);
-    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(deletelp_btn);
     map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(clear_btn);
-    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(download_btn);
+    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(sample_btn2);
     map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(sample_btn1);
 
+  
 
     map.addListener("click", (e) => {
 
@@ -149,10 +133,49 @@ function initMap() {
     console.log(decodedCookie);
 
   }
+
+  function changePinColor(){
+  PinColor = document.getElementById("sample_btn2").value;
+  console.log(document.getElementById("sample_btn2").value);
+  }
+
+  function placeMarker(map, coor, title){
+         //Using PinNum instead of MarkerCounter because of an unknown error in console otherwise
+         state[PinNum] = coor;
+         PinNum++;
+         var marker =  new google.maps.Marker({
+
+          position: coor,
+          map: map,
+          animation: google.maps.Animation.Drop,
+          title: title,
+          clickable: true,
+          draggable: false,
+          labelInBackground: false,
+          labelClass: "label",
+          icon: {
+            path: "M123 1039 c-44 -22 -83 -82 -83 -129 0 -46 39 -108 80 -127 l39 -18 1 -292 0 -293 -30 0 -30 0 42 -85 c23 -47 45 -85 48 -85 3 0 25 38 48 85 l42 85 -30 0 -30 0 0 289 0 290 40 22 c42 24 80 85 80 129 0 44 -38 105 -79 128 -48 27 -84 28 -138 1z",
+            fillColor: PinColor,
+            fillOpacity: 0.6,
+            strokeWeight: 1,
+            rotation: 180,
+            scale: 0.045,
+            anchor: new google.maps.Point(190, 0),
+ 
+          }
+            
+        });
+      }
+
+      
+
+        
 </script>
 
 <div id="map"></div>
 
-  <script
-src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD0KUvgW3e3ts3WkIob9RBzjGP6RvU7FeQ&callback=initMap&libraries=&v=weekly" async>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD0KUvgW3e3ts3WkIob9RBzjGP6RvU7FeQ&callback=initMap&libraries=&v=weekly" async>
+
+
 </script>
+

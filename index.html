@@ -57,15 +57,32 @@
 
         let download_btn = document.createElement('div');
           download_btn.id = 'download_btn';
-          download_btn.setAttribute('text', '');
+          download_btn.setAttribute('title', 'Download Pin Data Button');
           download_btn.innerHTML = "<span class='material-icons md-light'>download</span>";
           download_btn.setAttribute('onclick', 'exportJSONFile()');
           download_btn.setAttribute('class', 'circlebtn');
           download_btn.setAttribute('alt', 'Download Pin Data');
 
+        let color_picker = document.createElement('input');
+          color_picker.id = 'color_picker';
+          color_picker.setAttribute('type', 'color');
+          color_picker.setAttribute('value', '#ff0000');
+          color_picker.setAttribute('onchange', 'changePinColor()');
+          color_picker.style.textAlign = "center";
+          color_picker.style.padding = "20px 20px";
+          color_picker.style.height = "30px";
+          color_picker.style.width = "30px";
+          color_picker.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
+          color_picker.style.marginBottom = "5px";
+          color_picker.style.marginRight = "5px";
+          color_picker.style.opacity = "0.9";
+          color_picker.style.borderRadius = "50%";
+          color_picker.style.verticalAlign = "middle";
+          color_picker.style.cursor = "pointer";
+
         let clear_btn = document.createElement('div');
           clear_btn.id = 'clear_btn';
-          clear_btn.setAttribute('text', '');
+          clear_btn.setAttribute('title', 'Clear Pins Button');
           clear_btn.innerHTML = "<span class='material-icons md-36'>clear</span>";
           clear_btn.setAttribute('onclick', 'removeMarker()');
           clear_btn.setAttribute('class', 'circlebtn');
@@ -73,7 +90,7 @@
 
         let deletelp_btn = document.createElement('div');
           deletelp_btn.id = 'deletelp_btn';
-          deletelp_btn.setAttribute('text', '');
+          deletelp_btn.setAttribute('title', 'Remove Last Pin Button');
           deletelp_btn.innerHTML = "<span class='material-icons md-36'>delete_outline</span>";
           deletelp_btn.setAttribute('onclick', 'removeLastMarker()');
           deletelp_btn.setAttribute('class', 'circlebtn');
@@ -81,7 +98,7 @@
 
         let caption_btn = document.createElement('div');
           caption_btn.id = 'caption_btn';
-          caption_btn.setAttribute('text', '');
+          caption_btn.setAttribute('title', 'Caption Pin Button');
           caption_btn.innerHTML = "<span class='material-icons md-light md-36'>subtitles</span>";
           caption_btn.setAttribute('onclick', 'makeCaption()');
           caption_btn.setAttribute('class', 'circlebtn');
@@ -135,6 +152,7 @@
           map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(deletelp_btn);
           map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(clear_btn);
           map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(download_btn);
+          map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(color_picker);
 
           map.addListener("click", (e) => {
 
@@ -241,6 +259,11 @@
 
         }
 
+        function changePinColor(){
+          PinColor = document.getElementById("color_picker").value;
+          console.log(document.getElementById("color_picker").value);
+          }
+
         function mmenu(){
    
         if (document.getElementById("menu").style.display == "none"){
@@ -282,19 +305,9 @@
         
 <div id="map"></div>
 
-<script
-src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSHRuDqzWL6x42T7WYs9KybTz6BMYY_0g&callback=initMap&libraries=&v=weekly" async>
-</script>
-<br/>
-<section id ="footer"></section>
-<input type="color" id='color_picker' value="#ff0000">
+<!--<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSHRuDqzWL6x42T7WYs9KybTz6BMYY_0g&callback=initMap&libraries=&v=weekly" async></script>-->
 
-<script>
-document.getElementById("color_picker").onchange = function(){
-PinColor = document.getElementById("color_picker").value;
-}
-
-</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD0KUvgW3e3ts3WkIob9RBzjGP6RvU7FeQ&callback=initMap&libraries=&v=weekly" async></script>
 
 
 </section>
