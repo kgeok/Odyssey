@@ -503,7 +503,7 @@ button:active {
 
       padding: 14px 20px;
       width: 90%;
-      height: 65px;
+      height: 95px;
       font-family: 'Quicksand', sans-serif;
       font-size: 18px; 
       border-radius: 7px; 
@@ -515,6 +515,7 @@ button:active {
       box-shadow: 0 1px 2px rgb(0 0 0 / 30%);
       display: inline-flex;
       justify-content: center;
+      filter: contrast(0.8);
       align-items: center;
       flex-direction: column;
       text-shadow: 0 0 1px black, 0 0 1px black, 0 0 1px black, 0 0 1px black; 
