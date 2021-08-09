@@ -511,6 +511,10 @@ button:active {
       margin-bottom: 1px;
       font-weight: bolder;
       animation: fadeIn ease 0.25s; 
+      -webkit-animation: fadeIn ease 0.25s;
+      -moz-animation: fadeIn ease 0.25s;
+      -o-animation: fadeIn ease 0.25s;
+      -ms-animation: fadeIn ease 0.25s;    
       padding: 5px;
       box-shadow: 0 1px 2px rgb(0 0 0 / 30%);
       display: inline-flex;

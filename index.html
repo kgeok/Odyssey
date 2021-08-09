@@ -126,6 +126,7 @@
         //initializing map
         //Coords used are center of US, disabled StreetView for billing purposes
         function initMap() {
+          const geocoder = new google.maps.Geocoder();
           map = new google.maps.Map(document.getElementById("map"), {
             center: { lat: 41.850033, lng: -87.6500523 },
             streetViewControl: false,
@@ -180,6 +181,26 @@
           MarkerCounter = 0;
           state = "";
           console.clear();
+        }
+        //Currently broken trying to parse the string PLS fix
+        function geocodeLatLng(geocoder, map, coor) {
+          const input = "'" + String(coor) +"'"  ;
+          const latlngStr = input.split(",", 2);
+          const latlng = {
+            lat: parseFloat(latlngStr[0]),
+            lng: parseFloat(latlngStr[1]),
+          };
+          geocoder
+            .geocode({ location: latlng })
+            .then((response) => {
+              if (response.results[0]) {
+                console.log(response.results[0].formatted_address);
+                
+              } else {
+                console.log("No results found");
+              }
+            })
+            .catch((e) => console.log("Geocoder failed due to: " + e));
         }
 
         function removeLastMarker(){
@@ -315,6 +336,13 @@
         
 <div id="map"></div>
 
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSHRuDqzWL6x42T7WYs9KybTz6BMYY_0g&callback=initMap&libraries=&v=weekly" async></script>
+<!--<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSHRuDqzWL6x42T7WYs9KybTz6BMYY_0g&callback=initMap&libraries=&v=weekly" async></script>
+-->
 
+<div id="map"></div>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD0KUvgW3e3ts3WkIob9RBzjGP6RvU7FeQ&callback=initMap&libraries=&v=weekly" async>
+
+
+</script>
 </section>
