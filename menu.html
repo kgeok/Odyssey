@@ -6,6 +6,12 @@
 
 
 <script>
+//Remove when done.
+window.onload= function(){
+mmenu();
+appendJournal("Trip to Jordan", "Jordan", "#0030FF");
+}
+
 function mmenu(){
 
    
@@ -36,7 +42,7 @@ alert();
     <div id ="menu-content">
         <div id="menu-item"><div id="tagline"><h2>Journal</h2></div></div><br/>
         <br/>
-        <div id="menu-item">Coming Soon</div><br/>
+        
    </div>
 </nav>
 
@@ -66,6 +72,29 @@ alert();
         console.log(decodedCookie);
     
       }
+
+
+      function appendJournal(caption, location, color){
+
+        var date = new Date();
+        var dateNow =  "Added - " + date.toDateString();
+
+        let journalEntry = document.createElement('div');
+          journalEntry.id = 'journalEntry';
+          journalEntry.style.backgroundColor = color;
+          journalEntry.innerHTML = caption + "<br/>" + location.toUpperCase() + "<br/>" + dateNow;
+          
+
+
+        let lineBreak = document.createElement('br');
+        lineBreak.id = "br";
+        document.body.appendChild(lineBreak);
+        document.getElementById("menu-item").insertAdjacentElement("afterend", journalEntry);
+        document.body.appendChild(lineBreak);
+      }
+
+
+
     </script>
     
     <div id="map"></div>

@@ -60,6 +60,7 @@ body {
 
   }
 
+
   #menu {
     
     width: 40vw;
@@ -157,26 +158,6 @@ body {
 
  
 
-  #color_picker {
-
-    text-align: center;
-    padding: 20px 20px;
-    height: 30px;
-    width: 30px;
-    box-shadow: 0 2px 6px rgba(0,0,0,.3);
-    margin-bottom: 5px;
-    margin-right: 5px;
-    opacity: 0.9;
-    border-radius: 50%;
-    vertical-align: middle;
-    font-size: 26px;
-    color: #FFFFFF;
-    font-family: 'Quicksand', sans-serif;
-    font-family: bolder;
-    cursor: pointer;
-  
-
-  }
 
   a {
 
@@ -208,6 +189,8 @@ body {
       -ms-animation: fadeIn ease 0.25s;
 
   }
+
+
 
   #menu {
     
@@ -306,27 +289,6 @@ body {
 
 
 
-  #color_picker {
-
-    text-align: center;
-    padding: 20px 20px;
-    height: 30px;
-    width: 30px;
-    box-shadow: 0 2px 6px rgba(0,0,0,.3);
-    margin-bottom: 5px;
-    margin-right: 5px;
-    opacity: 0.9;
-    border-radius: 50%;
-    vertical-align: middle;
-    font-size: 26px;
-    color: #FFFFFF;
-    font-family: 'Quicksand', sans-serif;
-    font-family: bolder;
-    cursor: pointer;
-  
-
-  }
-
   a {
 
     color: white;
@@ -356,6 +318,12 @@ h4 {
 
 #map {
 height: 100%;
+}
+
+#date {
+
+font-size: 10px;
+
 }
 
 
@@ -448,6 +416,27 @@ padding: 1px;
 
   }
 
+
+  #color_picker {
+
+    text-align: center;
+    height: 50px;
+    width: 50px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.3);
+    margin-bottom: 5px;
+    margin-right: 5px;
+    opacity: 0.9;
+    border-radius: 50%;
+    vertical-align: middle;
+    font-size: 26px;
+    color: #FFFFFF;
+    font-family: 'Quicksand', sans-serif;
+    font-family: bolder;
+    cursor: pointer;
+  
+
+  }
+
 button {
 
 font-family: 'Quicksand', sans-serif;
@@ -508,6 +497,29 @@ button:active {
       -moz-appearance: none;
 
     }
+
+    #journalEntry {
+
+      padding: 14px 20px;
+      width: 90%;
+      height: 65px;
+      font-family: 'Quicksand', sans-serif;
+      font-size: 18px; 
+      border-radius: 7px; 
+      color: #FFFFFF; 
+      margin-bottom: 1px;
+      font-weight: bolder;
+      animation: fadeIn ease 0.25s; 
+      padding: 5px;
+      box-shadow: 0 1px 2px rgb(0 0 0 / 30%);
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-shadow: 0 0 1px black, 0 0 1px black, 0 0 1px black, 0 0 1px black; 
+      
+  
+  }
 
     #footer {
 

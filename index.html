@@ -32,7 +32,7 @@
             <div id ="menu-content">
                 <div id="menu-item"><div id="tagline"><h2>Journal</h2></div></div><br/>
                 <br/>
-                <div id="menu-item">Coming Soon</div><br/>
+                <div id="menu-item">Not Available in Web App</div><br/>
            </div>
         </nav>
 
@@ -57,8 +57,7 @@
 
         let download_btn = document.createElement('div');
           download_btn.id = 'download_btn';
-          download_btn.setAttribute('aria-label', 'Download Pin Data Button');
-          download_btn.innerHTML = "<span class='material-icons md-light'>download</span>";
+          download_btn.innerHTML = "<span aria-label = 'Download Pin Data Button' class='material-icons md-light'>download</span>";
           download_btn.setAttribute('onclick', 'exportJSONFile()');
           download_btn.setAttribute('class', 'circlebtn');
           download_btn.setAttribute('alt', 'Download Pin Data');
@@ -73,24 +72,21 @@
 
         let clear_btn = document.createElement('div');
           clear_btn.id = 'clear_btn';
-          clear_btn.setAttribute('aria-label', 'Clear Pins Button');
-          clear_btn.innerHTML = "<span class='material-icons md-36'>clear</span>";
+          clear_btn.innerHTML = "<span aria-label = 'Download Pin Data Button' class='material-icons md-36'>clear</span>";
           clear_btn.setAttribute('onclick', 'removeMarker()');
           clear_btn.setAttribute('class', 'circlebtn');
           clear_btn.setAttribute('alt', 'Clear Pins');
 
         let deletelp_btn = document.createElement('div');
           deletelp_btn.id = 'deletelp_btn';
-          deletelp_btn.setAttribute('aria-label', 'Remove Last Pin Button');
-          deletelp_btn.innerHTML = "<span class='material-icons md-36'>delete_outline</span>";
+          deletelp_btn.innerHTML = "<span aria-label = 'Download Pin Data Button' class='material-icons md-36'>delete_outline</span>";
           deletelp_btn.setAttribute('onclick', 'removeLastMarker()');
           deletelp_btn.setAttribute('class', 'circlebtn');
           deletelp_btn.setAttribute('alt', 'Remove Last Pin');
 
         let caption_btn = document.createElement('div');
           caption_btn.id = 'caption_btn';
-          caption_btn.setAttribute('aria-label', 'Caption Pin Button');
-          caption_btn.innerHTML = "<span class='material-icons md-light md-36'>subtitles</span>";
+          caption_btn.innerHTML = "<span aria-label = 'Download Pin Data Button' class='material-icons md-light md-36'>subtitles</span>";
           caption_btn.setAttribute('onclick', 'makeCaption()');
           caption_btn.setAttribute('class', 'circlebtn');
           caption_btn.setAttribute('alt', 'Caption Pin');
@@ -113,6 +109,7 @@
           CurrCorrX = LoadState["Coor_" + i].split(",").shift();
           CurrCorrY = LoadState["Coor_" + i].split(", ").pop();
           placeMarker(map, { lat: parseFloat(CurrCorrX, 10), lng: parseFloat(CurrCorrY, 10) }, LoadState["Capt_" + i]);
+          appendJournal(LoadState["Capt_" + i], parseFloat(CurrCorrX, 10) + ", " + parseFloat(CurrCorrY, 10), PinColor);
 
           }
           LoadState["Counter"] = decodeURIComponent(document.cookie).split("Counter=").pop();  
@@ -152,6 +149,8 @@
             document.cookie = "PinCapt_" + MarkerCounter +"=" + caption + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
             document.cookie = "PinColor_" + MarkerCounter +"=" + PinColor + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
             document.cookie = "Counter=" + MarkerCounter + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
+            appendJournal(caption, e.latLng, PinColor);
+
             MarkerCounter++;
             caption = "";
             console.log(document.cookie);
@@ -271,6 +270,26 @@
 
         }
 
+        
+      function appendJournal(caption, location, color){
+
+        var date = new Date();
+        var dateNow =  "Added - " + date.toDateString();
+
+        let journalEntry = document.createElement('div');
+          journalEntry.id = 'journalEntry';
+          journalEntry.style.backgroundColor = color;
+          journalEntry.innerHTML = caption + "<br/>" + location.toUpperCase() + "<br/>" + dateNow;
+          
+
+
+        let lineBreak = document.createElement('br');
+        lineBreak.id = "br";
+        document.body.appendChild(lineBreak);
+        document.getElementById("menu-item").insertAdjacentElement("afterend", journalEntry);
+        document.body.appendChild(lineBreak);
+        }
+
         function exportJSONFile(){
 
         var a = document.createElement("a");
@@ -284,6 +303,7 @@
         document.body.removeChild(a);
 
         }
+
 
         function makeCaption(){
          caption = prompt("Caption");
