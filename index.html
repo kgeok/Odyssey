@@ -183,7 +183,7 @@
         }
         //Currently broken trying to parse the string PLS fix
         function geocodeLatLng(geocoder, map, coor) {
-          const input = coor;
+          const input = String(coor.lat() + ", " +  coor.lng());
           const latlngStr = input.split(",", 2);
           const latlng = {
             lat: parseFloat(latlngStr[0]),
