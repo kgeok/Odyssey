@@ -35,8 +35,6 @@
            </div>
         </nav>
 
-
-
       <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
 
         <script type="text/javascript">
@@ -53,6 +51,7 @@
         var LoadState = new Object();
         var CurrCorrX;
         var CurrCorrX;
+        var GeocoderBuffer;
 
         let download_btn = document.createElement('div');
           download_btn.id = 'download_btn';
@@ -108,7 +107,7 @@
           CurrCorrX = LoadState["Coor_" + i].split(",").shift();
           CurrCorrY = LoadState["Coor_" + i].split(", ").pop();
           placeMarker(map, { lat: parseFloat(CurrCorrX, 10), lng: parseFloat(CurrCorrY, 10) }, LoadState["Capt_" + i]);
-          appendJournal(LoadState["Capt_" + i], parseFloat(CurrCorrX, 10) + ", " + parseFloat(CurrCorrY, 10), PinColor);
+          appendJournal(LoadState["Capt_" + i], LoadState["Coor_" + i], PinColor);
 
           }
           LoadState["Counter"] = decodeURIComponent(document.cookie).split("Counter=").pop();  
@@ -121,7 +120,6 @@
           PinColor = "#ff0000";
 
         }
-
 
         //initializing map
         //Coords used are center of US, disabled StreetView for billing purposes
@@ -149,7 +147,8 @@
             document.cookie = "PinCapt_" + MarkerCounter +"=" + caption + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
             document.cookie = "PinColor_" + MarkerCounter +"=" + PinColor + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
             document.cookie = "Counter=" + MarkerCounter + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
-            appendJournal(caption, e.latLng, PinColor);
+            geocodeLatLng(geocoder, map, e.latLng);
+            appendJournal(caption, GeocoderBuffer, PinColor);
 
             MarkerCounter++;
             caption = "";
@@ -195,6 +194,7 @@
             .then((response) => {
               if (response.results[0]) {
                 console.log(response.results[0].formatted_address);
+                GeocoderBuffer = response.results[0].formatted_address;
                 
               } else {
                 console.log("No results found");
@@ -221,7 +221,6 @@
         if (MarkerCounter < 0){
           removeMarker();
         }
-  
         }
 
         function placeMarker(map, coor, title){
@@ -266,7 +265,6 @@
         markers.push(marker);
         state = markers;
 
-
         }
 
         function changePinColor(){
@@ -282,7 +280,6 @@
             document.getElementById("menu").style.display = "none";
           }
         }
-
 
         function About(){
 
@@ -300,15 +297,13 @@
           journalEntry.id = 'journalEntry';
           journalEntry.style.backgroundColor = color;
           journalEntry.innerHTML = caption + "<br/>" + location + "<br/>" + dateNow;
-          
-
 
         let lineBreak = document.createElement('br');
-        lineBreak.id = "br";
-        document.body.appendChild(lineBreak);
-        document.getElementById("menu-item").insertAdjacentElement("afterend", journalEntry);
-        document.body.appendChild(lineBreak);
-        }
+          lineBreak.id = "br";
+          document.body.appendChild(lineBreak);
+          document.getElementById("menu-item").insertAdjacentElement("afterend", journalEntry);
+          document.body.appendChild(lineBreak);
+          }
 
         function exportJSONFile(){
 
@@ -323,7 +318,6 @@
         document.body.removeChild(a);
 
         }
-
 
         function makeCaption(){
          caption = prompt("Caption");
@@ -342,7 +336,6 @@
 <div id="map"></div>
 
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD0KUvgW3e3ts3WkIob9RBzjGP6RvU7FeQ&callback=initMap&libraries=&v=weekly" async>
-
 
 </script>
 </section>
