@@ -148,7 +148,7 @@
             document.cookie = "PinColor_" + MarkerCounter +"=" + PinColor + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
             document.cookie = "Counter=" + MarkerCounter + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
             geocodeLatLng(geocoder, map, e.latLng);
-            appendJournal(caption, GeocoderBuffer, PinColor);
+            
 
             MarkerCounter++;
             caption = "";
@@ -195,6 +195,7 @@
               if (response.results[0]) {
                 console.log(response.results[0].formatted_address);
                 GeocoderBuffer = response.results[0].formatted_address;
+                appendJournal(caption, GeocoderBuffer, PinColor);
                 
               } else {
                 console.log("No results found");
