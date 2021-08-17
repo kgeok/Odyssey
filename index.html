@@ -107,7 +107,7 @@
           CurrCorrX = LoadState["Coor_" + i].split(",").shift();
           CurrCorrY = LoadState["Coor_" + i].split(", ").pop();
           placeMarker(map, { lat: parseFloat(CurrCorrX, 10), lng: parseFloat(CurrCorrY, 10) }, LoadState["Capt_" + i]);
-          appendJournal(LoadState["Capt_" + i], LoadState["Coor_" + i], PinColor);
+          geocodeLatLng(geocoder, map, LoadState["Coor_" + i], LoadState["Capt_" + i]);
 
           }
           LoadState["Counter"] = decodeURIComponent(document.cookie).split("Counter=").pop();  
@@ -147,7 +147,7 @@
             document.cookie = "PinCapt_" + MarkerCounter +"=" + caption + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
             document.cookie = "PinColor_" + MarkerCounter +"=" + PinColor + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
             document.cookie = "Counter=" + MarkerCounter + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
-            geocodeLatLng(geocoder, map, e.latLng);
+            geocodeLatLng(geocoder, map, e.latLng, caption);
             
 
             MarkerCounter++;
@@ -182,7 +182,7 @@
           console.clear();
         }
         //Currently broken trying to parse the string PLS fix
-        function geocodeLatLng(geocoder, map, coor) {
+        function geocodeLatLng(geocoder, map, coor, caption) {
           const input = String(coor.lat() + ", " +  coor.lng());
           const latlngStr = input.split(",", 2);
           const latlng = {
