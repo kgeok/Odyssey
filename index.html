@@ -171,7 +171,7 @@
           document.cookie = "PinCapt_" + i + "=" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
           document.cookie = "PinColor_" + i + "=" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
           document.cookie = "Counter=" + MarkerCounter + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
-          
+          document.getElementById("journalEntry").remove();
           }
           //reset vars
           markers = [];
@@ -246,6 +246,8 @@
               }
             })
             .catch((e) => console.log("Geocoder failed due to: " + e));
+            GeocoderBuffer = "UNKNOWN LOCATION";
+            appendJournal(caption, GeocoderBuffer, color);
         }
 
         var InfoWindow = new google.maps.InfoWindow({
