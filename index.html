@@ -92,7 +92,7 @@
 
         //Parsing document.cookie, cleaning it up into LoadState and placing markers on start
         window.onload= function(){
-          
+          const geocoder = new google.maps.Geocoder();
           for (i = 0; i < document.cookie.split("Coor").length-1; i++){
 
           LoadState["Coor_" + i] = decodeURIComponent(document.cookie).split("PinCoor_" + i +"=").pop();  
@@ -106,18 +106,7 @@
           PinColor = LoadState["Color_" + i]
           CurrCorrX = LoadState["Coor_" + i].split(",").shift();
           CurrCorrY = LoadState["Coor_" + i].split(", ").pop();
-          coor = { 
-            
-          lat: function(){ 
-          return parseFloat(CurrCorrX, 10); 
-          },
-
-          lng: function(){ 
-          return parseFloat(CurrCorrY, 10); 
-          }
-          
-          };
-          placeMarker(map, coor, LoadState["Capt_" + i]);
+          placeMarker(map, { lat: parseFloat(CurrCorrX, 10), lng: parseFloat(CurrCorrY, 10) }, LoadState["Capt_" + i]);
 
           }
           LoadState["Counter"] = decodeURIComponent(document.cookie).split("Counter=").pop();  
@@ -192,27 +181,7 @@
           console.clear();
         }
         //Currently broken trying to parse the string PLS fix
-        function geocodeLatLng(geocoder, map, coor, caption) {
-          const input = String(coor.lat() + ", " +  coor.lng());
-          const latlngStr = input.split(",", 2);
-          const latlng = {
-            lat: parseFloat(latlngStr[0]),
-            lng: parseFloat(latlngStr[1]),
-          };
-          geocoder
-            .geocode({ location: latlng })
-            .then((response) => {
-              if (response.results[0]) {
-                console.log(response.results[0].formatted_address);
-                GeocoderBuffer = response.results[0].formatted_address;
-                appendJournal(caption, GeocoderBuffer, PinColor);
-                
-              } else {
-                console.log("No results found");
-              }
-            })
-            .catch((e) => console.log("Geocoder failed due to: " + e));
-        }
+
 
         function removeLastMarker(){
         markers[Math.abs(MarkerCounter-1)].setMap(null);
@@ -235,7 +204,7 @@
         }
 
         function placeMarker(map, coor, title){
-        const geocoder = new google.maps.Geocoder();
+          const geocoder = new google.maps.Geocoder();
          //Using PinNum instead of MarkerCounter because of an unknown error in console otherwise
          state[PinNum] = coor;
          PinNum++;
@@ -263,6 +232,28 @@
         });
 
         geocodeLatLng(geocoder, map, coor, title);
+
+        function geocodeLatLng(geocoder, map, coor, caption) {
+          const input = String(coor.lat() + ", " +  coor.lng());
+          const latlngStr = input.split(",", 2);
+          const latlng = {
+            lat: parseFloat(latlngStr[0]),
+            lng: parseFloat(latlngStr[1]),
+          };
+          geocoder
+            .geocode({ location: latlng })
+            .then((response) => {
+              if (response.results[0]) {
+                console.log(response.results[0].formatted_address);
+                GeocoderBuffer = response.results[0].formatted_address;
+                appendJournal(caption, GeocoderBuffer, PinColor);
+                
+              } else {
+                console.log("No results found");
+              }
+            })
+            .catch((e) => console.log("Geocoder failed due to: " + e));
+        }
 
         var InfoWindow = new google.maps.InfoWindow({
             content: "<div class = 'label'>" + title + "</div>",
