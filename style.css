@@ -542,5 +542,6 @@ button:active {
       transform: translate(-50%, -50%);
       -webkit-appearance: none;
       -moz-appearance: none;
+      overflow: hidden;
 
     }
