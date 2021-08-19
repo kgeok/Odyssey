@@ -165,7 +165,7 @@
         function removeMarker(){
 
           for (let i = 0; i < markers.length; i++) {
-          document.getElementById("journalEntry").remove();
+          
           markers[i].setMap(null);
           //parsing new document.cookie values
           document.cookie = "PinCoor_" + i + "=" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
@@ -173,6 +173,9 @@
           document.cookie = "PinColor_" + i + "=" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
           document.cookie = "Counter=" + MarkerCounter + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
           
+          }
+          for (let i = 0; i < markers.length; i++) {
+          document.getElementById("journalEntry").remove();
           }
           //reset vars
           markers = [];
