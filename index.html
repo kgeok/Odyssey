@@ -106,8 +106,18 @@
           PinColor = LoadState["Color_" + i]
           CurrCorrX = LoadState["Coor_" + i].split(",").shift();
           CurrCorrY = LoadState["Coor_" + i].split(", ").pop();
-          coor = 
-          placeMarker(map, { lat: parseFloat(CurrCorrX, 10), lng: parseFloat(CurrCorrY, 10) }, LoadState["Capt_" + i]);
+          coor = { 
+            
+          lat: function(){ 
+          return parseFloat(CurrCorrX, 10); 
+          },
+
+          lng: function(){ 
+          return parseFloat(CurrCorrY, 10); 
+          }
+          
+          };
+          placeMarker(map, coor, LoadState["Capt_" + i]);
 
           }
           LoadState["Counter"] = decodeURIComponent(document.cookie).split("Counter=").pop();  
@@ -183,7 +193,7 @@
         }
         //Currently broken trying to parse the string PLS fix
         function geocodeLatLng(geocoder, map, coor, caption) {
-          const input = String(coor.lat + ", " +  coor.lng);
+          const input = String(coor.lat() + ", " +  coor.lng());
           const latlngStr = input.split(",", 2);
           const latlng = {
             lat: parseFloat(latlngStr[0]),
