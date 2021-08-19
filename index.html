@@ -92,7 +92,7 @@
 
         //Parsing document.cookie, cleaning it up into LoadState and placing markers on start
         window.onload= function(){
-          const geocoder = new google.maps.Geocoder();
+          
           for (i = 0; i < document.cookie.split("Coor").length-1; i++){
 
           LoadState["Coor_" + i] = decodeURIComponent(document.cookie).split("PinCoor_" + i +"=").pop();  
@@ -224,6 +224,7 @@
         }
 
         function placeMarker(map, coor, title){
+        const geocoder = new google.maps.Geocoder();
          //Using PinNum instead of MarkerCounter because of an unknown error in console otherwise
          state[PinNum] = coor;
          PinNum++;
