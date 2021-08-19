@@ -107,7 +107,7 @@
           CurrCorrX = LoadState["Coor_" + i].split(",").shift();
           CurrCorrY = LoadState["Coor_" + i].split(", ").pop();
           placeMarker(map, { lat: parseFloat(CurrCorrX, 10), lng: parseFloat(CurrCorrY, 10) }, LoadState["Capt_" + i]);
-          geocodeLatLng(geocoder, map, LoadState["Coor_" + i], LoadState["Capt_" + i]);
+          geocodeLatLng(geocoder, map, { lat: parseFloat(CurrCorrX, 10), lng: parseFloat(CurrCorrY, 10) }, LoadState["Capt_" + i]);
 
           }
           LoadState["Counter"] = decodeURIComponent(document.cookie).split("Counter=").pop();  
