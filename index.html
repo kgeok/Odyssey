@@ -103,10 +103,9 @@
           LoadState["Color_" + i] = LoadState["Color_" + i].split(";").shift();
           LoadState["Coor_" + i] = LoadState["Coor_" + i].replace("(", "");
           LoadState["Coor_" + i] = LoadState["Coor_" + i].replace(")", "");
-          PinColor = LoadState["Color_" + i]
           CurrCorrX = LoadState["Coor_" + i].split(",").shift();
           CurrCorrY = LoadState["Coor_" + i].split(", ").pop();
-          placeMarker(map, { lat: parseFloat(CurrCorrX, 10), lng: parseFloat(CurrCorrY, 10) }, LoadState["Capt_" + i]);
+          placeMarker(map, { lat: parseFloat(CurrCorrX, 10), lng: parseFloat(CurrCorrY, 10) }, LoadState["Capt_" + i], LoadState["Color_" + i]);
 
           }
           LoadState["Counter"] = decodeURIComponent(document.cookie).split("Counter=").pop();  
@@ -141,7 +140,7 @@
 
           map.addListener("click", (e) => {
 
-            placeMarker(map, e.latLng, caption);
+            placeMarker(map, e.latLng, caption, PinColor);
             document.cookie = "PinCoor_" + MarkerCounter +"=" + e.latLng + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
             document.cookie = "PinCapt_" + MarkerCounter +"=" + caption + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
             document.cookie = "PinColor_" + MarkerCounter +"=" + PinColor + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
@@ -203,7 +202,7 @@
         }
         }
 
-        function placeMarker(map, coor, title){
+        function placeMarker(map, coor, title, color){
           const geocoder = new google.maps.Geocoder();
          //Using PinNum instead of MarkerCounter because of an unknown error in console otherwise
          state[PinNum] = coor;
@@ -220,7 +219,7 @@
           labelClass: "label",
           icon: {
             path: "M123 1039 c-44 -22 -83 -82 -83 -129 0 -46 39 -108 80 -127 l39 -18 1 -292 0 -293 -30 0 -30 0 42 -85 c23 -47 45 -85 48 -85 3 0 25 38 48 85 l42 85 -30 0 -30 0 0 289 0 290 40 22 c42 24 80 85 80 129 0 44 -38 105 -79 128 -48 27 -84 28 -138 1z",
-            fillColor: PinColor,
+            fillColor: color,
             fillOpacity: 0.6,
             strokeWeight: 1,
             rotation: 180,
@@ -231,16 +230,16 @@
 
         });
 
-        geocodeLatLng(geocoder, map, coor, title);
+        geocodeLatLng(geocoder, map, coor, title, color);
 
-        function geocodeLatLng(geocoder, map, coor, caption) {
+        function geocodeLatLng(geocoder, map, coor, caption, color) {
           geocoder
             .geocode({ location: coor })
             .then((response) => {
               if (response.results[0]) {
                 console.log(response.results[0].formatted_address);
                 GeocoderBuffer = response.results[0].formatted_address;
-                appendJournal(caption, GeocoderBuffer, PinColor);
+                appendJournal(caption, GeocoderBuffer, color);
                 
               } else {
                 console.log("No results found");
