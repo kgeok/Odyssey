@@ -524,7 +524,7 @@ button:active {
       filter: contrast(0.8);
       align-items: center;
       flex-direction: column;
-      overflow: scroll;
+      overflow: hidden;
       text-shadow: 0 0 1px black, 0 0 1px black, 0 0 1px black, 0 0 1px black; 
       
   
