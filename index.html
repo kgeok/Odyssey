@@ -172,7 +172,9 @@
           document.cookie = "Counter=" + MarkerCounter + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
           
           }
-
+          for (let i = 0; i < markers.length; i++) {
+          document.getElementById("journalEntry").remove();
+          }
           //reset vars
           markers = [];
           MarkerCounter = 0;
