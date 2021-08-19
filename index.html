@@ -234,14 +234,8 @@
         geocodeLatLng(geocoder, map, coor, title);
 
         function geocodeLatLng(geocoder, map, coor, caption) {
-          const input = String(coor.lat() + ", " +  coor.lng());
-          const latlngStr = input.split(",", 2);
-          const latlng = {
-            lat: parseFloat(latlngStr[0]),
-            lng: parseFloat(latlngStr[1]),
-          };
           geocoder
-            .geocode({ location: latlng })
+            .geocode({ location: coor })
             .then((response) => {
               if (response.results[0]) {
                 console.log(response.results[0].formatted_address);
