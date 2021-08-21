@@ -189,8 +189,6 @@ body {
 
   }
 
-
-
   #menu {
     
     width: 40vw;
@@ -198,6 +196,8 @@ body {
     background-color: #006994;
     z-index: 100000;
     display: none;
+    overflow-y: scroll;
+    overflow-x: hidden;
     justify-content: center;
      line-height: 20px;
      font-weight: bold;
