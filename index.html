@@ -301,8 +301,8 @@
 
         let lineBreak = document.createElement('br');
           lineBreak.id = "br";
-          document.body.appendChild(lineBreak);
           document.getElementById("menu-item").insertAdjacentElement("afterend", journalEntry);
+          document.getElementById("journalEntry").insertAdjacentElement("afterend", lineBreak);
           }
 
         function exportJSONFile(){
