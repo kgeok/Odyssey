@@ -81,6 +81,7 @@ body {
      top: 0;
      left: 0;
      border-radius: 0px 5px 5px 0px;
+     overflow: hidden;
      animation: fadeinout 4s linear forwards;
    
    }
@@ -108,6 +109,7 @@ body {
        left: 0;
        border-radius: 0px 5px 5px 0px;
        animation: fadeinout 4s linear forwards;
+       overflow: hidden;
      
      }
 
@@ -156,9 +158,6 @@ body {
   
   }
 
- 
-
-
   a {
 
     color: rgb(255, 255, 255);
@@ -190,8 +189,6 @@ body {
 
   }
 
-
-
   #menu {
     
     width: 40vw;
@@ -199,6 +196,8 @@ body {
     background-color: #006994;
     z-index: 100000;
     display: none;
+    overflow-y: scroll;
+    overflow-x: hidden;
     justify-content: center;
      line-height: 20px;
      font-weight: bold;
@@ -511,6 +510,10 @@ button:active {
       margin-bottom: 1px;
       font-weight: bolder;
       animation: fadeIn ease 0.25s; 
+      -webkit-animation: fadeIn ease 0.25s;
+      -moz-animation: fadeIn ease 0.25s;
+      -o-animation: fadeIn ease 0.25s;
+      -ms-animation: fadeIn ease 0.25s;    
       padding: 5px;
       box-shadow: 0 1px 2px rgb(0 0 0 / 30%);
       display: inline-flex;
@@ -518,6 +521,7 @@ button:active {
       filter: contrast(0.8);
       align-items: center;
       flex-direction: column;
+      overflow: hidden;
       text-shadow: 0 0 1px black, 0 0 1px black, 0 0 1px black, 0 0 1px black; 
       
   
@@ -535,5 +539,6 @@ button:active {
       transform: translate(-50%, -50%);
       -webkit-appearance: none;
       -moz-appearance: none;
+      overflow: hidden;
 
     }

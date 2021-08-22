@@ -35,8 +35,6 @@
            </div>
         </nav>
 
-
-
       <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
 
         <script type="text/javascript">
@@ -53,6 +51,7 @@
         var LoadState = new Object();
         var CurrCorrX;
         var CurrCorrX;
+        var GeocoderBuffer;
 
         let download_btn = document.createElement('div');
           download_btn.id = 'download_btn';
@@ -93,7 +92,7 @@
 
         //Parsing document.cookie, cleaning it up into LoadState and placing markers on start
         window.onload= function(){
-
+          const geocoder = new google.maps.Geocoder();
           for (i = 0; i < document.cookie.split("Coor").length-1; i++){
 
           LoadState["Coor_" + i] = decodeURIComponent(document.cookie).split("PinCoor_" + i +"=").pop();  
@@ -104,11 +103,9 @@
           LoadState["Color_" + i] = LoadState["Color_" + i].split(";").shift();
           LoadState["Coor_" + i] = LoadState["Coor_" + i].replace("(", "");
           LoadState["Coor_" + i] = LoadState["Coor_" + i].replace(")", "");
-          PinColor = LoadState["Color_" + i]
           CurrCorrX = LoadState["Coor_" + i].split(",").shift();
           CurrCorrY = LoadState["Coor_" + i].split(", ").pop();
-          placeMarker(map, { lat: parseFloat(CurrCorrX, 10), lng: parseFloat(CurrCorrY, 10) }, LoadState["Capt_" + i]);
-          appendJournal(LoadState["Capt_" + i], parseFloat(CurrCorrX, 10) + ", " + parseFloat(CurrCorrY, 10), PinColor);
+          placeMarker(map, { lat: parseFloat(CurrCorrX, 10), lng: parseFloat(CurrCorrY, 10) }, LoadState["Capt_" + i], LoadState["Color_" + i]);
 
           }
           LoadState["Counter"] = decodeURIComponent(document.cookie).split("Counter=").pop();  
@@ -122,10 +119,10 @@
 
         }
 
-
         //initializing map
         //Coords used are center of US, disabled StreetView for billing purposes
         function initMap() {
+          const geocoder = new google.maps.Geocoder();
           map = new google.maps.Map(document.getElementById("map"), {
             center: { lat: 41.850033, lng: -87.6500523 },
             streetViewControl: false,
@@ -143,12 +140,11 @@
 
           map.addListener("click", (e) => {
 
-            placeMarker(map, e.latLng, caption);
+            placeMarker(map, e.latLng, caption, PinColor);
             document.cookie = "PinCoor_" + MarkerCounter +"=" + e.latLng + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
             document.cookie = "PinCapt_" + MarkerCounter +"=" + caption + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
             document.cookie = "PinColor_" + MarkerCounter +"=" + PinColor + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
             document.cookie = "Counter=" + MarkerCounter + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
-            appendJournal(caption, e.latLng, PinColor);
 
             MarkerCounter++;
             caption = "";
@@ -167,6 +163,7 @@
         function removeMarker(){
 
           for (let i = 0; i < markers.length; i++) {
+          
           markers[i].setMap(null);
           //parsing new document.cookie values
           document.cookie = "PinCoor_" + i + "=" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
@@ -175,12 +172,17 @@
           document.cookie = "Counter=" + MarkerCounter + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
           
           }
+          for (let i = 0; i < markers.length; i++) {
+          document.getElementById("journalEntry").remove();
+          }
           //reset vars
           markers = [];
           MarkerCounter = 0;
           state = "";
           console.clear();
         }
+        //Currently broken trying to parse the string PLS fix
+
 
         function removeLastMarker(){
         markers[Math.abs(MarkerCounter-1)].setMap(null);
@@ -200,10 +202,10 @@
         if (MarkerCounter < 0){
           removeMarker();
         }
-  
         }
 
-        function placeMarker(map, coor, title){
+        function placeMarker(map, coor, title, color){
+          const geocoder = new google.maps.Geocoder();
          //Using PinNum instead of MarkerCounter because of an unknown error in console otherwise
          state[PinNum] = coor;
          PinNum++;
@@ -219,7 +221,7 @@
           labelClass: "label",
           icon: {
             path: "M123 1039 c-44 -22 -83 -82 -83 -129 0 -46 39 -108 80 -127 l39 -18 1 -292 0 -293 -30 0 -30 0 42 -85 c23 -47 45 -85 48 -85 3 0 25 38 48 85 l42 85 -30 0 -30 0 0 289 0 290 40 22 c42 24 80 85 80 129 0 44 -38 105 -79 128 -48 27 -84 28 -138 1z",
-            fillColor: PinColor,
+            fillColor: color,
             fillOpacity: 0.6,
             strokeWeight: 1,
             rotation: 180,
@@ -229,6 +231,25 @@
           }
 
         });
+
+        geocodeLatLng(geocoder, map, coor, title, color);
+
+        function geocodeLatLng(geocoder, map, coor, caption, color) {
+          geocoder
+            .geocode({ location: coor })
+            .then((response) => {
+              if (response.results[0]) {
+                console.log(response.results[0].formatted_address);
+                GeocoderBuffer = response.results[0].formatted_address;
+                appendJournal(caption, GeocoderBuffer, color);
+                
+              } else {
+                console.log("No results found");
+              }
+            })
+            .catch((e) => console.log("Geocoder failed due to: " + e));
+
+        }
 
         var InfoWindow = new google.maps.InfoWindow({
             content: "<div class = 'label'>" + title + "</div>",
@@ -244,7 +265,6 @@
         
         markers.push(marker);
         state = markers;
-
 
         }
 
@@ -262,7 +282,6 @@
           }
         }
 
-
         function About(){
 
           prompt("Odyssey, Version " + version + ", With <3 by Kevin George.\n" + "Powered by Google Maps.\n", "http://kgeok.github.io")
@@ -279,15 +298,12 @@
           journalEntry.id = 'journalEntry';
           journalEntry.style.backgroundColor = color;
           journalEntry.innerHTML = caption + "<br/>" + location + "<br/>" + dateNow;
-          
-
 
         let lineBreak = document.createElement('br');
-        lineBreak.id = "br";
-        document.body.appendChild(lineBreak);
-        document.getElementById("menu-item").insertAdjacentElement("afterend", journalEntry);
-        document.body.appendChild(lineBreak);
-        }
+          lineBreak.id = "br";
+          document.getElementById("menu-item").insertAdjacentElement("afterend", journalEntry);
+          document.getElementById("journalEntry").insertAdjacentElement("afterend", lineBreak);
+          }
 
         function exportJSONFile(){
 
@@ -303,7 +319,6 @@
 
         }
 
-
         function makeCaption(){
          caption = prompt("Caption");
          //Fix for 'null'
@@ -312,9 +327,17 @@
          }
         }
         </script>
-        
-<div id="map"></div>
+ 
+<div id="map"></div> 
+
+<!--
 
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSHRuDqzWL6x42T7WYs9KybTz6BMYY_0g&callback=initMap&libraries=&v=weekly" async></script>
+-->
 
+
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD0KUvgW3e3ts3WkIob9RBzjGP6RvU7FeQ&callback=initMap&libraries=&v=weekly" async>
+
+</script>
 </section>
