@@ -527,6 +527,18 @@ button:active {
   
   }
 
+  #splash-screen{
+
+    height: 100%;
+    width: 100%;
+    background-color: #00b7ff;
+    text-align: center;
+    display: none;
+    font-size: large;
+
+
+  }
+
     #footer {
 
       margin: 0 auto;
