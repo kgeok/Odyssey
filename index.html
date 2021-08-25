@@ -29,6 +29,7 @@
         <nav id="menu">
         <header>
         <div id ="menu-btn"><h3><span style="font-size: 35px;" onclick="mmenu()" class='material-icons md-36'>menu</span></h3></div>
+        <div id ="menu-btn"><h3><span style="font-size: 30px;" onclick="exportJSONFile()" class="material-icons md-36">download</span></h3></div>
         </header>
             <div id ="menu-content">
                 <div id="menu-item"><div id="tagline"><h2>Journal</h2></div></div><br/>
@@ -136,7 +137,6 @@
           map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(caption_btn);
           map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(deletelp_btn);
           map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(clear_btn);
-          map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(download_btn);
           map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(color_picker);
 
           map.addListener("click", (e) => {
