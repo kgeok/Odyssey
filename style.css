@@ -28,7 +28,7 @@ header {
 
 width: 100%;
 display: table;
-display: inline flex;
+
 
 }
 
@@ -109,6 +109,7 @@ body {
        left: 0;
        border-radius: 0px 5px 5px 0px;
        animation: fadeinout 4s linear forwards;
+       -webkit-animation: fadeinout 4s linear forwards;
        overflow: hidden;
      
      }
@@ -212,6 +213,7 @@ body {
      left: 0;
      border-radius: 0px 5px 5px 0px;
      animation: fadeinout 4s linear forwards;
+     -webkit-animation: fadeinout 4s linear forwards;
    
    }
 
@@ -238,6 +240,7 @@ body {
        left: 0;
        border-radius: 0px 5px 5px 0px;
        animation: fadeinout 4s linear forwards;
+       -webkit-animation: fadeinout 4s linear forwards;
      
      }
 
@@ -386,7 +389,7 @@ padding: 1px;
   position: relative;
   width: 100%;
   text-align: center;
-  margin-top: 5px;
+  margin-top: 1px;
 
   }
 
@@ -525,6 +528,18 @@ button:active {
       text-shadow: 0 0 1px black, 0 0 1px black, 0 0 1px black, 0 0 1px black; 
       
   
+  }
+
+  #splash-screen{
+
+    height: 100%;
+    width: 100%;
+    background-color: #00b7ff;
+    text-align: center;
+    display: none;
+    font-size: large;
+
+
   }
 
     #footer {

@@ -21,13 +21,15 @@
     <meta name="msapplication-TileColor" content="#2b5797">
     <meta name="msapplication-config" content="https://github.com/kgeok/Odyssey/raw/main/icons/browserconfig.xml">
     <body>
+      <div id="splash-screen">Odyssey</div>
       <header>
         <div id="menu-btn"><h3><span style="font-size: 35px;" onclick="mmenu()" class='material-icons md-36'>menu</span></h3></div>
         <div id="tagline"><h2 onclick="About()">Odyssey</h2></div>
         </header>
         <nav id="menu">
         <header>
-        <div id ="menu-btn"><h3><span style="font-size: 35px;" onclick="mmenu()" class='material-icons md-36'>menu</span></h3></div>
+        <div id ="menu-btn"><h3><span style="font-size: 35px;" onclick="mmenu()" class='material-icons md-36'>menu</span>
+        <span style="font-size: 35px;" onclick="exportJSONFile()" class="material-icons md-36">download</span></h3></div>
         </header>
             <div id ="menu-content">
                 <div id="menu-item"><div id="tagline"><h2>Journal</h2></div></div><br/>
@@ -39,8 +41,8 @@
 
         <script type="text/javascript">
 
-        let release = "prod";
-        let version = "0.4";
+        let release = "Odyssey";
+        let version = "0.5";
         let map;
         let markers = [];
         var PinColor = "#ff0000";
@@ -135,7 +137,6 @@
           map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(caption_btn);
           map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(deletelp_btn);
           map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(clear_btn);
-          map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(download_btn);
           map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(color_picker);
 
           map.addListener("click", (e) => {
@@ -181,7 +182,7 @@
           state = "";
           console.clear();
         }
-        //Currently broken trying to parse the string PLS fix
+
 
 
         function removeLastMarker(){
@@ -281,6 +282,15 @@
             document.getElementById("menu").style.display = "none";
           }
         }
+
+      function splash(){
+   
+      if (document.getElementById("menu").style.display == "none"){
+      document.getElementById("menu").style.display = "block";
+        } else {
+       document.getElementById("menu").style.display = "none";
+       }
+      }
 
         function About(){
 
