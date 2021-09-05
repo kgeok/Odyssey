@@ -9,7 +9,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Icons+Outlined" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="style.css" media="screen">
     <link rel="apple-touch-icon" sizes="180x180" href="https://github.com/kgeok/Odyssey/raw/main/icons/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="https://github.com/kgeok/Odyssey/raw/main/icons/favicon-32x32.png">
@@ -38,11 +39,6 @@ let release = "prod";
         var LoadState = new Object();
         var CurrCorrX;
         var CurrCorrX;
-
-
-
-
-
 
 
 let sample_btn1 = document.createElement('div');
@@ -83,35 +79,37 @@ let sample_btn1 = document.createElement('div');
           sample_btn2.style.verticalAlign = "middle";
           sample_btn2.style.cursor = "pointer";
 
-
-
-
 let clear_btn = document.createElement('div');
           clear_btn.id = 'clear_btn';
           clear_btn.setAttribute('text', '');
           clear_btn.innerHTML = "<span class='material-icons md-36'>clear</span>";
           clear_btn.setAttribute('onclick', 'alert()');
           clear_btn.style.textAlign = "center";
-          clear_btn.style.padding = "20px 20px";
-          clear_btn.style.height = "30px";
-          clear_btn.style.width = "30px";
-          clear_btn.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
-          clear_btn.style.marginBottom = "5px";
-          clear_btn.style.marginRight = "5px";
-          clear_btn.style.opacity = "0.9";
-          clear_btn.style.borderRadius = "50%";
-          clear_btn.style.verticalAlign = "middle";
-          clear_btn.style.fontSize = "26px";
-          clear_btn.style.backgroundColor = "#006994";
-          clear_btn.style.color = "#FFFFFF";
-          clear_btn.style.fontFamily = "'Quicksand', sans-serif";
-          clear_btn.style.fontWeight = "bolder";
-          clear_btn.style.cursor = "pointer";
+          clear_btn.className = 'circlebtn';
+
+
+
+let fullscreenbtn = document.createElement('div');
+          fullscreenbtn.id = 'fullscreenbtn';
+          fullscreenbtn.innerHTML = '<span class="material-icons-outlined">fullscreen</span>';
+          fullscreenbtn.className = 'sqbtn';
+          fullscreenbtn.style.borderRadius = "2.5px";
+          fullscreenbtn.style.marginBottom = "10px";
+
 
 let zoom_control_in = document.createElement('div');
           zoom_control_in.id = 'zoom_control_in';
-          clear_btn.innerHTML = "<span class='material-icons md-36'>clear</span>";
-          zoom_control_in.className = 'zoombtn';
+          zoom_control_in.innerHTML = '<span class="material-icons-outlined">add</span>';
+          zoom_control_in.className = 'sqbtn';
+          zoom_control_in.style.borderRadius = "2.5px 2.5px 0px 0px";
+          zoom_control_in.setAttribute('onclick', 'map.setZoom(map.getZoom() + 1);');
+
+let zoom_control_out = document.createElement('div');
+          zoom_control_out.id = 'zoom_control_out';
+          zoom_control_out.innerHTML = '<span class="material-icons-outlined">remove</span>';
+          zoom_control_out.className = 'sqbtn';
+          zoom_control_out.style.borderRadius = "0px 0px 2.5px 2.5px";
+          zoom_control_out.setAttribute('onclick', 'map.setZoom(map.getZoom() - 1);');
 
 
 
@@ -121,9 +119,7 @@ function initMap() {
       streetViewControl: false,
       rotateControl: true,
       zoom: 4,
-      zoomControlOptions: {
-      position: google.maps.ControlPosition.RIGHT_TOP,
-    },
+      scaleControl: false,
     });
 
 
@@ -131,7 +127,10 @@ function initMap() {
     map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(clear_btn);
     map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(sample_btn2);
     map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(sample_btn1);
-    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(zoom_control_in);
+    map.controls[google.maps.ControlPosition.RIGHT_TOP].push(fullscreenbtn);
+    map.controls[google.maps.ControlPosition.RIGHT_TOP].push(zoom_control_in);
+    map.controls[google.maps.ControlPosition.RIGHT_TOP].push(zoom_control_out);
+
 
     initZoomControl(map);
   initMapTypeControl(map);
@@ -185,16 +184,6 @@ function initMap() {
 
  //Beginning of custom controls
 
-function initZoomControl(map) {
-  document.getElementById("zoom_control_in").onclick = function () {
-    map.setZoom(map.getZoom() + 1);
-  };
-
-  document.querySelector("zoom-control-out").onclick = function () {
-    map.setZoom(map.getZoom() - 1);
-  };
-  
-}
 
 function initMapTypeControl(map) {
   const mapTypeControlDiv = document.querySelector(".maptype-control");
