@@ -10,7 +10,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Icons+Outlined" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="style.css" media="screen">
     <link rel="apple-touch-icon" sizes="180x180" href="https://github.com/kgeok/Odyssey/raw/main/icons/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="https://github.com/kgeok/Odyssey/raw/main/icons/favicon-32x32.png">
@@ -23,12 +24,12 @@
     <body>
       <div id="splash-screen">Odyssey</div>
       <header>
-        <div id="menu-btn"><h3><span style="font-size: 35px;" onclick="mmenu()" class='material-icons md-36'>menu</span></h3></div>
+        <div id="menu-btn"><h3><span style="font-size: 35px;" onclick="ToggleMenu()" class='material-icons md-36'>menu</span></h3></div>
         <div id="tagline"><h2 onclick="About()">Odyssey</h2></div>
         </header>
         <nav id="menu">
         <header>
-        <div id ="menu-btn"><h3><span style="font-size: 35px;" onclick="mmenu()" class='material-icons md-36'>menu</span>
+        <div id ="menu-btn"><h3><span style="font-size: 35px;" onclick="ToggleMenu()" class='material-icons md-36'>menu</span>
         <span style="font-size: 35px;" onclick="exportJSONFile()" class="material-icons md-36">download</span></h3></div>
         </header>
             <div id ="menu-content">
@@ -91,6 +92,39 @@
           caption_btn.setAttribute('class', 'circlebtn');
           caption_btn.setAttribute('alt', 'Caption Pin');
 
+          let zoom_control_in = document.createElement('div');
+          zoom_control_in.id = 'zoom_control_in';
+          zoom_control_in.innerHTML = '<span class="material-icons-outlined">add</span>';
+          zoom_control_in.className = 'sqbtn';
+          zoom_control_in.style.borderRadius = "2.5px 2.5px 0px 0px";
+          zoom_control_in.style.marginTop = "10px";
+          zoom_control_in.setAttribute('onclick', 'map.setZoom(map.getZoom() + 1);');
+
+        let zoom_control_out = document.createElement('div');
+                  zoom_control_out.id = 'zoom_control_out';
+                  zoom_control_out.innerHTML = '<span class="material-icons-outlined">remove</span>';
+                  zoom_control_out.className = 'sqbtn';
+                  zoom_control_out.style.borderRadius = "0px 0px 2.5px 2.5px";
+                  zoom_control_out.setAttribute('onclick', 'map.setZoom(map.getZoom() - 1);');
+
+        let map_type_control = document.createElement('div');
+                  map_type_control.id = 'map_type_control';
+                  map_type_control.innerHTML = '<span class="material-icons-outlined">map</span>';
+                  map_type_control.setAttribute('onclick', 'ToggleMapView()');
+                  map_type_control.className = 'rectbtn';
+                  map_type_control.style.borderRadius = "2.5px";
+                  map_type_control.style.marginTop = "10px";
+                  map_type_control.style.marginLeft = "10px";
+
+        let map_type_options = document.createElement('div');
+                  map_type_options.id = 'mts';
+                  map_type_options.innerHTML = '<span class="material-icons-outlined">layers</span>';
+                  map_type_options.setAttribute('onclick', 'ToggleMapOptions()');
+                  map_type_options.className = 'rectbtn';
+                  map_type_options.style.borderRadius = "2.5px";
+                  map_type_options.style.marginTop = "10px";
+                  map_type_options.style.marginLeft = "10px";
+
 
         //Parsing document.cookie, cleaning it up into LoadState and placing markers on start
         window.onload= function(){
@@ -128,16 +162,21 @@
           map = new google.maps.Map(document.getElementById("map"), {
             center: { lat: 41.850033, lng: -87.6500523 },
             streetViewControl: false,
+            rotateControl: true,
             zoom: 4,
-            zoomControlOptions: {
-            position: google.maps.ControlPosition.RIGHT_TOP,
-          },
+            disableDefaultUI: true,
           });
 
+
+          map.controls[google.maps.ControlPosition.LEFT_TOP].push(map_type_control);
+          map.controls[google.maps.ControlPosition.LEFT_TOP].push(map_type_options);
           map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(caption_btn);
           map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(deletelp_btn);
           map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(clear_btn);
           map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(color_picker);
+          map.controls[google.maps.ControlPosition.RIGHT_TOP].push(zoom_control_in);
+          map.controls[google.maps.ControlPosition.RIGHT_TOP].push(zoom_control_out);
+
 
           map.addListener("click", (e) => {
 
@@ -274,7 +313,7 @@
           console.log(document.getElementById("color_picker").value);
           }
 
-        function mmenu(){
+        function ToggleMenu(){
    
         if (document.getElementById("menu").style.display == "none"){
         document.getElementById("menu").style.display = "block";
@@ -336,6 +375,56 @@
           caption = " ";
          }
         }
+
+        function ToggleMapView(){
+
+        switch (map.getMapTypeId()){
+
+          case 'roadmap':
+          map.setMapTypeId('hybrid');
+          break;
+
+          case 'hybrid':
+          map.setMapTypeId('roadmap');
+          break;
+
+          case 'terrain':
+          map.setMapTypeId('hybrid');
+          break;
+
+          case 'satellite':
+          map.setMapTypeId('roadmap');
+          break;
+
+        }
+
+        }
+
+        function ToggleMapOptions(){
+
+        switch (map.getMapTypeId()){
+
+          case 'roadmap':
+          map.setMapTypeId('terrain');
+          break;
+
+          case 'satellite':
+          map.setMapTypeId('hybrid');
+          break;
+
+          case 'terrain':
+          map.setMapTypeId('roadmap');
+          break;
+
+          case 'hybrid':
+          map.setMapTypeId('satellite');
+          break;
+
+          }
+
+
+        }
+
         </script>
  
 <div id="map"></div> 
