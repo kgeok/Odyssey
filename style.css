@@ -205,6 +205,50 @@ body {
   
   }
 
+  .rectbtn {
+
+    text-align: center;
+    height: 40px;
+    width: 100px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.3);
+    margin-right: 10px;
+    opacity: 0.9;
+    vertical-align: middle;
+    font-size: 26px;
+    background-color: #006994;
+    color: #FFFFFF;
+    font-family: 'Quicksand', sans-serif;
+    font-family: bolder;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+  
+  }
+
+  .rectbtn:active {
+
+    text-align: center;
+    height: 40px;
+    width: 100px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.3);
+    margin-right: 10px;
+    opacity: 0.9;
+    vertical-align: middle;
+    font-size: 26px;
+    background-color: #00084A;
+    color: #FFFFFF;
+    font-family: 'Quicksand', sans-serif;
+    font-family: bolder;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+  
+  }
+
   a {
 
     color: rgb(255, 255, 255);
@@ -381,6 +425,50 @@ body {
   
   }
 
+  .rectbtn {
+
+    text-align: center;
+    height: 40px;
+    width: 100px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.3);
+    margin-right: 10px;
+    opacity: 0.9;
+    vertical-align: middle;
+    font-size: 26px;
+    background-color: #00084A;
+    color: #FFFFFF;
+    font-family: 'Quicksand', sans-serif;
+    font-family: bolder;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+  
+  }
+
+  .rectbtn:active {
+
+    text-align: center;
+    height: 40px;
+    width: 100px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.3);
+    margin-right: 10px;
+    opacity: 0.9;
+    vertical-align: middle;
+    font-size: 26px;
+    background-color: #006994;
+    color: #FFFFFF;
+    font-family: 'Quicksand', sans-serif;
+    font-family: bolder;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+  
+  }
+
 
   a {
 
@@ -493,6 +581,7 @@ padding: 1px;
     margin-left: 10px;
     margin-right: 10px;
     cursor: pointer;
+    user-select: none;
 
   }
 
@@ -621,7 +710,7 @@ button:active {
   
   }
 
-  #splash-screen{
+  #splash-screen {
 
     height: 100%;
     width: 100%;

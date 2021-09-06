@@ -47,37 +47,8 @@ let sample_btn1 = document.createElement('div');
           sample_btn1.innerHTML = "<svg height='15' width='15'><path fill-rule='evenodd' fill='#FFFFFF' d='M403 163.75 431.5 163.75 431.5 154 451 173.5 431.5 193 431.5 183.25 403 183.25Z' /></svg>";
           sample_btn1.setAttribute('onclick', 'alert()');
           sample_btn1.style.textAlign = "center";
-          sample_btn1.style.padding = "20px 20px";
-          sample_btn1.style.height = "30px";
-          sample_btn1.style.width = "30px";
-          sample_btn1.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
-          sample_btn1.style.marginBottom = "5px";
-          sample_btn1.style.marginRight = "5px";
-          sample_btn1.style.opacity = "0.9";
-          sample_btn1.style.borderRadius = "50%";
-          sample_btn1.style.verticalAlign = "middle";
-          sample_btn1.style.fontSize = "26px";
-          sample_btn1.style.backgroundColor = "#006994";
-          sample_btn1.style.color = "#FFFFFF";
-          sample_btn1.style.fontFamily = "'Quicksand', sans-serif";
-          sample_btn1.style.fontWeight = "bolder";
-          sample_btn1.style.cursor = "pointer";
-
-          let sample_btn2 = document.createElement('input');
-          sample_btn2.id = 'sample_btn2';
-          sample_btn2.setAttribute('type', 'color');
-          sample_btn2.setAttribute('onchange', 'changePinColor()');
-          sample_btn2.style.textAlign = "center";
-          sample_btn2.style.padding = "20px 20px";
-          sample_btn2.style.height = "70px";
-          sample_btn2.style.width = "70px";
-          sample_btn2.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
-          sample_btn2.style.marginBottom = "5px";
-          sample_btn2.style.marginRight = "5px";
-          sample_btn2.style.opacity = "0.9";
-          sample_btn2.style.borderRadius = "50%";
-          sample_btn2.style.verticalAlign = "middle";
-          sample_btn2.style.cursor = "pointer";
+          sample_btn1.className = 'circlebtn';
+        
 
 let clear_btn = document.createElement('div');
           clear_btn.id = 'clear_btn';
@@ -87,21 +58,14 @@ let clear_btn = document.createElement('div');
           clear_btn.style.textAlign = "center";
           clear_btn.className = 'circlebtn';
 
-
-
-let fullscreenbtn = document.createElement('div');
-          fullscreenbtn.id = 'fullscreenbtn';
-          fullscreenbtn.innerHTML = '<span class="material-icons-outlined">fullscreen</span>';
-          fullscreenbtn.className = 'sqbtn';
-          fullscreenbtn.style.borderRadius = "2.5px";
-          fullscreenbtn.style.marginBottom = "10px";
-
+//copy this
 
 let zoom_control_in = document.createElement('div');
           zoom_control_in.id = 'zoom_control_in';
           zoom_control_in.innerHTML = '<span class="material-icons-outlined">add</span>';
           zoom_control_in.className = 'sqbtn';
           zoom_control_in.style.borderRadius = "2.5px 2.5px 0px 0px";
+          zoom_control_in.style.marginTop = "10px";
           zoom_control_in.setAttribute('onclick', 'map.setZoom(map.getZoom() + 1);');
 
 let zoom_control_out = document.createElement('div');
@@ -111,6 +75,24 @@ let zoom_control_out = document.createElement('div');
           zoom_control_out.style.borderRadius = "0px 0px 2.5px 2.5px";
           zoom_control_out.setAttribute('onclick', 'map.setZoom(map.getZoom() - 1);');
 
+let map_type_control = document.createElement('div');
+          map_type_control.id = 'mtc';
+          map_type_control.innerHTML = '<span class="material-icons-outlined">map</span>';
+          map_type_control.className = 'rectbtn';
+          map_type_control.style.borderRadius = "2.5px 0px 0px 2.5px";
+          map_type_control.style.marginTop = "10px";
+          map_type_control.style.marginLeft = "10px";
+
+let map_type_sat = document.createElement('div');
+          map_type_sat.id = 'mts';
+          map_type_sat.innerHTML = '<span class="material-icons-outlined">layers</span>';
+          map_type_sat.className = 'rectbtn';
+          map_type_sat.style.borderRadius = "2.5px 0px 0px 2.5px";
+          map_type_sat.style.marginTop = "10px";
+          map_type_sat.style.marginLeft = "10px";
+
+
+
 
 
 function initMap() {
@@ -119,22 +101,21 @@ function initMap() {
       streetViewControl: false,
       rotateControl: true,
       zoom: 4,
-      scaleControl: false,
+      disableDefaultUI: true,
     });
 
 
     
     map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(clear_btn);
-    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(sample_btn2);
     map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(sample_btn1);
-    map.controls[google.maps.ControlPosition.RIGHT_TOP].push(fullscreenbtn);
     map.controls[google.maps.ControlPosition.RIGHT_TOP].push(zoom_control_in);
     map.controls[google.maps.ControlPosition.RIGHT_TOP].push(zoom_control_out);
+    map.controls[google.maps.ControlPosition.LEFT_TOP].push(map_type_control);
+    map.controls[google.maps.ControlPosition.LEFT_TOP].push(map_type_sat);
+    
 
-
-    initZoomControl(map);
   initMapTypeControl(map);
-  initFullscreenControl(map);
+
 
     map.addListener("click", (e) => {
 
@@ -202,64 +183,6 @@ function initMapTypeControl(map) {
   map.controls[google.maps.ControlPosition.LEFT_TOP].push(mapTypeControlDiv);
 }
 
-function initFullscreenControl(map) {
-  const elementToSendFullscreen = map.getDiv().firstChild;
-  const fullscreenControl = document.querySelector(".fullscreen-control");
-  map.controls[google.maps.ControlPosition.RIGHT_TOP].push(fullscreenControl);
-
-  fullscreenControl.onclick = function () {
-    if (isFullscreen(elementToSendFullscreen)) {
-      exitFullscreen();
-    } else {
-      requestFullscreen(elementToSendFullscreen);
-    }
-  };
-
-  document.onwebkitfullscreenchange =
-    document.onmsfullscreenchange =
-    document.onmozfullscreenchange =
-    document.onfullscreenchange =
-      function () {
-        if (isFullscreen(elementToSendFullscreen)) {
-          fullscreenControl.classList.add("is-fullscreen");
-        } else {
-          fullscreenControl.classList.remove("is-fullscreen");
-        }
-      };
-}
-
-function isFullscreen(element) {
-  return (
-    (document.fullscreenElement ||
-      document.webkitFullscreenElement ||
-      document.mozFullScreenElement ||
-      document.msFullscreenElement) == element
-  );
-}
-
-function requestFullscreen(element) {
-  if (element.requestFullscreen) {
-    element.requestFullscreen();
-  } else if (element.webkitRequestFullScreen) {
-    element.webkitRequestFullScreen();
-  } else if (element.mozRequestFullScreen) {
-    element.mozRequestFullScreen();
-  } else if (element.msRequestFullScreen) {
-    element.msRequestFullScreen();
-  }
-}
-
-function exitFullscreen() {
-  if (document.exitFullscreen) {
-    document.exitFullscreen();
-  } else if (document.webkitExitFullscreen) {
-    document.webkitExitFullscreen();
-  } else if (document.mozCancelFullScreen) {
-    document.mozCancelFullScreen();
-  } else if (document.msExitFullscreen) {
-    document.msExitFullscreen();
-  }
-}
 
 //End of custom controls     
 
