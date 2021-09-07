@@ -164,8 +164,8 @@ body {
   .sqbtn {
 
     text-align: center;
-    height: 40px;
-    width: 40px;
+    height: 50px;
+    width: 50px;
     box-shadow: 0 2px 6px rgba(0,0,0,.3);
     margin-right: 10px;
     opacity: 0.9;
@@ -186,8 +186,8 @@ body {
   .sqbtn:active {
 
     text-align: center;
-    height: 40px;
-    width: 40px;
+    height: 50px;
+    width: 50px;
     box-shadow: 0 2px 6px rgba(0,0,0,.3);
     margin-right: 10px;
     opacity: 0.9;
@@ -208,8 +208,8 @@ body {
   .rectbtn {
 
     text-align: center;
-    height: 40px;
-    width: 100px;
+    height: 50px;
+    width: 50px;
     box-shadow: 0 2px 6px rgba(0,0,0,.3);
     margin-right: 10px;
     opacity: 0.9;
@@ -230,8 +230,8 @@ body {
   .rectbtn:active {
 
     text-align: center;
-    height: 40px;
-    width: 100px;
+    height: 50px;
+    width: 50px;
     box-shadow: 0 2px 6px rgba(0,0,0,.3);
     margin-right: 10px;
     opacity: 0.9;
@@ -384,8 +384,8 @@ body {
   .sqbtn {
 
     text-align: center;
-    height: 40px;
-    width: 40px;
+    height: 50px;
+    width: 50px;
     box-shadow: 0 2px 6px rgba(0,0,0,.3);
     margin-right: 10px;
     opacity: 0.9;
@@ -406,8 +406,8 @@ body {
   .sqbtn:active {
 
     text-align: center;
-    height: 40px;
-    width: 40px;
+    height: 50px;
+    width: 50px;
     box-shadow: 0 2px 6px rgba(0,0,0,.3);
     margin-right: 10px;
     opacity: 0.9;
@@ -428,8 +428,8 @@ body {
   .rectbtn {
 
     text-align: center;
-    height: 40px;
-    width: 100px;
+    height: 50px;
+    width: 50px;
     box-shadow: 0 2px 6px rgba(0,0,0,.3);
     margin-right: 10px;
     opacity: 0.9;
@@ -450,8 +450,8 @@ body {
   .rectbtn:active {
 
     text-align: center;
-    height: 40px;
-    width: 100px;
+    height: 50px;
+    width: 50px;
     box-shadow: 0 2px 6px rgba(0,0,0,.3);
     margin-right: 10px;
     opacity: 0.9;
