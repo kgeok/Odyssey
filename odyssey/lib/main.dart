@@ -56,7 +56,9 @@ class _MyAppState extends State<MyApp> {
             padding: EdgeInsets.zero,
             children: [
               DrawerHeader(
+                
                 decoration: BoxDecoration(
+        
                   color: Colors.blue,
                 ),
                 child: Text(
