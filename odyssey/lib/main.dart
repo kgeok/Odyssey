@@ -16,6 +16,22 @@ class MyApp extends StatefulWidget {
   _MyAppState createState() => _MyAppState();
 }
 
+Map<int, Color> color = {
+  50: Color.fromRGBO(0, 105, 148, .6),
+  100: Color.fromRGBO(0, 105, 148, .7),
+  200: Color.fromRGBO(0, 105, 148, .8),
+  300: Color.fromRGBO(0, 105, 148, .9),
+  400: Color.fromRGBO(0, 105, 148, 1),
+  500: Color.fromRGBO(0, 8, 74, .6),
+  600: Color.fromRGBO(0, 8, 74, .7),
+  700: Color.fromRGBO(0, 8, 74, .8),
+  800: Color.fromRGBO(0, 8, 74, .9),
+  900: Color.fromRGBO(0, 8, 74, 1),
+};
+
+MaterialColor lightMode = MaterialColor(0xff006694, color);
+MaterialColor darkMode = MaterialColor(0xff00084a, color);
+
 class _MyAppState extends State<MyApp> {
   late GoogleMapController mapController;
 
@@ -23,18 +39,74 @@ class _MyAppState extends State<MyApp> {
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
+
+    Positioned(
+      top: 300,
+      left: 5,
+      child: Card(
+        elevation: 2,
+        child: Container(
+          color: Colors.blue,
+          width: 40,
+          height: 100,
+          child: Column(
+            children: <Widget>[
+              IconButton(
+                  icon: Icon(Icons.add),
+                  onPressed: () async {
+                    var currentZoomLevel = await controller.getZoomLevel();
+
+                    currentZoomLevel = currentZoomLevel + 2;
+                    controller.animateCamera(
+                      CameraUpdate.newCameraPosition(
+                        CameraPosition(
+                          target: _center,
+                          zoom: currentZoomLevel,
+                        ),
+                      ),
+                    );
+                  }),
+              SizedBox(height: 2),
+              IconButton(
+                  icon: Icon(Icons.remove),
+                  onPressed: () async {
+                    var currentZoomLevel = await controller.getZoomLevel();
+                    currentZoomLevel = currentZoomLevel - 2;
+                    if (currentZoomLevel < 0) currentZoomLevel = 0;
+                    controller.animateCamera(
+                      CameraUpdate.newCameraPosition(
+                        CameraPosition(
+                          target: _center,
+                          zoom: currentZoomLevel,
+                        ),
+                      ),
+                    );
+                  }),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(
-        brightness: Brightness.light,
-        primarySwatch: Colors.blue,
+        primarySwatch: lightMode,
+        fontFamily: 'Quicksand',
+        canvasColor: darkMode,
+        textTheme: TextTheme(
+            bodyText1: TextStyle(color: Colors.white),
+            bodyText2: TextStyle(color: Colors.white)),
       ),
       darkTheme: ThemeData(
-        brightness: Brightness.dark,
-        primarySwatch: Colors.blue,
+        primarySwatch: darkMode,
+        fontFamily: 'Quicksand',
+        canvasColor: lightMode,
+        textTheme: TextTheme(
+            bodyText1: TextStyle(color: Colors.white),
+            bodyText2: TextStyle(color: Colors.white)),
       ),
       home: Scaffold(
         appBar: AppBar(
@@ -56,11 +128,7 @@ class _MyAppState extends State<MyApp> {
             padding: EdgeInsets.zero,
             children: [
               DrawerHeader(
-                
-                decoration: BoxDecoration(
-        
-                  color: Colors.blue,
-                ),
+                decoration: BoxDecoration(),
                 child: Text(
                   'Journal',
                   style: GoogleFonts.quicksand(
@@ -79,19 +147,17 @@ class _MyAppState extends State<MyApp> {
         ),
         body: GoogleMap(
           onMapCreated: _onMapCreated,
+          myLocationButtonEnabled: false,
           initialCameraPosition: CameraPosition(
             target: _center,
             zoom: 4.0,
           ),
         ),
-        floatingActionButton: FloatingActionButton.extended(
+        floatingActionButton: FloatingActionButton(
           onPressed: () {
             // Add your onPressed code here!
           },
-          icon: const Icon(Icons.push_pin),
-          label: Text('Actions',
-              style: GoogleFonts.quicksand(fontWeight: FontWeight.w700)),
-          backgroundColor: Colors.blue[600],
+          child: const Icon(Icons.push_pin),
         ),
       ),
       debugShowCheckedModeBanner: false,
