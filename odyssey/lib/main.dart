@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors
+// ignore_for_file: prefer_const_constructors, unused_element, avoid_print, prefer_typing_uninitialized_variables
 
 import 'package:flutter/material.dart';
 // ignore: unused_import
@@ -6,15 +6,15 @@ import 'dart:async';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+void main() => runApp(MaterialApp(home: MyApp()));
 
 class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
   @override
   _MyAppState createState() => _MyAppState();
 }
+
+double version = 0.7;
 
 Map<int, Color> color = {
   50: Color.fromRGBO(0, 105, 148, .6),
@@ -32,10 +32,75 @@ Map<int, Color> color = {
 MaterialColor lightMode = MaterialColor(0xff006694, color);
 MaterialColor darkMode = MaterialColor(0xff00084a, color);
 
+int markerCounter = 0;
+
 class _MyAppState extends State<MyApp> {
   late GoogleMapController mapController;
-
+  Set<Marker> _markers = {};
   final LatLng _center = const LatLng(41.850033, -87.6500523);
+
+  void _appendMarker(LatLng latLng) {
+    markerCounter++;
+    setState(() {
+      _markers.add(Marker(
+        // This marker id can be anything that uniquely identifies each marker.
+        markerId: MarkerId(markerCounter.toString()),
+        position: latLng,
+        infoWindow: InfoWindow(
+          title: "Test",
+        ),
+        icon: BitmapDescriptor.defaultMarker,
+      ));
+    });
+  }
+
+  void _clearMarkers() {
+    setState(() {
+      _markers = {};
+    });
+  }
+
+  void aboutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+            backgroundColor: lightMode,
+            title: Text("Odyssey",
+                style: GoogleFonts.quicksand(
+                    fontWeight: FontWeight.w700, color: Colors.white)),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  Text("Version " + version.toString(),
+                      style: GoogleFonts.quicksand(
+                          fontWeight: FontWeight.w600, color: Colors.white)),
+                  Text(''),
+                  Text('With 💖 by Kevin George',
+                      style: GoogleFonts.quicksand(
+                          fontWeight: FontWeight.w600, color: Colors.white)),
+                  Text(''),
+                  Text('http://kgeok.github.io/',
+                      style: GoogleFonts.quicksand(
+                          fontWeight: FontWeight.w600, color: Colors.white)),
+                  Text(''),
+                  Text('Powered by Google Maps, Material Design and Flutter.',
+                      style: GoogleFonts.quicksand(
+                          fontWeight: FontWeight.w600, color: Colors.white)),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Dismiss'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              )
+            ]);
+      },
+    );
+  }
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
@@ -92,6 +157,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: lightMode,
         fontFamily: 'Quicksand',
@@ -152,15 +218,23 @@ class _MyAppState extends State<MyApp> {
             target: _center,
             zoom: 4.0,
           ),
+          onTap: (LatLng latLng) {
+            print(latLng.latitude.toString());
+            print(latLng.longitude.toString());
+            _appendMarker(latLng);
+          },
+          onLongPress: (LatLng latLng) {
+            _clearMarkers();
+          },
+          markers: _markers,
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            // Add your onPressed code here!
+            aboutDialog(context);
           },
           child: const Icon(Icons.push_pin),
         ),
       ),
-      debugShowCheckedModeBanner: false,
     );
   }
 }
