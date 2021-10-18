@@ -1,12 +1,14 @@
-// ignore_for_file: prefer_const_constructors, unused_element, avoid_print, prefer_typing_uninitialized_variables
+// ignore_for_file: prefer_typing_uninitialized_variables, prefer_const_constructors, unused_import, avoid_print
 
 import 'package:flutter/material.dart';
-// ignore: unused_import
 import 'dart:async';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:odyssey/theme/custom_theme.dart';
+import 'package:geocoding/geocoding.dart';
 
-void main() => runApp(MaterialApp(home: MyApp()));
+void main() => runApp(const MaterialApp(home: MyApp()));
 
 class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -14,29 +16,32 @@ class MyApp extends StatefulWidget {
   _MyAppState createState() => _MyAppState();
 }
 
-double version = 0.7;
-var pincolor = "Color.Red";
-var caption = "";
+const double version = 0.7;
+const release = "Beta";
+Color pincolor = Color(0xffff0000);
+int pinCounter = 0;
+var caption = ""; //Null if not init'd
 var captionBuffer;
+var locationBuffer;
+var currentTheme;
+var pins = [];
+
+class PinData {
+  var pinid;
+  late var pincaption;
+  late Color pincolor;
+  late LatLng pincoor;
+  late var pinlocation;
+
+  PinData(
+      {this.pinid,
+      this.pincaption,
+      required this.pincolor,
+      required this.pincoor,
+      required this.pinlocation});
+}
+
 MapType mapType = MapType.normal;
-
-Map<int, Color> color = {
-  50: Color.fromRGBO(0, 105, 148, .6),
-  100: Color.fromRGBO(0, 105, 148, .7),
-  200: Color.fromRGBO(0, 105, 148, .8),
-  300: Color.fromRGBO(0, 105, 148, .9),
-  400: Color.fromRGBO(0, 105, 148, 1),
-  500: Color.fromRGBO(0, 8, 74, .6),
-  600: Color.fromRGBO(0, 8, 74, .7),
-  700: Color.fromRGBO(0, 8, 74, .8),
-  800: Color.fromRGBO(0, 8, 74, .9),
-  900: Color.fromRGBO(0, 8, 74, 1),
-};
-
-MaterialColor lightMode = MaterialColor(0xff006694, color);
-MaterialColor darkMode = MaterialColor(0xff00084a, color);
-
-int markerCounter = 0;
 
 class _MyAppState extends State<MyApp> {
   late GoogleMapController mapController;
@@ -44,31 +49,83 @@ class _MyAppState extends State<MyApp> {
   final LatLng _center = const LatLng(41.850033, -87.6500523);
 
   void appendMarker(LatLng latLng) {
-    markerCounter++;
+    pinCounter++;
+    reverseGeocoder(latLng);
     setState(() {
       _markers.add(
         Marker(
-          // This marker id can be anything that uniquely identifies each marker.
-          markerId: MarkerId(markerCounter.toString()),
+          markerId: MarkerId(pinCounter.toString()),
           position: latLng,
           infoWindow: InfoWindow(
             title: caption,
+            //  snippet: locationBuffer,
           ),
-          icon: BitmapDescriptor.defaultMarker,
+          icon: BitmapDescriptor.defaultMarkerWithHue(0.0),
         ),
       );
     });
+  }
+
+  void appendJournal() async {
+    setState(() {
+      journal.add(pinCounter);
+    });
+  }
+
+  List<int> journal = [];
+  List<Widget> makeJournalEntry() {
+    return List<Widget>.generate(journal.length, (int index) {
+      return journalEntry(pins[pinCounter - 1].pincaption,
+          pins[pinCounter - 1].pincolor, pins[pinCounter - 1].pinlocation);
+    });
+  }
+
+  void reverseGeocoder(LatLng latLng) async {
+    List<Placemark> placeMarks =
+        await placemarkFromCoordinates(latLng.latitude, latLng.longitude);
+
+    var pinlocation = placeMarks;
+
+    locationBuffer = pinlocation[0].name.toString() +
+        ": " +
+        pinlocation[0].locality.toString() +
+        " " +
+        pinlocation[0].administrativeArea.toString() +
+        " " +
+        pinlocation[0].isoCountryCode.toString();
+
+    pins.add(PinData(
+        pinid: pinCounter,
+        pincolor: pincolor,
+        pincoor: latLng,
+        pincaption: caption,
+        pinlocation: locationBuffer.toString()));
     caption = "";
     captionBuffer = "";
+    pinlocation = [];
+
+    //appendJournal(); //TODO: delete if Exceptions occur
   }
 
   void _clearMarkers() {
     caption = "";
     captionBuffer = "";
-    pincolor = "Colors.red";
+    pins.clear();
+    pincolor = Color(0xffff0000);
     setState(() {
       _markers = {};
     });
+  }
+
+  void deleteMarker() {
+    pins.remove(pinCounter);
+    pins[pinCounter - 1] = "";
+    Marker marker = _markers
+        .firstWhere((marker) => marker.markerId.value == pinCounter.toString());
+    setState(() {
+      _markers.remove(marker);
+    });
+    pinCounter--;
   }
 
   void toggleMapView() {
@@ -129,71 +186,99 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  Widget mapViewControls() {
-    return Positioned(
-        child: Wrap(
+  Color pickerColor = Color(0xffff0000);
+  Color currentColor = Color(0xffff0000);
+  void changeColor(Color color) {
+    setState(() => pickerColor = color);
+  }
+
+  void colorPicker(BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+              titlePadding: const EdgeInsets.all(15.0),
+              contentPadding: const EdgeInsets.all(0.0),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5.0),
+              ),
+              title: Text('Select Color',
+                  style: GoogleFonts.quicksand(
+                      fontWeight: FontWeight.w700, color: Colors.white)),
+              content: SingleChildScrollView(
+                child: ColorPicker(
+                  pickerColor: pickerColor,
+                  onColorChanged: changeColor,
+                  pickerAreaHeightPercent: 0.8,
+                  showLabel: false,
+                  displayThumbColor: true,
+                  enableAlpha: false,
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('Cancel',
+                      style: GoogleFonts.quicksand(
+                          fontWeight: FontWeight.w600, color: Colors.white)),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: Text('OK',
+                      style: GoogleFonts.quicksand(
+                          fontWeight: FontWeight.w600, color: Colors.white)),
+                  onPressed: () {
+                    setState(() => currentColor = pickerColor);
+                    setState(() => pincolor = currentColor);
+                    Navigator.of(context).pop();
+                  },
+                )
+              ]);
+        });
+  }
+
+  Widget journalEntry(var caption, var color, var subtitle) {
+    return Center(
+        child: Positioned(
+            child: Wrap(
       direction: Axis.vertical,
       spacing: 4,
       children: [
         Container(
-          decoration: ShapeDecoration(
-            color: darkMode,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
-          ),
-          child: IconButton(
-            icon: Icon(Icons.map_outlined),
-            color: Colors.white,
-            onPressed: toggleMapView,
-          ),
-        ),
-        Container(
-          decoration: ShapeDecoration(
-            color: darkMode,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
-          ),
-          child: IconButton(
-            icon: Icon(Icons.layers_outlined),
-            color: Colors.white,
-            onPressed: toggleMapModes,
-          ),
-        ),
+            decoration: ShapeDecoration(
+                shadows: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.01),
+                    spreadRadius: 5,
+                    blurRadius: 7,
+                    offset: const Offset(0, 3), // changes position of shadow
+                  ),
+                ],
+                color: pincolor,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10))),
+            height: 85.0,
+            width: 285.0,
+            child: Center(
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                  Text(caption,
+                      style: GoogleFonts.quicksand(
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          fontSize: 20)),
+                  Text(subtitle,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.quicksand(
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                          fontSize: 18))
+                ]))),
+        const SizedBox(height: 2.5),
       ],
-    ));
-  }
-
-  Widget mapZoomControls() {
-    return Positioned(
-        child: Wrap(
-      direction: Axis.vertical,
-      children: [
-        Container(
-          decoration: ShapeDecoration(
-            color: darkMode,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
-          ),
-          child: IconButton(
-            icon: Icon(Icons.add),
-            color: Colors.white,
-            onPressed: toggleMapView,
-          ),
-        ),
-        Container(
-          decoration: ShapeDecoration(
-            color: darkMode,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
-          ),
-          child: IconButton(
-            icon: Icon(Icons.remove),
-            color: Colors.white,
-            onPressed: toggleMapModes,
-          ),
-        ),
-      ],
-    ));
+    )));
   }
 
   void captionDialog(BuildContext context) {
@@ -212,7 +297,7 @@ class _MyAppState extends State<MyApp> {
                       decoration: InputDecoration(
                           fillColor: Colors.grey[300],
                           filled: true,
-                          border: OutlineInputBorder(),
+                          border: const OutlineInputBorder(),
                           hintText: "Caption"),
                       onChanged: (value) {
                         setState(() {
@@ -254,18 +339,18 @@ class _MyAppState extends State<MyApp> {
             content: SingleChildScrollView(
               child: ListBody(
                 children: <Widget>[
-                  Text("Version " + version.toString(),
+                  Text("Version " + version.toString() + " (" + release + ")",
                       style: GoogleFonts.quicksand(
                           fontWeight: FontWeight.w600, color: Colors.white)),
-                  Text(''),
+                  const Text(''),
                   Text('With 💖 by Kevin George',
                       style: GoogleFonts.quicksand(
                           fontWeight: FontWeight.w600, color: Colors.white)),
-                  Text(''),
+                  const Text(''),
                   Text('http://kgeok.github.io/',
                       style: GoogleFonts.quicksand(
                           fontWeight: FontWeight.w600, color: Colors.white)),
-                  Text(''),
+                  const Text(''),
                   Text('Powered by Google Maps, Material Design and Flutter.',
                       style: GoogleFonts.quicksand(
                           fontWeight: FontWeight.w600, color: Colors.white)),
@@ -299,22 +384,34 @@ class _MyAppState extends State<MyApp> {
               },
             ),
             PopupMenuItem(
-              value: 2,
-              child: Text(
-                "Color",
-                style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
-              ),
-            ),
-            PopupMenuDivider(height: 20),
+                value: 2,
+                child: Text(
+                  "Color",
+                  style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
+                ),
+                onTap: () {
+                  colorPicker(context);
+                }),
+            const PopupMenuDivider(height: 20),
             PopupMenuItem(
               value: 3,
               child: Text(
                 "Delete Last Pin",
                 style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
               ),
-              onTap: _clearMarkers,
+              onTap: deleteMarker,
             ),
-            PopupMenuDivider(height: 20),
+            const PopupMenuDivider(height: 20),
+            PopupMenuItem(
+              value: 3,
+              child: Text(
+                "About",
+                style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
+              ),
+              onTap: () {
+                aboutDialog(context);
+              },
+            ),
             PopupMenuItem(
               value: 3,
               child: Text(
@@ -329,95 +426,31 @@ class _MyAppState extends State<MyApp> {
         height: double.infinity,
         width: double.infinity,
         decoration: ShapeDecoration(
-            color: darkMode.withOpacity(0.7),
+            color: Theme.of(context).brightness == Brightness.light
+                ? darkMode.withOpacity(0.8)
+                : lightMode.withOpacity(0.8),
             shadows: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.2),
                 spreadRadius: 5,
                 blurRadius: 7,
-                offset: Offset(0, 3), // changes position of shadow
+                offset: const Offset(0, 3), // changes position of shadow
               ),
             ],
-            shape: StadiumBorder(
-              side: BorderSide(color: Colors.white, width: 0),
-            )),
-        child: Icon(Icons.push_pin, color: Colors.white),
+            shape: const StadiumBorder()),
+        child: const Icon(Icons.push_pin, color: Colors.white),
       ));
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
-
-    Positioned(
-      top: 300,
-      left: 5,
-      child: Card(
-        elevation: 2,
-        child: Container(
-          color: Colors.blue,
-          width: 40,
-          height: 100,
-          child: Column(
-            children: <Widget>[
-              IconButton(
-                  icon: Icon(Icons.add),
-                  onPressed: () async {
-                    var currentZoomLevel = await controller.getZoomLevel();
-
-                    currentZoomLevel = currentZoomLevel + 2;
-                    controller.animateCamera(
-                      CameraUpdate.newCameraPosition(
-                        CameraPosition(
-                          target: _center,
-                          zoom: currentZoomLevel,
-                        ),
-                      ),
-                    );
-                  }),
-              SizedBox(height: 2),
-              IconButton(
-                  icon: Icon(Icons.remove),
-                  onPressed: () async {
-                    var currentZoomLevel = await controller.getZoomLevel();
-                    currentZoomLevel = currentZoomLevel - 2;
-                    if (currentZoomLevel < 0) currentZoomLevel = 0;
-                    controller.animateCamera(
-                      CameraUpdate.newCameraPosition(
-                        CameraPosition(
-                          target: _center,
-                          zoom: currentZoomLevel,
-                        ),
-                      ),
-                    );
-                  }),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          primarySwatch: lightMode,
-          fontFamily: 'Quicksand',
-          dialogBackgroundColor: lightMode,
-          canvasColor: darkMode,
-          textTheme: TextTheme(
-              bodyText1: TextStyle(color: Colors.white),
-              bodyText2: TextStyle(color: Colors.white)),
-        ),
-        darkTheme: ThemeData(
-          primarySwatch: darkMode,
-          fontFamily: 'Quicksand',
-          dialogBackgroundColor: darkMode,
-          canvasColor: lightMode,
-          textTheme: TextTheme(
-              bodyText1: TextStyle(color: Colors.white),
-              bodyText2: TextStyle(color: Colors.white)),
-        ),
+        theme: CustomTheme.lightTheme,
+        darkTheme: CustomTheme.darkTheme,
         home: Scaffold(
           appBar: AppBar(
             leading: Builder(builder: (BuildContext context) {
@@ -434,62 +467,192 @@ class _MyAppState extends State<MyApp> {
           ),
           drawer: Drawer(
             child: ListView(
-              // Important: Remove any padding from the ListView.
               padding: EdgeInsets.zero,
               children: [
-                DrawerHeader(
-                  decoration: BoxDecoration(),
-                  child: Text(
-                    'Journal',
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w700, fontSize: 22),
-                  ),
-                ),
-                ListTile(
-                  title: Text(
-                    'Entry',
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w700, fontSize: 22),
-                  ),
-                  subtitle: Text(
-                    'Location',
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w700, fontSize: 20),
-                  ),
-                  tileColor: Colors.red,
-                  onTap: () {
-                    // Update the state of the app.
-                    // ...
-                  },
-                ),
+                SizedBox(
+                    height: 120.0,
+                    child: DrawerHeader(
+                      decoration: const BoxDecoration(),
+                      child: Text(
+                        'Journal',
+                        style: GoogleFonts.quicksand(
+                            fontWeight: FontWeight.w700, fontSize: 22),
+                      ),
+                    )),
+                Column(
+                  children: makeJournalEntry(),
+                )
               ],
             ),
           ),
-          body: GoogleMap(
-            onMapCreated: _onMapCreated,
-            myLocationButtonEnabled: false,
-            padding: EdgeInsets.only(bottom: 0, top: 0, right: 0, left: 0),
-            mapType: mapType,
-            initialCameraPosition: CameraPosition(
-              target: _center,
-              zoom: 4.0,
+          body: Stack(children: <Widget>[
+            GoogleMap(
+              onMapCreated: _onMapCreated,
+              myLocationButtonEnabled: false,
+              padding:
+                  const EdgeInsets.only(bottom: 0, top: 0, right: 0, left: 0),
+              mapType: mapType,
+              initialCameraPosition: CameraPosition(
+                target: _center,
+                zoom: 4.0,
+              ),
+              onTap: (LatLng latLng) {
+                appendMarker(latLng);
+              },
+              markers: _markers,
             ),
-            onTap: (LatLng latLng) {
-              print(latLng.latitude.toString());
-              print(latLng.longitude.toString());
-              appendMarker(latLng);
-            },
-            markers: _markers,
-          ),
+            Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Align(
+                    alignment: Alignment.topLeft,
+                    child: Positioned(
+                        child: Wrap(
+                      direction: Axis.vertical,
+                      spacing: 6,
+                      children: [
+                        Container(
+                          decoration: ShapeDecoration(
+                            shadows: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                spreadRadius: 5,
+                                blurRadius: 7,
+                                offset: const Offset(
+                                    0, 3), // changes position of shadow
+                              ),
+                            ],
+                            color:
+                                Theme.of(context).brightness == Brightness.light
+                                    ? darkMode.withOpacity(0.8)
+                                    : lightMode.withOpacity(0.8),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(4)),
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.map_outlined),
+                            color: Colors.white,
+                            onPressed: toggleMapView,
+                          ),
+                        ),
+                        Container(
+                          decoration: ShapeDecoration(
+                            shadows: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                spreadRadius: 5,
+                                blurRadius: 7,
+                                offset: const Offset(
+                                    0, 3), // changes position of shadow
+                              ),
+                            ],
+                            color:
+                                Theme.of(context).brightness == Brightness.light
+                                    ? darkMode.withOpacity(0.8)
+                                    : lightMode.withOpacity(0.8),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(4)),
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.layers_outlined),
+                            color: Colors.white,
+                            onPressed: toggleMapModes,
+                          ),
+                        ),
+                      ],
+                    )))),
+            Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Align(
+                    alignment: Alignment.topRight,
+                    child: Positioned(
+                        child: Wrap(
+                      direction: Axis.vertical,
+                      spacing: 1,
+                      children: [
+                        Container(
+                          decoration: ShapeDecoration(
+                            shadows: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                spreadRadius: 5,
+                                blurRadius: 7,
+                                offset: const Offset(
+                                    0, 3), // changes position of shadow
+                              ),
+                            ],
+                            color:
+                                Theme.of(context).brightness == Brightness.light
+                                    ? darkMode.withOpacity(0.8)
+                                    : lightMode.withOpacity(0.8),
+                            shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(10),
+                                    bottom: Radius.circular(0))),
+                          ),
+                          child: IconButton(
+                              icon: const Icon(Icons.add),
+                              color: Colors.white,
+                              onPressed: () async {
+                                var currentZoomLevel =
+                                    await mapController.getZoomLevel();
+
+                                currentZoomLevel = currentZoomLevel + 2;
+                                mapController.animateCamera(
+                                  CameraUpdate.newCameraPosition(
+                                    CameraPosition(
+                                      target: _center,
+                                      zoom: currentZoomLevel,
+                                    ),
+                                  ),
+                                );
+                              }),
+                        ),
+                        Container(
+                          decoration: ShapeDecoration(
+                            shadows: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                spreadRadius: 5,
+                                blurRadius: 7,
+                                offset: const Offset(
+                                    0, 3), // changes position of shadow
+                              ),
+                            ],
+                            color:
+                                Theme.of(context).brightness == Brightness.light
+                                    ? darkMode.withOpacity(0.8)
+                                    : lightMode.withOpacity(0.8),
+                            shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(0),
+                                    bottom: Radius.circular(10))),
+                          ),
+                          child: IconButton(
+                              icon: const Icon(Icons.remove),
+                              color: Colors.white,
+                              onPressed: () async {
+                                var currentZoomLevel =
+                                    await mapController.getZoomLevel();
+
+                                currentZoomLevel = currentZoomLevel - 2;
+                                mapController.animateCamera(
+                                  CameraUpdate.newCameraPosition(
+                                    CameraPosition(
+                                      target: _center,
+                                      zoom: currentZoomLevel,
+                                    ),
+                                  ),
+                                );
+                              }),
+                        ),
+                      ],
+                    )))),
+          ]),
           floatingActionButton: Stack(children: <Widget>[
             Align(
                 alignment: Alignment.bottomRight,
                 child:
                     SizedBox(height: 85.0, width: 85.0, child: actionMenu())),
-            Align(
-              alignment: Alignment.bottomLeft, //TODO: topLeft
-              child: mapViewControls(),
-            )
           ]),
         ));
   }
