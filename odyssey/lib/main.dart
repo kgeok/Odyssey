@@ -7,6 +7,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:odyssey/theme/custom_theme.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 void main() => runApp(const MaterialApp(home: MyApp()));
 
@@ -25,6 +27,11 @@ var captionBuffer;
 var locationBuffer;
 var currentTheme;
 var pins = [];
+
+final String pinAsset = 'assets/pin.svg';
+
+final Widget pinIcon =
+    SvgPicture.asset(pinAsset, semanticsLabel: 'Pin', color: pincolor);
 
 class PinData {
   var pinid;
@@ -352,6 +359,40 @@ class _MyAppState extends State<MyApp> {
                           fontWeight: FontWeight.w600, color: Colors.white)),
                   const Text(''),
                   Text('Powered by Google Maps, Material Design and Flutter.',
+                      style: GoogleFonts.quicksand(
+                          fontWeight: FontWeight.w600, color: Colors.white)),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('Dismiss',
+                    style: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w600, color: Colors.white)),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              )
+            ]);
+      },
+    );
+  }
+
+  void neterrDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+            title: Text("Connection Error",
+                style: GoogleFonts.quicksand(
+                    fontWeight: FontWeight.w700, color: Colors.white)),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  Text("Could not connect to the Internet",
+                      style: GoogleFonts.quicksand(
+                          fontWeight: FontWeight.w600, color: Colors.white)),
+                  Text("Please check your Wi-Fi, Cellular or Wired Connection",
                       style: GoogleFonts.quicksand(
                           fontWeight: FontWeight.w600, color: Colors.white)),
                 ],
