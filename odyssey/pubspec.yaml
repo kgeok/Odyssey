@@ -41,6 +41,7 @@ dependencies:
   geocoding: ^2.0.1
   flutter_svg: ^0.23.0+1
   connectivity_plus: ^2.0.2
+  sqflite: ^2.0.1
 
 dev_dependencies:
   flutter_test:
@@ -94,3 +95,7 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+
+
+  assets:
+    - lib/assets/pin.svg
