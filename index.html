@@ -111,7 +111,7 @@
     zoom_control_in.id = 'zoom_control_in';
     zoom_control_in.innerHTML = '<span class="material-icons-outlined">add</span>';
     zoom_control_in.className = 'sqbtn';
-    zoom_control_in.style.borderRadius = "5px 5px 0px 0px";
+    zoom_control_in.style.borderRadius = "7.5px 7.5px 0px 0px";
     zoom_control_in.style.marginTop = "10px";
     zoom_control_in.setAttribute('onclick', 'map.setZoom(map.getZoom() + 1);');
 
@@ -119,7 +119,7 @@
     zoom_control_out.id = 'zoom_control_out';
     zoom_control_out.innerHTML = '<span class="material-icons-outlined">remove</span>';
     zoom_control_out.className = 'sqbtn';
-    zoom_control_out.style.borderRadius = "0px 0px 5px 5px";
+    zoom_control_out.style.borderRadius = "0px 0px 7.5px 7.5px";
     zoom_control_out.setAttribute('onclick', 'map.setZoom(map.getZoom() - 1);');
 
     let map_type_control = document.createElement('div');
@@ -127,7 +127,7 @@
     map_type_control.innerHTML = '<span class="material-icons-outlined">map</span>';
     map_type_control.setAttribute('onclick', 'ToggleMapView()');
     map_type_control.className = 'sqbtn';
-    map_type_control.style.borderRadius = "5px";
+    map_type_control.style.borderRadius = "7.5px";
     map_type_control.style.marginTop = "10px";
     map_type_control.style.marginLeft = "10px";
 
@@ -136,7 +136,7 @@
     map_type_options.innerHTML = '<span class="material-icons-outlined">layers</span>';
     map_type_options.setAttribute('onclick', 'ToggleMapOptions()');
     map_type_options.className = 'sqbtn';
-    map_type_options.style.borderRadius = "5px";
+    map_type_options.style.borderRadius = "7.5px";
     map_type_options.style.marginTop = "10px";
     map_type_options.style.marginLeft = "10px";
 
@@ -200,10 +200,15 @@
         document.cookie = "PinCapt_" + MarkerCounter + "=" + caption + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
         document.cookie = "PinColor_" + MarkerCounter + "=" + PinColor + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
         document.cookie = "Counter=" + MarkerCounter + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
+		
+		localStorage.setItem("PinCoor_" + MarkerCounter, e.latLng);
+		localStorage.setItem("PinCoor_" + MarkerCounter, caption);
+		localStorage.setItem("PinCoor_" + MarkerCounter, PinColor);
+		localStorage.setItem("Counter", MarkerCounter);
 
         MarkerCounter++;
         caption = "";
-        console.log(document.cookie);
+        //console.log(document.cookie);
         console.log(MarkerCounter);
         console.log(markers);
       });
@@ -225,6 +230,12 @@
         document.cookie = "PinCapt_" + i + "=" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
         document.cookie = "PinColor_" + i + "=" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
         document.cookie = "Counter=" + MarkerCounter + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
+		
+		localStorage.removeItem("PinCoor_" + i);
+		localStorage.removeItem("PinCoor_" + i);
+		localStorage.removeItem("PinColor_" + i);
+		localStorage.removeItem("Counter");
+		
 
       }
       for (let i = 0; i < markers.length; i++) {
@@ -246,6 +257,12 @@
       document.cookie = "PinCapt_" + (Math.abs(MarkerCounter - 1)) + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
       document.cookie = "PinColor_" + (Math.abs(MarkerCounter - 1)) + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
       document.cookie = "Counter=" + (MarkerCounter) + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
+	  
+	  localStorage.removeItem("PinCoor_" + (Math.abs(MarkerCounter - 1)));
+	  localStorage.removeItem("PinCapt_" + (Math.abs(MarkerCounter - 1)));
+	  localStorage.removeItem("PinColor_" + (Math.abs(MarkerCounter - 1)));
+	  localStorage.setItem("Counter", MarkerCounter);
+	  
       MarkerCounter--;
       if (MarkerCounter == 0) {
         removeMarker();
@@ -436,8 +453,6 @@
           break;
 
       }
-
-
     }
 
   </script>
