@@ -202,8 +202,8 @@
         document.cookie = "Counter=" + MarkerCounter + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
 		
 		localStorage.setItem("PinCoor_" + MarkerCounter, e.latLng);
-		localStorage.setItem("PinCoor_" + MarkerCounter, caption);
-		localStorage.setItem("PinCoor_" + MarkerCounter, PinColor);
+		localStorage.setItem("PinCapt_" + MarkerCounter, caption);
+		localStorage.setItem("PinColor_" + MarkerCounter, PinColor);
 		localStorage.setItem("Counter", MarkerCounter);
 
         MarkerCounter++;
@@ -232,7 +232,7 @@
         document.cookie = "Counter=" + MarkerCounter + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
 		
 		localStorage.removeItem("PinCoor_" + i);
-		localStorage.removeItem("PinCoor_" + i);
+		localStorage.removeItem("PinCapt_" + i);
 		localStorage.removeItem("PinColor_" + i);
 
       }
