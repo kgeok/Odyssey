@@ -144,7 +144,7 @@
     window.onload = function () {
       const geocoder = new google.maps.Geocoder();
 
-      for (i = 0; i < parseInt(localStorage.getItem("Counter") - 1); i++) {
+      for (i = 1; i < parseInt(localStorage.getItem("Counter")); i++) {
 
           LoadState["PinCoor_" + i] = localStorage.getItem("PinCoor_" + i);
           LoadState["PinCapt_" + i] = localStorage.getItem("PinCapt_" + i);
