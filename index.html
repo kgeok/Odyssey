@@ -143,8 +143,9 @@
     //Parsing document.cookie, cleaning it up into LoadState and placing markers on start
     window.onload = function () {
       const geocoder = new google.maps.Geocoder();
+      LoadState["Counter"] = parseInt(localStorage.getItem("Counter"));
 
-      for (i = 1; i < parseInt(localStorage.getItem("Counter") + 1); i++) {
+      for (i = 1; i <= parseInt(localStorage.getItem("Counter")); i++) {
 
           LoadState["PinCoor_" + i] = localStorage.getItem("PinCoor_" + i);
           LoadState["PinCapt_" + i] = localStorage.getItem("PinCapt_" + i);
@@ -156,7 +157,7 @@
           placeMarker(map, { lat: parseFloat(CurrCorrX, 10), lng: parseFloat(CurrCorrY, 10) }, LoadState["PinCapt_" + i], LoadState["PinColor_" + i]);
           }
 
-          LoadState["Counter"] = localStorage.getItem("Counter");
+          
 
       //Correcting new counter not showing up in new markers
       if (LoadState["Counter"] != "") {
