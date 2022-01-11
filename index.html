@@ -140,21 +140,20 @@
     map_type_options.style.marginTop = "10px";
     map_type_options.style.marginLeft = "10px";
 
-
     //Parsing document.cookie, cleaning it up into LoadState and placing markers on start
     window.onload = function () {
       const geocoder = new google.maps.Geocoder();
 
       for (i = 0; i < parseInt(localStorage.getItem("Counter") - 1); i++) {
 
-          LoadState["Coor_" + i] = localStorage.getItem("Coor_" + i);
-          LoadState["Capt_" + i] = localStorage.getItem("Capt_" + i);
-          LoadState["Color_" + i] = localStorage.getItem("Color_" + i);
-          LoadState["Coor_" + i] = LoadState["Coor_" + i].replace("(", "");
-          LoadState["Coor_" + i] = LoadState["Coor_" + i].replace(")", "");
-          CurrCorrX = LoadState["Coor_" + i].split(",").shift();
-          CurrCorrY = LoadState["Coor_" + i].split(", ").pop();
-          placeMarker(map, { lat: parseFloat(CurrCorrX, 10), lng: parseFloat(CurrCorrY, 10) }, LoadState["Capt_" + i], LoadState["Color_" + i]);
+          LoadState["PinCoor_" + i] = localStorage.getItem("PinCoor_" + i);
+          LoadState["PinCapt_" + i] = localStorage.getItem("PinCapt_" + i);
+          LoadState["PinColor_" + i] = localStorage.getItem("PinColor_" + i);
+          LoadState["PinCoor_" + i] = LoadState["PinCoor_" + i].replace("(", "");
+          LoadState["PinCoor_" + i] = LoadState["PinCoor_" + i].replace(")", "");
+          CurrCorrX = LoadState["PinCoor_" + i].split(",").shift();
+          CurrCorrY = LoadState["PinCoor_" + i].split(", ").pop();
+          placeMarker(map, { lat: parseFloat(CurrCorrX, 10), lng: parseFloat(CurrCorrY, 10) }, LoadState["PinCapt_" + i], LoadState["PinColor_" + i]);
           }
 
           LoadState["Counter"] = localStorage.getItem("Counter");
@@ -165,7 +164,6 @@
         MarkerCounter++;
       }
       PinColor = "#ff0000";
-
     }
 
     //initializing map
@@ -180,7 +178,6 @@
         disableDefaultUI: true,
       });
 
-
       map.controls[google.maps.ControlPosition.LEFT_TOP].push(map_type_control);
       map.controls[google.maps.ControlPosition.LEFT_TOP].push(map_type_options);
       map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(caption_btn);
@@ -190,19 +187,14 @@
       map.controls[google.maps.ControlPosition.RIGHT_TOP].push(zoom_control_in);
       map.controls[google.maps.ControlPosition.RIGHT_TOP].push(zoom_control_out);
 
-
       map.addListener("click", (e) => {
 
         placeMarker(map, e.latLng, caption, PinColor);
-        document.cookie = "PinCoor_" + MarkerCounter + "=" + e.latLng + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
-        document.cookie = "PinCapt_" + MarkerCounter + "=" + caption + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
-        document.cookie = "PinColor_" + MarkerCounter + "=" + PinColor + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
-        document.cookie = "Counter=" + MarkerCounter + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
 		
-		localStorage.setItem("PinCoor_" + MarkerCounter, e.latLng);
-		localStorage.setItem("PinCapt_" + MarkerCounter, caption);
-		localStorage.setItem("PinColor_" + MarkerCounter, PinColor);
-		localStorage.setItem("Counter", MarkerCounter);
+        localStorage.setItem("PinCoor_" + MarkerCounter, e.latLng);
+        localStorage.setItem("PinCapt_" + MarkerCounter, caption);
+        localStorage.setItem("PinColor_" + MarkerCounter, PinColor);
+        localStorage.setItem("Counter", MarkerCounter);
 
         MarkerCounter++;
         caption = "";
@@ -211,11 +203,6 @@
         console.log(markers);
       });
 
-
-      var decodedCookie = decodeURIComponent(document.cookie);
-
-      console.log(decodedCookie);
-
     }
 
     function removeMarker() {
@@ -223,16 +210,10 @@
       for (let i = 0; i < markers.length; i++) {
 
         markers[i].setMap(null);
-        //parsing new document.cookie values
-        document.cookie = "PinCoor_" + i + "=" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
-        document.cookie = "PinCapt_" + i + "=" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
-        document.cookie = "PinColor_" + i + "=" + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
-        document.cookie = "Counter=" + MarkerCounter + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
-		
-		localStorage.removeItem("PinCoor_" + i);
-		localStorage.removeItem("PinCapt_" + i);
-		localStorage.removeItem("PinColor_" + i);
 
+        localStorage.removeItem("PinCoor_" + i);
+        localStorage.removeItem("PinCapt_" + i);
+        localStorage.removeItem("PinColor_" + i);
       }
       for (let i = 0; i < markers.length; i++) {
         document.getElementById("journalEntry").remove();
@@ -245,20 +226,13 @@
       console.clear();
     }
 
-
-
     function removeLastMarker() {
       markers[Math.abs(MarkerCounter - 1)].setMap(null);
-      //parsing new document.cookie values
-      document.cookie = "PinCoor_" + (Math.abs(MarkerCounter - 1)) + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
-      document.cookie = "PinCapt_" + (Math.abs(MarkerCounter - 1)) + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
-      document.cookie = "PinColor_" + (Math.abs(MarkerCounter - 1)) + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=None; Secure;";
-      document.cookie = "Counter=" + (MarkerCounter) + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure;";
 	  
-	  localStorage.removeItem("PinCoor_" + (Math.abs(MarkerCounter - 1)));
-	  localStorage.removeItem("PinCapt_" + (Math.abs(MarkerCounter - 1)));
-	  localStorage.removeItem("PinColor_" + (Math.abs(MarkerCounter - 1)));
-	  localStorage.setItem("Counter", MarkerCounter);
+      localStorage.removeItem("PinCoor_" + (Math.abs(MarkerCounter - 1)));
+      localStorage.removeItem("PinCapt_" + (Math.abs(MarkerCounter - 1)));
+      localStorage.removeItem("PinColor_" + (Math.abs(MarkerCounter - 1)));
+      localStorage.setItem("Counter", MarkerCounter);
 	  
       MarkerCounter--;
       if (MarkerCounter == 0) {
@@ -366,7 +340,6 @@
 
     }
 
-
     function appendJournal(caption, location, color) {
 
       var date = new Date();
@@ -381,7 +354,7 @@
       lineBreak.id = "br";
       document.getElementById("menu-item").insertAdjacentElement("afterend", journalEntry);
       document.getElementById("journalEntry").insertAdjacentElement("afterend", lineBreak);
-	  document.getElementById("journalEntry").insertAdjacentElement("afterend", lineBreak);
+	    document.getElementById("journalEntry").insertAdjacentElement("afterend", lineBreak);
     }
 
     function exportJSONFile() {
