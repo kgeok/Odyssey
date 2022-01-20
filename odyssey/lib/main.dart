@@ -15,7 +15,8 @@ import 'dart:io';
 
 void main() async {
   runApp(const MaterialApp(home: MyApp()));
-  openDB();
+  //OdysseyDatabase.instance.resetDB();
+  OdysseyDatabase.instance.initStatefromDB();
 }
 
 class MyApp extends StatefulWidget {
@@ -137,9 +138,9 @@ class _MyAppState extends State<MyApp> {
       journal.add(pinCounter - 1);
     });
 
-    addPinDB(pinCounter, caption, color, latLng, "12/31/2099", locationBuffer);
+    OdysseyDatabase.instance.addPinDB(
+        pinCounter, caption, color, latLng, "12/31/2099", locationBuffer);
 
-    //When you figure out the memory storage thing, append it's add function here
     caption = "";
     captionBuffer = "";
     pinlocation = [];
@@ -163,7 +164,7 @@ class _MyAppState extends State<MyApp> {
     captionBuffer = "";
     pinCounter = 0;
     pins.clear();
-    clearDB();
+    OdysseyDatabase.instance.clearPinsDB();
     pincolor = Color(0xffff0000);
     setState(() {
       _markers = {};
@@ -179,6 +180,7 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       _markers.remove(marker);
     });
+    OdysseyDatabase.instance.deletePinDB(pinCounter);
     pinCounter--;
   }
 
@@ -338,8 +340,8 @@ class _MyAppState extends State<MyApp> {
 
   List<Widget> makeJournalEntry() {
     return List<Widget>.generate(journal.length, (int index) {
-      return journalEntry(
-          "", pincolor, ""); //Create Place holder for Journal Entry
+      return journalEntry("Test", pincolor,
+          "Test"); //TODO:Create Place holder for Journal Entry
     });
   }
 
