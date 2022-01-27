@@ -1,11 +1,14 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print, unused_local_variable
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:path/path.dart';
 import 'package:odyssey/main.dart';
+import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 
 //These are the default value we use for settings
 
-var defaultCenter = 'LatLng(41.850033, -87.6500523)';
+var defaultCenterLat = 41.850033;
+var defaultCenterLng = -87.6500523;
 var defaultMapType = 'MapType.normal';
 var defaultBearing = 0;
 var defaultPinColor = '0xffff0000';
@@ -35,14 +38,14 @@ class OdysseyDatabase {
 
   Future _createDB(Database db, int version) async {
     db.execute(
-        //TODO: change LatLng back to float from text and date to date from TEXT
-        'CREATE TABLE Pins (id INTEGER, caption TEXT, color TEXT, lat TEXT, lng TEXT, date TEXT, location TEXT)');
+        'CREATE TABLE Pins (id INTEGER, caption TEXT, color TEXT, lat FLOAT, lng FLOAT, date TEXT, location TEXT)');
     db.execute(
-        'CREATE TABLE Prefs (mapcenter TEXT, maplayer TEXT, bearing INT(255), pincolor TEXT, zoom INT(255))');
+        'CREATE TABLE Prefs (mapcenterlat FLOAT, mapcenterlng FLOAT, maplayer TEXT, bearing INT(255), pincolor TEXT, mapzoom INT(255))');
     db.rawInsert(
-        'INSERT INTO Prefs (mapcenter, maplayer, bearing, pincolor, zoom) VALUES(?, ?, ?, ?, ?)',
+        'INSERT INTO Prefs (mapcenterlat, mapcenterlng, maplayer, bearing, pincolor, zoom) VALUES(?, ?, ?, ?, ?, ?)',
         [
-          defaultCenter,
+          defaultCenterLat,
+          defaultCenterLng,
           defaultMapType,
           '$defaultBearing',
           defaultPinColor,
@@ -52,25 +55,31 @@ class OdysseyDatabase {
     print("DB Made!");
   }
 
-  Future addPinDB(id, caption, color, latLng, date, location) async {
+  Future addPinDB(id, caption, color, latLng, location) async {
     final db = await instance.database;
 
     caption = caption.toString();
-    color.toString();
+    var colorBuffer = color.toString();
+    colorBuffer = colorBuffer.replaceAll("Color(", "");
+    colorBuffer = colorBuffer.replaceAll(")", "");
+    DateTime currentDate = DateTime.now();
+    String date = currentDate.toString().substring(0, 10);
     date.toString();
+
+    //split latlng and make it a two parter float
+
+    var latLngBuffer = latLng.toString();
+    latLngBuffer = latLngBuffer.replaceAll("LatLng(", "");
+    latLngBuffer = latLngBuffer.replaceAll(")", "");
+    var latLngBuffer2 = latLngBuffer.split(", ");
+    var lat = double.parse(latLngBuffer2[0].trim());
+    var lng = double.parse(latLngBuffer2[1].trim());
+
     location.toString();
 
     db.rawInsert(
         'INSERT INTO Pins (id, caption, color, lat, lng, date, location) VALUES(?, ?, ?, ?, ?, ?, ?)',
-        [
-          '$id',
-          '$caption',
-          '$color',
-          '$latLng',
-          '$latLng',
-          '$date',
-          '$location'
-        ]);
+        ['$id', '$caption', colorBuffer, '$lat', '$lng', date, '$location']);
   }
 
   Future closeDB() async {
@@ -81,21 +90,54 @@ class OdysseyDatabase {
   Future initStatefromDB() async {
     //Let's using this function to fill up the map and Journal when booting the app
     final db = await instance.database;
+
+    //load preferences
+
+    var centerBufferlat = await db.query("Prefs", columns: ["mapcenterlat"]);
+    var centerBufferlng = await db.query("Prefs", columns: ["mapcenterlng"]);
+
+    print(centerBufferlat);
+    print(centerBufferlng);
+
+    //load user data
     var counterBuffer = await db.query("Pins", columns: ["MAX(id)"]);
-    var counter = int.parse(counterBuffer[0]['MAX(id)'].toString());
-    // var pinColorBuffer = await db.query("Prefs"); //We're going to extract the PinColor from Prefs instead of using the defualt variable
+
+    var counter = int.parse(counterBuffer[0]['MAX(id)']
+        .toString()); //TODO: Warning causes Execption with no pins
+
+    if (counter == null) {
+      print("Fail");
+    }
+
+    var colorBuffer = await db.query("Pins", columns: ["color"]);
 
     print(counter);
     pinCounter = counter;
-    for (var i = 1; i <= counter; i++) {
-      //parse the pin color
 
-      //parse the caption
+    for (var i = 0; i <= counter - 1; i++) {
+      //Parse the Caption
       captionBuffer = await db.query("Pins", columns: ["caption"]);
-      caption = captionBuffer[0]["caption"].toString();
+      caption = captionBuffer[i]["caption"].toString();
       print(caption);
 
-      //
+      //Parse the Pin's Color
+      var colorBuffer2 = colorBuffer[i]["color"].toString();
+      //colorBuffer2 = colorBuffer2.split('(0x')[1].split(')')[0]; //Depreciated
+      //int colorBuffer3 = int.parse(colorBuffer2, radix: 16); //Depreciated
+      int colorBuffer3 = int.parse(colorBuffer2);
+      pincolor = Color(colorBuffer3);
+      print(pincolor);
+
+      //Parse the Pin's Lat and Lng
+      var locationBufferlat = await db.query("Pins", columns: ["lat"]);
+      var locationBufferlng = await db.query("Pins", columns: ["lng"]);
+      var locationBufferlat2 = locationBufferlat[i]["lat"];
+      var locationBufferlng2 = locationBufferlng[i]["lng"];
+
+      //   LatLng latLng = LatLng(locationBufferlat, locationBufferlng2);
+
+      print(locationBufferlat2);
+      print(locationBufferlng2);
 
       //appendMarker();
 
@@ -107,9 +149,10 @@ class OdysseyDatabase {
     db.delete("Pins");
     db.delete("Prefs");
     db.rawInsert(
-        'INSERT INTO Prefs (mapcenter, maplayer, bearing, pincolor, zoom) VALUES(?, ?, ?, ?, ?)',
+        'INSERT INTO Prefs (mapcenter, maplayer, bearing, pincolor, zoom) VALUES(?, ?, ?, ?, ?, ?)',
         [
-          defaultCenter,
+          defaultCenterLat,
+          defaultCenterLng,
           defaultMapType,
           '$defaultBearing',
           defaultPinColor,

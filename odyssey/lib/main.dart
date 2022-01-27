@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:odyssey/dialogs.dart';
 import 'package:odyssey/theme/custom_theme.dart';
 import 'package:odyssey/data_management.dart';
 import 'package:geocoding/geocoding.dart';
@@ -47,6 +48,13 @@ void colorToHex(Color color) {
   colorBuffer = color.toString();
   colorBuffer = colorBuffer.replaceAll("Color(0xff", "");
   colorBuffer = colorBuffer.replaceAll(")", "");
+}
+
+void hextoColor(String hex) {
+  var hexBuffer = hex;
+  hexBuffer = hexBuffer.padLeft(10, "Color(0xff");
+  hexBuffer = hexBuffer.padRight(10, ")");
+  print(hexBuffer);
 }
 
 class PinData {
@@ -138,8 +146,8 @@ class _MyAppState extends State<MyApp> {
       journal.add(pinCounter - 1);
     });
 
-    OdysseyDatabase.instance.addPinDB(
-        pinCounter, caption, color, latLng, "12/31/2099", locationBuffer);
+    OdysseyDatabase.instance
+        .addPinDB(pinCounter, caption, pincolor, latLng, locationBuffer);
 
     caption = "";
     captionBuffer = "";
@@ -153,9 +161,19 @@ class _MyAppState extends State<MyApp> {
       List<Location> location = await locationFromAddress(address);
       appendMarker(LatLng(location[0].latitude, location[0].longitude));
     } on NoResultFoundException {
-      addressError(context);
+      simpleDialog(
+          context,
+          "Could not Find Address",
+          "The address you entered couldn't be found, check and try again.",
+          "",
+          "error");
     } catch (e) {
-      addressError(context);
+      simpleDialog(
+          context,
+          "Could not Find Address",
+          "The address you entered couldn't be found, check and try again.",
+          "",
+          "error");
     }
   }
 
@@ -379,7 +397,10 @@ class _MyAppState extends State<MyApp> {
                 onPressed: () {
                   setState(() {
                     if (captionBuffer == "") {
-                      caption = "";
+                      captionBuffer = "";
+                    }
+                    if (captionBuffer == null) {
+                      captionBuffer = "";
                     }
                     caption = captionBuffer;
                     captionBuffer = "";
@@ -434,178 +455,6 @@ class _MyAppState extends State<MyApp> {
                     addressBuffer = "";
                     Navigator.pop(context);
                   });
-                },
-              )
-            ]);
-      },
-    );
-  }
-
-  void aboutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            title: Text("Odyssey",
-                style: GoogleFonts.quicksand(
-                    fontWeight: FontWeight.w700, color: Colors.white)),
-            content: SingleChildScrollView(
-              child: ListBody(
-                children: <Widget>[
-                  Text("Version " + version.toString() + " (" + release + ")",
-                      style: GoogleFonts.quicksand(
-                          fontWeight: FontWeight.w600, color: Colors.white)),
-                  const Text(''),
-                  Text('With 💖 by Kevin George',
-                      style: GoogleFonts.quicksand(
-                          fontWeight: FontWeight.w600, color: Colors.white)),
-                  const Text(''),
-                  Text('http://kgeok.github.io/',
-                      style: GoogleFonts.quicksand(
-                          fontWeight: FontWeight.w600, color: Colors.white)),
-                  const Text(''),
-                  Text('Powered by Google Maps, Material Design and Flutter.',
-                      style: GoogleFonts.quicksand(
-                          fontWeight: FontWeight.w600, color: Colors.white)),
-                ],
-              ),
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: Text('Help',
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  helpDialog(context);
-                },
-              ),
-              TextButton(
-                child: Text('Dismiss',
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              )
-            ]);
-      },
-    );
-  }
-
-  void helpDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            title: Text("Quick Start",
-                style: GoogleFonts.quicksand(
-                    fontWeight: FontWeight.w700, color: Colors.white)),
-            content: SingleChildScrollView(
-              child: ListBody(
-                children: <Widget>[
-                  Text('Tap the Map to set a Pin',
-                      style: GoogleFonts.quicksand(
-                          fontWeight: FontWeight.w600, color: Colors.white)),
-                  const Text(''),
-                  Text(
-                      'Tapping the Pin Menu will show options for managing and customizing pins',
-                      style: GoogleFonts.quicksand(
-                          fontWeight: FontWeight.w600, color: Colors.white)),
-                  const Text(''),
-                  Text(
-                      'Tap Caption before setting a Pin to set the Pin\'s Caption',
-                      style: GoogleFonts.quicksand(
-                          fontWeight: FontWeight.w600, color: Colors.white)),
-                  const Text(''),
-                  Text('Tap The Menu button to open the Journal',
-                      style: GoogleFonts.quicksand(
-                          fontWeight: FontWeight.w600, color: Colors.white)),
-                ],
-              ),
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: Text('About',
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  aboutDialog(context);
-                },
-              ),
-              TextButton(
-                child: Text('Dismiss',
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              )
-            ]);
-      },
-    );
-  }
-
-  void errDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            backgroundColor: Colors.red[900],
-            title: Text("An Error Occurred.",
-                style: GoogleFonts.quicksand(
-                    fontWeight: FontWeight.w700, color: Colors.white)),
-            content: SingleChildScrollView(
-              child: ListBody(
-                children: <Widget>[
-                  Text(
-                      "Please check your Device settings and make sure the app is up to date.",
-                      style: GoogleFonts.quicksand(
-                          fontWeight: FontWeight.w600, color: Colors.white)),
-                ],
-              ),
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: Text('Dismiss',
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              )
-            ]);
-      },
-    );
-  }
-
-  void addressError(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            backgroundColor: Colors.red[900],
-            title: Text("Could not Find Address",
-                style: GoogleFonts.quicksand(
-                    fontWeight: FontWeight.w700, color: Colors.white)),
-            content: SingleChildScrollView(
-              child: ListBody(
-                children: <Widget>[
-                  Text(
-                      "The address you entered couldn't be found, check and try again.",
-                      style: GoogleFonts.quicksand(
-                          fontWeight: FontWeight.w600, color: Colors.white)),
-                ],
-              ),
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: Text('Dismiss',
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
-                onPressed: () {
-                  Navigator.of(context).pop();
                 },
               )
             ]);
@@ -704,7 +553,7 @@ class _MyAppState extends State<MyApp> {
                 style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
               ),
               onTap: () {
-                aboutDialog(context); //TODO: Delete when done
+                aboutDialog(context);
               },
             ),
             PopupMenuItem(
