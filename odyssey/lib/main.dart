@@ -16,29 +16,43 @@ import 'dart:io';
 
 void main() async {
   runApp(const MaterialApp(home: MyApp()));
-  //OdysseyDatabase.instance.resetDB();
+  //OdysseyDatabase.instance.resetDB(); //Debugging only, remove later
   OdysseyDatabase.instance.initStatefromDB();
 }
 
 class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
   @override
-  _MyAppState createState() => _MyAppState();
+  MyAppState createState() => MyAppState();
+
+  //debug
+/*   static final MyApp instance = MyApp._init();
+  const MyApp._init();
+
+  void appendMarker(LatLng latLng) {
+    appendMarker(latLng);
+  }
+
+  void toggleMapModes() {
+    toggleMapModes();
+  } */
 }
 
+GlobalKey<MyAppState> key = GlobalKey();
+//Variables that we will be using, will try to minimize in the future
 const double version = 0.8;
 const release = "Beta";
-Color pincolor = Color(0xffff0000);
+Color pincolor = Color(int.parse(defaultPinColor));
 var colorBuffer = "FF0000";
-LatLng center = LatLng(41.850033, -87.6500523); //Center of the USA
-MapType mapType = MapType.normal; //Default Map Type
-double bearing = 0; //Rotation of Map
+LatLng center = LatLng(defaultCenterLat, defaultCenterLng); //Center of the USA
+MapType mapType = defaultMapType; //Default Map Type
+double bearing = defaultBearing; //Rotation of Map
+double mapZoom = defaultMapZoom; //Zoom of Map
 int pinCounter = 0;
 var caption = ""; //Null if not init'd
 var captionBuffer;
 var locationBuffer;
 var addressBuffer;
-var dateBuffer;
 var currentTheme;
 var pins = [];
 List<int> journal = [];
@@ -99,7 +113,7 @@ Future<BitmapDescriptor> _bitmapDescriptorFromSvg(BuildContext context) async {
   return BitmapDescriptor.fromBytes(bytes!.buffer.asUint8List());
 }
 
-class _MyAppState extends State<MyApp> {
+class MyAppState extends State<MyApp> {
   late GoogleMapController mapController;
   Set<Marker> _markers = {};
 
@@ -591,6 +605,7 @@ class _MyAppState extends State<MyApp> {
     mapController = controller;
   }
 
+  //UI of the app
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -645,7 +660,7 @@ class _MyAppState extends State<MyApp> {
               mapType: mapType,
               initialCameraPosition: CameraPosition(
                 target: center,
-                zoom: 4.0,
+                zoom: mapZoom,
               ),
               onTap: (LatLng latLng) {
                 appendMarker(latLng);

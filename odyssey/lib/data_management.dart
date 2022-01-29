@@ -6,13 +6,15 @@ import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 
 //These are the default value we use for settings
+//These will also be the values to fall back on in case DB can't be loaded
+//They will also be loaded into DB on init
 
 var defaultCenterLat = 41.850033;
 var defaultCenterLng = -87.6500523;
-var defaultMapType = 'MapType.normal';
-var defaultBearing = 0;
+var defaultMapType = MapType.normal;
+double defaultBearing = 0;
 var defaultPinColor = '0xffff0000';
-var defaultMapZoom = 4;
+double defaultMapZoom = 4.0;
 
 class OdysseyDatabase {
   static final OdysseyDatabase instance = OdysseyDatabase._init();
@@ -23,7 +25,6 @@ class OdysseyDatabase {
 
   Future<Database> get database async {
     if (_database != null) return _database!;
-
     _database = await _initDB('OdysseyDB.db');
     return _database!;
   }
@@ -42,7 +43,7 @@ class OdysseyDatabase {
     db.execute(
         'CREATE TABLE Prefs (mapcenterlat FLOAT, mapcenterlng FLOAT, maplayer TEXT, bearing INT(255), pincolor TEXT, mapzoom INT(255))');
     db.rawInsert(
-        'INSERT INTO Prefs (mapcenterlat, mapcenterlng, maplayer, bearing, pincolor, zoom) VALUES(?, ?, ?, ?, ?, ?)',
+        'INSERT INTO Prefs (mapcenterlat, mapcenterlng, maplayer, bearing, pincolor, mapzoom) VALUES(?, ?, ?, ?, ?, ?)',
         [
           defaultCenterLat,
           defaultCenterLng,
@@ -89,57 +90,62 @@ class OdysseyDatabase {
 
   Future initStatefromDB() async {
     //Let's using this function to fill up the map and Journal when booting the app
+    //Is using all these variables the way that I am the smartest way to do it?
+    //Probably not but I'll figure something out later maybe type type casting is the right way to go
     final db = await instance.database;
 
-    //load preferences
-
+    //Load Prefs Data
     var centerBufferlat = await db.query("Prefs", columns: ["mapcenterlat"]);
     var centerBufferlng = await db.query("Prefs", columns: ["mapcenterlng"]);
+    center = LatLng(double.parse(centerBufferlat[0]["mapcenterlat"].toString()),
+        double.parse(centerBufferlng[0]["mapcenterlng"].toString()));
 
-    print(centerBufferlat);
-    print(centerBufferlng);
+    var bearingBuffer = await db.query("Prefs", columns: ["bearing"]);
+    bearing = double.parse(bearingBuffer[0]['bearing'].toString());
 
-    //load user data
+    var mapTypeBuffer = await db.query("Prefs", columns: ["maplayer"]);
+    //mapType = mapTypeBuffer[0]['maplayer'].toString() as MapType; //Tried casting this one didn't work...
+
+    var mapZoomBuffer = await db.query("Prefs", columns: ["mapzoom"]);
+    mapZoom = double.parse(mapZoomBuffer[0]['mapzoom'].toString());
+
+    //Load User Data
     var counterBuffer = await db.query("Pins", columns: ["MAX(id)"]);
-
-    var counter = int.parse(counterBuffer[0]['MAX(id)']
-        .toString()); //TODO: Warning causes Execption with no pins
-
-    if (counter == null) {
-      print("Fail");
-    }
-
+    var counter = int.tryParse(counterBuffer[0]['MAX(id)'].toString());
     var colorBuffer = await db.query("Pins", columns: ["color"]);
 
+    counter ??= 0;
     print(counter);
-    pinCounter = counter;
 
+    pinCounter = counter;
+    //This part is the star of the show, we are parsing everything from the Pins DB
+    //Then by counter we are attempting, one by one to place everything on the map
     for (var i = 0; i <= counter - 1; i++) {
-      //Parse the Caption
-      captionBuffer = await db.query("Pins", columns: ["caption"]);
-      caption = captionBuffer[i]["caption"].toString();
-      print(caption);
+      print("Pin: " + (i + 1).toString());
 
       //Parse the Pin's Color
       var colorBuffer2 = colorBuffer[i]["color"].toString();
       //colorBuffer2 = colorBuffer2.split('(0x')[1].split(')')[0]; //Depreciated
       //int colorBuffer3 = int.parse(colorBuffer2, radix: 16); //Depreciated
-      int colorBuffer3 = int.parse(colorBuffer2);
-      pincolor = Color(colorBuffer3);
+      pincolor = Color(int.parse(colorBuffer2));
       print(pincolor);
+
+      //Parse the Caption
+      captionBuffer = await db.query("Pins", columns: ["caption"]);
+      caption = captionBuffer[i]["caption"].toString();
+      print(caption);
 
       //Parse the Pin's Lat and Lng
       var locationBufferlat = await db.query("Pins", columns: ["lat"]);
       var locationBufferlng = await db.query("Pins", columns: ["lng"]);
-      var locationBufferlat2 = locationBufferlat[i]["lat"];
-      var locationBufferlng2 = locationBufferlng[i]["lng"];
+      LatLng latLng = LatLng(
+          double.parse(locationBufferlat[i]["lat"].toString()),
+          double.parse(locationBufferlng[i]["lng"].toString()));
 
-      //   LatLng latLng = LatLng(locationBufferlat, locationBufferlng2);
+      print(latLng);
 
-      print(locationBufferlat2);
-      print(locationBufferlng2);
-
-      //appendMarker();
+      // const MyApp().appendMarker(latLng);
+      //MyApp.instance.appendMarker(latLng);
 
     }
   }
