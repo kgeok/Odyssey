@@ -97,8 +97,8 @@ class OdysseyDatabase {
     //Load Prefs Data
     var centerBufferlat = await db.query("Prefs", columns: ["mapcenterlat"]);
     var centerBufferlng = await db.query("Prefs", columns: ["mapcenterlng"]);
-    center = LatLng(double.parse(centerBufferlat[0]["mapcenterlat"].toString()),
-        double.parse(centerBufferlng[0]["mapcenterlng"].toString()));
+/*     center = LatLng(double.parse(centerBufferlat[0]["mapcenterlat"].toString()),
+        double.parse(centerBufferlng[0]["mapcenterlng"].toString())); */ //Null error on Android
 
     var bearingBuffer = await db.query("Prefs", columns: ["bearing"]);
     bearing = double.parse(bearingBuffer[0]['bearing'].toString());

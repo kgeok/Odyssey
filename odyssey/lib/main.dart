@@ -64,13 +64,6 @@ void colorToHex(Color color) {
   colorBuffer = colorBuffer.replaceAll(")", "");
 }
 
-void hextoColor(String hex) {
-  var hexBuffer = hex;
-  hexBuffer = hexBuffer.padLeft(10, "Color(0xff");
-  hexBuffer = hexBuffer.padRight(10, ")");
-  print(hexBuffer);
-}
-
 class PinData {
   var pinid;
   late var pincaption;
@@ -632,7 +625,7 @@ class MyAppState extends State<MyApp> {
               padding: EdgeInsets.zero,
               children: [
                 SizedBox(
-                    height: 120.0,
+                    height: 140.0,
                     child: DrawerHeader(
                       decoration: const BoxDecoration(),
                       child: Text(
@@ -650,6 +643,7 @@ class MyAppState extends State<MyApp> {
           body: Stack(children: <Widget>[
             GoogleMap(
               onMapCreated: _onMapCreated,
+              zoomControlsEnabled: false,
               onCameraMove: (CameraPosition cp) {
                 center = cp.target;
                 bearing = cp.bearing;

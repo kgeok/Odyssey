@@ -43,9 +43,9 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId "com.example.odyssey"
-        minSdkVersion 16
-        targetSdkVersion 30
+        applicationId "com.kgeok.odyssey"
+        minSdkVersion 30
+        targetSdkVersion 31
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
@@ -65,10 +65,6 @@ flutter {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+   
 }
 
-android {
-  defaultConfig {
-    minSdkVersion 20
-  }
-}
