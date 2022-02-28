@@ -16,7 +16,6 @@ import 'dart:io';
 
 void main() async {
   runApp(const MaterialApp(home: MyApp()));
-  //OdysseyDatabase.instance.resetDB(); //Debugging only, remove later
   OdysseyDatabase.instance.initStatefromDB();
 }
 
@@ -26,16 +25,8 @@ class MyApp extends StatefulWidget {
   MyAppState createState() => MyAppState();
 
   //debug
-/*   static final MyApp instance = MyApp._init();
+  static final MyApp instance = MyApp._init();
   const MyApp._init();
-
-  void appendMarker(LatLng latLng) {
-    appendMarker(latLng);
-  }
-
-  void toggleMapModes() {
-    toggleMapModes();
-  } */
 }
 
 GlobalKey<MyAppState> key = GlobalKey();
@@ -44,6 +35,8 @@ const double version = 0.8;
 const release = "Beta";
 Color pincolor = Color(int.parse(defaultPinColor));
 var colorBuffer = "FF0000";
+Color pickerColor = Color(0xffff0000);
+Color currentColor = Color(0xffff0000);
 LatLng center = LatLng(defaultCenterLat, defaultCenterLng); //Center of the USA
 MapType mapType = defaultMapType; //Default Map Type
 double bearing = defaultBearing; //Rotation of Map
@@ -102,13 +95,43 @@ Future<BitmapDescriptor> _bitmapDescriptorFromSvg(BuildContext context) async {
   ui.Picture picture = svgDrawableRoot.toPicture(size: Size(width, height));
   ui.Image image = await picture.toImage(width.toInt(), height.toInt());
   ByteData? bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-  print(pincolor.toString());
+  //print(pincolor.toString());
   return BitmapDescriptor.fromBytes(bytes!.buffer.asUint8List());
 }
 
 class MyAppState extends State<MyApp> {
   late GoogleMapController mapController;
   Set<Marker> _markers = {};
+
+  void populateMapfromState() async {
+    await Future.delayed(Duration(
+        milliseconds:
+            1500)); //It apparently takes 1 second or so for DB to populate State
+    var pinCounterBuffer =
+        pinCounter; //I need to freeze the state of the counter so that it doesn't keep iterating on append
+    for (var i = 0; i < pinCounterBuffer; i++) {
+      pincolor = pins[i].pincolor;
+      colorToHex(pincolor);
+      pickerColor = pincolor;
+      BitmapDescriptor bitmapDescriptor =
+          await _bitmapDescriptorFromSvg(context);
+      caption = pins[i].pincaption;
+      setState(() {
+        _markers.add(
+          Marker(
+              markerId: MarkerId(i.toString()),
+              position: pins[i].pincoor,
+              infoWindow: InfoWindow(
+                title: caption,
+                //  snippet: locationBuffer,
+              ),
+              icon: bitmapDescriptor),
+        );
+        journal.add(i - 1);
+      });
+    }
+    captionBuffer = "";
+  }
 
   void appendMarker(LatLng latLng) async {
     pinCounter++;
@@ -267,8 +290,6 @@ class MyAppState extends State<MyApp> {
     }
   }
 
-  Color pickerColor = Color(0xffff0000);
-  Color currentColor = Color(0xffff0000);
   void changeColor(Color color) {
     setState(() => pickerColor = color);
   }
@@ -291,7 +312,7 @@ class MyAppState extends State<MyApp> {
                   pickerColor: pickerColor,
                   onColorChanged: changeColor,
                   pickerAreaHeightPercent: 0.8,
-                  showLabel: false,
+                  labelTypes: const [],
                   displayThumbColor: true,
                   enableAlpha: false,
                 ),
@@ -365,8 +386,8 @@ class MyAppState extends State<MyApp> {
 
   List<Widget> makeJournalEntry() {
     return List<Widget>.generate(journal.length, (int index) {
-      return journalEntry("Test", pincolor,
-          "Test"); //TODO:Create Place holder for Journal Entry
+      return journalEntry("Entry Not Available", pincolor,
+          "Journal Coming Soon"); //TODO:Create Place holder for Journal Entry
     });
   }
 
@@ -596,6 +617,13 @@ class MyAppState extends State<MyApp> {
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
+    populateMapfromState();
+/*     simpleDialog(
+        context,
+        "Pre-Release Version",
+        "Confidential and Proprietary, Please Don't Share Information or Screenshots",
+        "Please Report any Bugs and Crashes, Take note of what you were doing when they occurred.",
+        "error"); */
   }
 
   //UI of the app
