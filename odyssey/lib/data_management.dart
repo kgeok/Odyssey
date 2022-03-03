@@ -105,13 +105,13 @@ class OdysseyDatabase {
         double.parse(centerBufferlng[0]["mapcenterlng"].toString())); */ //Null error on Android
 
       var bearingBuffer = await db.query("Prefs", columns: ["bearing"]);
-      bearing = double.parse(bearingBuffer[0]['bearing'].toString());
+      // bearing = double.parse(bearingBuffer[0]['bearing'].toString());
 
       var mapTypeBuffer = await db.query("Prefs", columns: ["maplayer"]);
       //mapType = mapTypeBuffer[0]['maplayer'].toString() as MapType; //Tried casting this one didn't work...
 
       var mapZoomBuffer = await db.query("Prefs", columns: ["mapzoom"]);
-      mapZoom = double.parse(mapZoomBuffer[0]['mapzoom'].toString());
+      //mapZoom = double.parse(mapZoomBuffer[0]['mapzoom'].toString());
 
       //Load User Data
       var counterBuffer = await db.query("Pins", columns: ["MAX(id)"]);

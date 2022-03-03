@@ -31,7 +31,7 @@ class MyApp extends StatefulWidget {
 
 GlobalKey<MyAppState> key = GlobalKey();
 //Variables that we will be using, will try to minimize in the future
-const double version = 0.8;
+const double version = 1.0;
 const release = "Beta";
 Color pincolor = Color(int.parse(defaultPinColor));
 var colorBuffer = "FF0000";
