@@ -618,12 +618,12 @@ class MyAppState extends State<MyApp> {
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
     populateMapfromState();
-/*     simpleDialog(
+    simpleDialog(
         context,
         "Pre-Release Version",
         "Confidential and Proprietary, Please Don't Share Information or Screenshots",
         "Please Report any Bugs and Crashes, Take note of what you were doing when they occurred.",
-        "error"); */
+        "error");
   }
 
   //UI of the app
@@ -702,154 +702,157 @@ class MyAppState extends State<MyApp> {
               },
               markers: _markers,
             ),
-            Padding(
-                padding: const EdgeInsets.all(16.0),
+            Positioned(
                 child: Align(
                     alignment: Alignment.topLeft,
-                    child: Positioned(
+                    child: Padding(
+                        padding: const EdgeInsets.all(16.0),
                         child: Wrap(
-                      direction: Axis.vertical,
-                      spacing: 6,
-                      children: [
-                        Container(
-                          decoration: ShapeDecoration(
-                            shadows: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                spreadRadius: 5,
-                                blurRadius: 7,
-                                offset: const Offset(
-                                    0, 3), // changes position of shadow
+                          direction: Axis.vertical,
+                          spacing: 6,
+                          children: [
+                            Container(
+                              decoration: ShapeDecoration(
+                                shadows: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.2),
+                                    spreadRadius: 5,
+                                    blurRadius: 7,
+                                    offset: const Offset(
+                                        0, 3), // changes position of shadow
+                                  ),
+                                ],
+                                color:
+                                    MediaQuery.of(context).platformBrightness ==
+                                            Brightness.light
+                                        ? lightMode.withOpacity(0.8)
+                                        : darkMode.withOpacity(0.8),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4)),
                               ),
-                            ],
-                            color: MediaQuery.of(context).platformBrightness ==
-                                    Brightness.light
-                                ? lightMode.withOpacity(0.8)
-                                : darkMode.withOpacity(0.8),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(4)),
-                          ),
-                          child: IconButton(
-                            icon: const Icon(Icons.map_outlined),
-                            color: Colors.white,
-                            onPressed: toggleMapView,
-                          ),
-                        ),
-                        Container(
-                          decoration: ShapeDecoration(
-                            shadows: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                spreadRadius: 5,
-                                blurRadius: 7,
-                                offset: const Offset(
-                                    0, 3), // changes position of shadow
+                              child: IconButton(
+                                icon: const Icon(Icons.map_outlined),
+                                color: Colors.white,
+                                onPressed: toggleMapView,
                               ),
-                            ],
-                            color: MediaQuery.of(context).platformBrightness ==
-                                    Brightness.light
-                                ? lightMode.withOpacity(0.8)
-                                : darkMode.withOpacity(0.8),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(4)),
-                          ),
-                          child: IconButton(
-                            icon: const Icon(Icons.layers_outlined),
-                            color: Colors.white,
-                            onPressed: toggleMapModes,
-                          ),
-                        ),
-                      ],
-                    )))),
-            Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Align(
-                    alignment: Alignment.topRight,
-                    child: Positioned(
+                            ),
+                            Container(
+                              decoration: ShapeDecoration(
+                                shadows: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.2),
+                                    spreadRadius: 5,
+                                    blurRadius: 7,
+                                    offset: const Offset(
+                                        0, 3), // changes position of shadow
+                                  ),
+                                ],
+                                color:
+                                    MediaQuery.of(context).platformBrightness ==
+                                            Brightness.light
+                                        ? lightMode.withOpacity(0.8)
+                                        : darkMode.withOpacity(0.8),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4)),
+                              ),
+                              child: IconButton(
+                                icon: const Icon(Icons.layers_outlined),
+                                color: Colors.white,
+                                onPressed: toggleMapModes,
+                              ),
+                            ),
+                          ],
+                        )))),
+            Positioned(
+                child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Align(
+                        alignment: Alignment.topRight,
                         child: Wrap(
-                      direction: Axis.vertical,
-                      spacing: 1,
-                      children: [
-                        Container(
-                          decoration: ShapeDecoration(
-                            shadows: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                spreadRadius: 5,
-                                blurRadius: 7,
-                                offset: const Offset(
-                                    0, 3), // changes position of shadow
-                              ),
-                            ],
-                            color: MediaQuery.of(context).platformBrightness ==
-                                    Brightness.light
-                                ? lightMode.withOpacity(0.8)
-                                : darkMode.withOpacity(0.8),
-                            shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.vertical(
-                                    top: Radius.circular(10),
-                                    bottom: Radius.circular(0))),
-                          ),
-                          child: IconButton(
-                              icon: const Icon(Icons.add),
-                              color: Colors.white,
-                              onPressed: () async {
-                                var currentZoomLevel =
-                                    await mapController.getZoomLevel();
-
-                                currentZoomLevel = currentZoomLevel + 2;
-                                mapController.animateCamera(
-                                  CameraUpdate.newCameraPosition(
-                                    CameraPosition(
-                                      target: center,
-                                      bearing: bearing,
-                                      zoom: currentZoomLevel,
-                                    ),
+                          direction: Axis.vertical,
+                          spacing: 1,
+                          children: [
+                            Container(
+                              decoration: ShapeDecoration(
+                                shadows: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.2),
+                                    spreadRadius: 5,
+                                    blurRadius: 7,
+                                    offset: const Offset(
+                                        0, 3), // changes position of shadow
                                   ),
-                                );
-                              }),
-                        ),
-                        Container(
-                          decoration: ShapeDecoration(
-                            shadows: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                spreadRadius: 5,
-                                blurRadius: 7,
-                                offset: const Offset(
-                                    0, 3), // changes position of shadow
+                                ],
+                                color:
+                                    MediaQuery.of(context).platformBrightness ==
+                                            Brightness.light
+                                        ? lightMode.withOpacity(0.8)
+                                        : darkMode.withOpacity(0.8),
+                                shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.vertical(
+                                        top: Radius.circular(10),
+                                        bottom: Radius.circular(0))),
                               ),
-                            ],
-                            color: MediaQuery.of(context).platformBrightness ==
-                                    Brightness.light
-                                ? lightMode.withOpacity(0.8)
-                                : darkMode.withOpacity(0.8),
-                            shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.vertical(
-                                    top: Radius.circular(0),
-                                    bottom: Radius.circular(10))),
-                          ),
-                          child: IconButton(
-                              icon: const Icon(Icons.remove),
-                              color: Colors.white,
-                              onPressed: () async {
-                                var currentZoomLevel =
-                                    await mapController.getZoomLevel();
+                              child: IconButton(
+                                  icon: const Icon(Icons.add),
+                                  color: Colors.white,
+                                  onPressed: () async {
+                                    var currentZoomLevel =
+                                        await mapController.getZoomLevel();
 
-                                currentZoomLevel = currentZoomLevel - 2;
-                                mapController.animateCamera(
-                                  CameraUpdate.newCameraPosition(
-                                    CameraPosition(
-                                      target: center,
-                                      bearing: bearing,
-                                      zoom: currentZoomLevel,
-                                    ),
+                                    currentZoomLevel = currentZoomLevel + 2;
+                                    mapController.animateCamera(
+                                      CameraUpdate.newCameraPosition(
+                                        CameraPosition(
+                                          target: center,
+                                          bearing: bearing,
+                                          zoom: currentZoomLevel,
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                            ),
+                            Container(
+                              decoration: ShapeDecoration(
+                                shadows: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.2),
+                                    spreadRadius: 5,
+                                    blurRadius: 7,
+                                    offset: const Offset(
+                                        0, 3), // changes position of shadow
                                   ),
-                                );
-                              }),
-                        ),
-                      ],
-                    )))),
+                                ],
+                                color:
+                                    MediaQuery.of(context).platformBrightness ==
+                                            Brightness.light
+                                        ? lightMode.withOpacity(0.8)
+                                        : darkMode.withOpacity(0.8),
+                                shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.vertical(
+                                        top: Radius.circular(0),
+                                        bottom: Radius.circular(10))),
+                              ),
+                              child: IconButton(
+                                  icon: const Icon(Icons.remove),
+                                  color: Colors.white,
+                                  onPressed: () async {
+                                    var currentZoomLevel =
+                                        await mapController.getZoomLevel();
+                                    currentZoomLevel = currentZoomLevel - 2;
+                                    mapController.animateCamera(
+                                      CameraUpdate.newCameraPosition(
+                                        CameraPosition(
+                                          target: center,
+                                          bearing: bearing,
+                                          zoom: currentZoomLevel,
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                            ),
+                          ],
+                        )))),
           ]),
           floatingActionButton: Stack(children: <Widget>[
             Align(
