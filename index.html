@@ -1,468 +1,461 @@
 <!DOCTYPE html>
 <html lang="en-us">
-   <head>
-      <meta charset="UTF-8">
-      <title>Odyssey</title>
-      <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale = 1.0, user-scalable = no">
-      <meta name="apple-mobile-web-app-capable" content="yes">
-      <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-      <link rel="preconnect" href="https://fonts.gstatic.com">
-      <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500&display=swap" rel="stylesheet">
-      <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
-      <link href="https://fonts.googleapis.com/css2?family=Material+Icons+Outlined" rel="stylesheet">
-      <link rel="stylesheet" type="text/css" href="style.css" media="screen">
-      <link rel="apple-touch-icon" sizes="180x180"
-         href="https://github.com/kgeok/Odyssey/raw/main/icons/apple-touch-icon.png">
-      <link rel="icon" type="image/png" sizes="32x32"
-         href="https://github.com/kgeok/Odyssey/raw/main/icons/favicon-32x32.png">
-      <link rel="icon" type="image/png" sizes="16x16"
-         href="https://github.com/kgeok/Odyssey/raw/main/icons/favicon-16x16.png">
-      <link rel="manifest" href="https://github.com/kgeok/Odyssey/raw/main/icons/site.webmanifest">
-      <link rel="mask-icon" href="https://github.com/kgeok/Odyssey/raw/main/icons/safari-pinned-tab.svg" color="#2b5797">
-      <link rel="shortcut icon" href="https://github.com/kgeok/Odyssey/raw/main/icons/favicon.ico">
-      <meta name="msapplication-TileColor" content="#2b5797">
-      <meta name="msapplication-config" content="https://github.com/kgeok/Odyssey/raw/main/icons/browserconfig.xml">
-   <body>
-      <div id="splash-screen">Odyssey</div>
-      <header>
-         <div id="menu-btn">
-            <h3><span style="font-size: 35px;" onclick="ToggleMenu()" class='material-icons md-36'>menu</span></h3>
-         </div>
-         <div id="tagline">
+<head>
+    <meta charset="UTF-8" />
+    <title>Odyssey</title>
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale = 1.0, user-scalable = no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Icons+Outlined" rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="style.css" media="screen" />
+    <link rel="apple-touch-icon" sizes="180x180" href="https://github.com/kgeok/Odyssey/raw/main/icons/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="https://github.com/kgeok/Odyssey/raw/main/icons/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="https://github.com/kgeok/Odyssey/raw/main/icons/favicon-16x16.png" />
+    <link rel="manifest" href="https://github.com/kgeok/Odyssey/raw/main/icons/site.webmanifest" />
+    <link rel="mask-icon" href="https://github.com/kgeok/Odyssey/raw/main/icons/safari-pinned-tab.svg" color="#2b5797" />
+    <link rel="shortcut icon" href="https://github.com/kgeok/Odyssey/raw/main/icons/favicon.ico" />
+    <meta name="msapplication-TileColor" content="#2b5797" />
+    <meta name="msapplication-config" content="https://github.com/kgeok/Odyssey/raw/main/icons/browserconfig.xml" />
+</head>
+<body>
+    <header>
+        <div id="journal-btn">
+            <h3><span style="font-size: 35px;" onclick="ToggleJournal()" class="material-icons md-36">menu</span></h3>
+        </div>
+        <div id="tagline">
             <h2 onclick="About()">Odyssey</h2>
-         </div>
-      </header>
-      <nav id="menu">
-         <header>
-            <div id="menu-btn">
-               <h3><span style="font-size: 35px;" onclick="ToggleMenu()" class='material-icons md-36'>menu</span>
-                  <span style="font-size: 35px;" onclick="exportJSONFile()" class="material-icons md-36">download</span>
-               </h3>
+        </div>
+    </header>
+    <nav id="journal">
+        <header>
+            <div id="journal-btn">
+                <h3>
+                    <span style="font-size: 35px;" onclick="ToggleJournal()" class="material-icons md-36">menu</span>
+                </h3>
             </div>
-         </header>
-         <div id="menu-content">
-            <div id="menu-item">
-               <div id="tagline">
-                  <h2>Journal</h2>
-               </div>
+        </header>
+        <div id="journal-content">
+            <div id="journal-item">
+                <div id="tagline">
+                    <h2>Journal</h2>
+                </div>
+            </div>
+            <br />
+        </div>
+    </nav>
+    <nav id="settings">
+        <header>
+            <div id="journal-btn">
+                <h3>
+                    <span style="font-size: 35px;" onclick="ToggleSettings()" class="material-icons md-36">arrow_back</span>
+                </h3>
+            </div>
+        </header>
+        <div id="settings-content">
+            <div id="settings-item">
+                <div id="tagline">
+                    <h2>Settings</h2>
+                </div>
+            </div>
+            <br />
+            <div id="settings-item">
+                <div id="settingsEntry" onclick="removeMarker()">Clear All Pins</div>
+            </div>
+            <br />
+            <div id="settings-item">
+                <div id="settingsEntry" onclick="ToggleMapView()">Toggle Map View</div>
+            </div>
+            <br />
+            <div id="settings-item">
+                <div id="settingsEntry" onclick="ToggleMapOptions()">Toggle Map Details</div>
+            </div>
+            <br />
+            <div id="settings-item">
+                <div id="settingsEntry" onclick="exportJSONFile()">Export Data</div>
+            </div>
+            <br />
+            <div id="settings-item">
+                <div id="settingsEntry" onclick="About()">About</div>
             </div>
             <br />
             <br />
-         </div>
-      </nav>
-      <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
-      <script type="text/javascript">
-         let product = "Odyssey";
-         let version = "0.6";
-         let release = "Beta";
-         let map;
-         let markers = [];
-         var PinColor = "#ff0000";
-         var state = [];
-         var caption = " ";
-         var MarkerCounter = 0;
-         var PinNum;
-         var LoadState = new Object();
-         var CurrCorrX;
-         var CurrCorrX;
-         var GeocoderBuffer;
-         
-         let download_btn = document.createElement('div');
-         download_btn.id = 'download_btn';
-         download_btn.innerHTML = "<span aria-label = 'Download Pin Data Button' class='material-icons md-light'>download</span>";
-         download_btn.setAttribute('onclick', 'exportJSONFile()');
-         download_btn.setAttribute('class', 'circlebtn');
-         download_btn.setAttribute('alt', 'Download Pin Data');
-         
-         let color_picker = document.createElement('input');
-         color_picker.id = 'color_picker';
-         color_picker.setAttribute('type', 'color');
-         color_picker.setAttribute('aria-label', 'Color Picker');
-         color_picker.setAttribute('value', '#ff0000');
-         color_picker.setAttribute('onchange', 'changePinColor()');
-         
-         
-         let clear_btn = document.createElement('div');
-         clear_btn.id = 'clear_btn';
-         clear_btn.innerHTML = "<span aria-label = 'Download Pin Data Button' class='material-icons md-36'>clear</span>";
-         clear_btn.setAttribute('onclick', 'removeMarker()');
-         clear_btn.setAttribute('class', 'circlebtn');
-         clear_btn.setAttribute('alt', 'Clear Pins');
-         
-         let deletelp_btn = document.createElement('div');
-         deletelp_btn.id = 'deletelp_btn';
-         deletelp_btn.innerHTML = "<span aria-label = 'Download Pin Data Button' class='material-icons md-36'>delete_outline</span>";
-         deletelp_btn.setAttribute('onclick', 'removeLastMarker()');
-         deletelp_btn.setAttribute('class', 'circlebtn');
-         deletelp_btn.setAttribute('alt', 'Remove Last Pin');
-         
-         let caption_btn = document.createElement('div');
-         caption_btn.id = 'caption_btn';
-         caption_btn.innerHTML = "<span aria-label = 'Download Pin Data Button' class='material-icons md-light md-36'>subtitles</span>";
-         caption_btn.setAttribute('onclick', 'makeCaption()');
-         caption_btn.setAttribute('class', 'circlebtn');
-         caption_btn.setAttribute('alt', 'Caption Pin');
-         
-         let zoom_control_in = document.createElement('div');
-         zoom_control_in.id = 'zoom_control_in';
-         zoom_control_in.innerHTML = '<span class="material-icons-outlined">add</span>';
-         zoom_control_in.className = 'sqbtn';
-         zoom_control_in.style.borderRadius = "8px 8px 0px 0px";
-         zoom_control_in.style.marginTop = "10px";
-         zoom_control_in.setAttribute('onclick', 'map.setZoom(map.getZoom() + 1);');
-         
-         let zoom_control_out = document.createElement('div');
-         zoom_control_out.id = 'zoom_control_out';
-         zoom_control_out.innerHTML = '<span class="material-icons-outlined">remove</span>';
-         zoom_control_out.className = 'sqbtn';
-         zoom_control_out.style.borderRadius = "0px 0px 7.5px 7.5px";
-         zoom_control_out.setAttribute('onclick', 'map.setZoom(map.getZoom() - 1);');
-         
-         let map_type_control = document.createElement('div');
-         map_type_control.id = 'map_type_control';
-         map_type_control.innerHTML = '<span class="material-icons-outlined">map</span>';
-         map_type_control.setAttribute('onclick', 'ToggleMapView()');
-         map_type_control.className = 'sqbtn';
-         map_type_control.style.borderRadius = "5px";
-         map_type_control.style.marginTop = "10px";
-         map_type_control.style.marginLeft = "10px";
-         
-         let map_type_options = document.createElement('div');
-         map_type_options.id = 'mts';
-         map_type_options.innerHTML = '<span class="material-icons-outlined">layers</span>';
-         map_type_options.setAttribute('onclick', 'ToggleMapOptions()');
-         map_type_options.className = 'sqbtn';
-         map_type_options.style.borderRadius = "5px";
-         map_type_options.style.marginTop = "10px";
-         map_type_options.style.marginLeft = "10px";
-         
-         let get_location = document.createElement('div');
-         get_location.id = 'get_location';
-         get_location.innerHTML = '<span class="material-icons-outlined">gps_fixed</span>';
-         get_location.setAttribute('onclick', 'appendFromLocation()');
-         get_location.className = 'sqbtn';
-         get_location.style.borderRadius = "5px";
-         get_location.style.marginTop = "10px";
-         get_location.style.marginLeft = "10px";
-         
-         //Parsing document.cookie, cleaning it up into LoadState and placing markers on start
-         window.onload = function () {
-           const geocoder = new google.maps.Geocoder();
-           LoadState["Counter"] = parseInt(localStorage.getItem("Counter"));
-         
-           for (i = 0; i <= parseInt(localStorage.getItem("Counter")); i++) {
-         
-               LoadState["PinCoor_" + i] = localStorage.getItem("PinCoor_" + i);
-               LoadState["PinCapt_" + i] = localStorage.getItem("PinCapt_" + i);
-               LoadState["PinColor_" + i] = localStorage.getItem("PinColor_" + i);
-               LoadState["PinCoor_" + i] = LoadState["PinCoor_" + i].replace("(", "");
-               LoadState["PinCoor_" + i] = LoadState["PinCoor_" + i].replace(")", "");
-               CurrCorrX = LoadState["PinCoor_" + i].split(",").shift();
-               CurrCorrY = LoadState["PinCoor_" + i].split(", ").pop();
-               placeMarker(map, { lat: parseFloat(CurrCorrX, 10), lng: parseFloat(CurrCorrY, 10) }, LoadState["PinCapt_" + i], LoadState["PinColor_" + i]);
-               }
-         
-               
-         
-           //Correcting new counter not showing up in new markers
-           if (LoadState["Counter"] != "") {
-             MarkerCounter = LoadState["Counter"];
-             MarkerCounter++;
-           }
-         
-         if (isNaN(LoadState["Counter"]) == true) {
-         
-         MarkerCounter = 0;
-         
-         }
-         
-         
-           PinColor = "#ff0000";
-         }
-         
-         //initializing map
-         //Coords used are center of US, disabled StreetView for billing purposes
-         function initMap() {
-           const geocoder = new google.maps.Geocoder();
-           map = new google.maps.Map(document.getElementById("map"), {
-             center: { lat: 41.850033, lng: -87.6500523 },
-             streetViewControl: false,
-             rotateControl: true,
-             zoom: 4,
-             disableDefaultUI: true,
-           });
-         
-           map.controls[google.maps.ControlPosition.LEFT_TOP].push(get_location);
-           map.controls[google.maps.ControlPosition.LEFT_TOP].push(map_type_control);
-           map.controls[google.maps.ControlPosition.LEFT_TOP].push(map_type_options);
-           map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(caption_btn);
-           map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(deletelp_btn);
-           map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(clear_btn);
-           map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(color_picker);
-           map.controls[google.maps.ControlPosition.RIGHT_TOP].push(zoom_control_in);
-           map.controls[google.maps.ControlPosition.RIGHT_TOP].push(zoom_control_out);
-         
-           map.addListener("click", (e) => {
-         
-             placeMarker(map, e.latLng, caption, PinColor);
-         
-             localStorage.setItem("PinCoor_" + MarkerCounter, e.latLng);
-             localStorage.setItem("PinCapt_" + MarkerCounter, caption);
-             localStorage.setItem("PinColor_" + MarkerCounter, PinColor);
-             localStorage.setItem("Counter", MarkerCounter);
-         
-             MarkerCounter++;
-             caption = "";
-             //console.log(document.cookie);
-             console.log(MarkerCounter);
-             console.log(markers);
-           });
-         
-         }
-         
-         function appendFromLocation(){
-         
-         if (navigator.geolocation) {
-         navigator.geolocation.getCurrentPosition(appendLocation);
-         } else { 
-         alert("Can't Find Location");
-         }
-         
-         }
-         
-         function appendLocation(position) {
-         
-         placeMarker(map, { lat: parseFloat(position.coords.latitude, 10), lng: parseFloat(position.coords.longitude, 10) }, caption, PinColor);
-         
-             localStorage.setItem("PinCoor_" + MarkerCounter, "(" + parseFloat(position.coords.latitude, 10) + ", " + parseFloat(position.coords.longitude, 10) + ")");
-             localStorage.setItem("PinCapt_" + MarkerCounter, caption);
-             localStorage.setItem("PinColor_" + MarkerCounter, PinColor);
-             localStorage.setItem("Counter", MarkerCounter);
-         
-             MarkerCounter++;
-             caption = "";
-             //console.log(document.cookie);
-             console.log(MarkerCounter);
-             console.log(markers);
-         
-         }
-         
-         function removeMarker() {
-         
-           for (let i = 0; i < markers.length; i++) {
-         
-             markers[i].setMap(null);
-         
-             localStorage.removeItem("PinCoor_" + i);
-             localStorage.removeItem("PinCapt_" + i);
-             localStorage.removeItem("PinColor_" + i);
-           }
-           for (let i = 0; i < markers.length; i++) {
-             document.getElementById("journalEntry").remove();
-           }
-           //reset vars
-           markers = [];
-         localStorage.removeItem("Counter");
-           MarkerCounter = 0;
-           state = "";
-           console.clear();
-         }
-         
-         function removeLastMarker() {
-           markers[Math.abs(MarkerCounter - 1)].setMap(null);
-         
-           localStorage.removeItem("PinCoor_" + (Math.abs(MarkerCounter - 1)));
-           localStorage.removeItem("PinCapt_" + (Math.abs(MarkerCounter - 1)));
-           localStorage.removeItem("PinColor_" + (Math.abs(MarkerCounter - 1)));
-           localStorage.setItem("Counter", MarkerCounter);
-         
-           MarkerCounter--;
-           if (MarkerCounter == 0) {
-             removeMarker();
-           }
-           console.log(document.cookie);
-           console.log(MarkerCounter);
-           console.log(markers);
-         
-           if (MarkerCounter < 0) {
-             removeMarker();
-           }
-         }
-         
-         function placeMarker(map, coor, title, color) {
-           const geocoder = new google.maps.Geocoder();
-           //Using PinNum instead of MarkerCounter because of an unknown error in console otherwise
-           state[PinNum] = coor;
-           PinNum++;
-           var marker = new google.maps.Marker({
-         
-             position: coor,
-             map: map,
-             animation: google.maps.Animation.Drop,
-             title: title,
-             clickable: true,
-             draggable: false,
-             labelInBackground: false,
-             labelClass: "label",
-             icon: {
-               path: "M38+4.5C21.4906+4.5+8.09375+17.9077+8.09375+34.4375C8.09375+49.34+19.0104+61.5861+33.25+63.875L32.875+63.875L32.875+147.656L26.4375+147.656L38+175.219L49.5625+147.656L43.125+147.656L43.125+63.875L42.75+63.875C56.9896+61.5861+67.9062+49.34+67.9062+34.4375C67.9062+17.9077+54.5094+4.5+38+4.5Z",
-               fillColor: color,
-               fillOpacity: 0.6,
-               strokeWeight: 1,
-               rotation: 0,
-               scale: 0.285,
-               anchor: new google.maps.Point(38, 180),
-         
-             }
-         
-           });
-         
-           geocodeLatLng(geocoder, map, coor, title, color);
-         
-           function geocodeLatLng(geocoder, map, coor, caption, color) {
-             geocoder
-               .geocode({ location: coor })
-               .then((response) => {
-                 if (response.results[0]) {
-                   console.log(response.results[0].formatted_address);
-                   GeocoderBuffer = response.results[0].formatted_address;
-                   appendJournal(caption, GeocoderBuffer, color);
-         
-                 } else {
-                   console.log("No results found");
-                 }
-               })
-               .catch((e) => console.log("Geocoder failed due to: " + e));
-         
-           }
-         
-           var InfoWindow = new google.maps.InfoWindow({
-             content: "<div class = 'label'>" + title + "</div>",
-           });
-         
-           marker.addListener("click", () => {
-             InfoWindow.open({
-               anchor: marker,
-               map,
-               shouldFocus: false,
-             });
-           });
-         
-           markers.push(marker);
-           state = markers;
-         
-         }
-         
-         function changePinColor() {
-           PinColor = document.getElementById("color_picker").value;
-           console.log(document.getElementById("color_picker").value);
-         }
-         
-         function ToggleMenu() {
-         
-           if (document.getElementById("menu").style.display == "none") {
-             document.getElementById("menu").style.display = "block";
-           } else {
-             document.getElementById("menu").style.display = "none";
-           }
-         }
-         
-         
-         function About() {
-         
-           prompt("Odyssey, Version " + version + " (" + release + "), With <3 by Kevin George.\n" + "Powered by Google Maps.\n", "http://kgeok.github.io")
-         
-         }
-         
-         function appendJournal(caption, location, color) {
-         
-           var date = new Date();
-           var dateNow = "Added - " + date.toDateString();
-         
-           let journalEntry = document.createElement('div');
-           journalEntry.id = 'journalEntry';
-           journalEntry.style.backgroundColor = color;
-           journalEntry.innerHTML = caption + "<br/>" + location + "<br/>";
-         
-           let lineBreak = document.createElement('br');
-           lineBreak.id = "br";
-           document.getElementById("menu-item").insertAdjacentElement("afterend", journalEntry);
-           document.getElementById("journalEntry").insertAdjacentElement("afterend", lineBreak);
-          document.getElementById("journalEntry").insertAdjacentElement("afterend", lineBreak);
-         }
-         
-         function exportJSONFile() {
-         
-           var a = document.createElement("a");
-           a.href = URL.createObjectURL(new Blob([JSON.stringify(LoadState)], {
-             type: "application/json"
-           }));
-         
-           a.setAttribute("download", "OdysseyExport.json");
-           document.body.appendChild(a);
-           a.click();
-           document.body.removeChild(a);
-         
-         }
-         
-         function makeCaption() {
-           caption = prompt("Caption");
-           //Fix for 'null'
-           if (caption == "" || caption == null) {
-             caption = " ";
-           }
-         }
-         
-         function ToggleMapView() {
-         
-           switch (map.getMapTypeId()) {
-         
-             case 'roadmap':
-               map.setMapTypeId('hybrid');
-               break;
-         
-             case 'hybrid':
-               map.setMapTypeId('roadmap');
-               break;
-         
-             case 'terrain':
-               map.setMapTypeId('hybrid');
-               break;
-         
-             case 'satellite':
-               map.setMapTypeId('roadmap');
-               break;
-         
-           }
-         }
-         
-         function ToggleMapOptions() {
-         
-           switch (map.getMapTypeId()) {
-         
-             case 'roadmap':
-               map.setMapTypeId('terrain');
-               break;
-         
-             case 'satellite':
-               map.setMapTypeId('hybrid');
-               break;
-         
-             case 'terrain':
-               map.setMapTypeId('roadmap');
-               break;
-         
-             case 'hybrid':
-               map.setMapTypeId('satellite');
-               break;
-         
-           }
-         }
-         
-      </script>
-      <div id="map"></div>
-      <script
-         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSHRuDqzWL6x42T7WYs9KybTz6BMYY_0g&callback=initMap&libraries=&v=weekly"
-         async></script>
-      </script>
-      </section>
+        </div>
+    </nav>
+
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <script type="text/javascript">
+        let product = "Odyssey";
+        let version = "0.6";
+        let release = "Beta";
+        let map;
+        let markers = [];
+        var PinColor = "#ff0000";
+        var state = [];
+        var caption = " ";
+        var MarkerCounter = 0;
+        var PinNum;
+        var LoadState = new Object();
+        var CurrCorrX;
+        var CurrCorrX;
+        var GeocoderBuffer;
+
+        let download_btn = document.createElement("div");
+        download_btn.id = "download_btn";
+        download_btn.innerHTML = "<span aria-label = 'Download Pin Data Button' class='material-icons md-light'>download</span>";
+        download_btn.setAttribute("onclick", "exportJSONFile()");
+        download_btn.setAttribute("class", "circlebtn");
+        download_btn.setAttribute("alt", "Download Pin Data");
+
+        let color_picker = document.createElement("input");
+        color_picker.id = "color_picker";
+        color_picker.setAttribute("type", "color");
+        color_picker.setAttribute("aria-label", "Color Picker");
+        color_picker.setAttribute("value", "#ff0000");
+        color_picker.setAttribute("onchange", "changePinColor()");
+
+        let settings_btn = document.createElement("div");
+        settings_btn.id = "settings_btn";
+        settings_btn.innerHTML = "<span aria-label = 'Settings' class='material-icons md-36'>settings</span>";
+        settings_btn.setAttribute("onclick", "ToggleSettings()");
+        settings_btn.setAttribute("class", "circlebtn");
+        settings_btn.setAttribute("alt", "Settings");
+
+        let deletelp_btn = document.createElement("div");
+        deletelp_btn.id = "deletelp_btn";
+        deletelp_btn.innerHTML = "<span aria-label = 'Delete Last Pin' class='material-icons md-36'>delete_outline</span>";
+        deletelp_btn.setAttribute("onclick", "removeLastMarker()");
+        deletelp_btn.setAttribute("class", "circlebtn");
+        deletelp_btn.setAttribute("alt", "Remove Last Pin");
+
+        let caption_btn = document.createElement("div");
+        caption_btn.id = "caption_btn";
+        caption_btn.innerHTML = "<span aria-label = 'Pin Caption' class='material-icons md-light md-36'>subtitles</span>";
+        caption_btn.setAttribute("onclick", "makeCaption()");
+        caption_btn.setAttribute("class", "circlebtn");
+        caption_btn.setAttribute("alt", "Caption Pin");
+
+        let get_location = document.createElement("div");
+        get_location.id = "caption_btn";
+        get_location.innerHTML = "<span aria-label = 'Pin Location' class='material-icons md-light md-36'>gps_fixed</span>";
+        get_location.setAttribute("onclick", "appendFromLocation()");
+        get_location.setAttribute("class", "circlebtn");
+        get_location.setAttribute("alt", "Pin Location");
+
+        let zoom_control_in = document.createElement("div");
+        zoom_control_in.id = "zoom_control_in";
+        zoom_control_in.innerHTML = "<span aria-label = 'Zoom In' class='material-icons-outlined'>add</span>";
+        zoom_control_in.className = "sqbtn";
+        zoom_control_in.style.borderRadius = "8px 8px 0px 0px";
+        zoom_control_in.style.marginTop = "10px";
+        zoom_control_in.setAttribute("onclick", "map.setZoom(map.getZoom() + 1);");
+
+        let zoom_control_out = document.createElement("div");
+        zoom_control_out.id = "zoom_control_out";
+        zoom_control_out.innerHTML = "<span aria-label = 'Zoom In' class='material-icons-outlined'>remove</span>";
+        zoom_control_out.className = "sqbtn";
+        zoom_control_out.style.borderRadius = "0px 0px 7.5px 7.5px";
+        zoom_control_out.setAttribute("onclick", "map.setZoom(map.getZoom() - 1);");
+
+        let bigpicture_btn = document.createElement("div");
+        bigpicture_btn.id = "mts";
+        bigpicture_btn.innerHTML = '<span class="material-icons-outlined">layers</span>';
+        bigpicture_btn.setAttribute("onclick", "map.setZoom(3);");
+        bigpicture_btn.className = "sqbtn";
+        bigpicture_btn.style.borderRadius = "5px";
+        bigpicture_btn.style.marginTop = "10px";
+        bigpicture_btn.style.marginLeft = "10px";
+
+        //Parsing document.cookie, cleaning it up into LoadState and placing markers on start
+        window.onload = function () {
+            const geocoder = new google.maps.Geocoder();
+            LoadState["Counter"] = parseInt(localStorage.getItem("Counter"));
+
+            for (i = 0; i <= parseInt(localStorage.getItem("Counter")); i++) {
+                LoadState["PinCoor_" + i] = localStorage.getItem("PinCoor_" + i);
+                LoadState["PinCapt_" + i] = localStorage.getItem("PinCapt_" + i);
+                LoadState["PinColor_" + i] = localStorage.getItem("PinColor_" + i);
+                LoadState["PinCoor_" + i] = LoadState["PinCoor_" + i].replace("(", "");
+                LoadState["PinCoor_" + i] = LoadState["PinCoor_" + i].replace(")", "");
+                CurrCorrX = LoadState["PinCoor_" + i].split(",").shift();
+                CurrCorrY = LoadState["PinCoor_" + i].split(", ").pop();
+                placeMarker(map, { lat: parseFloat(CurrCorrX, 10), lng: parseFloat(CurrCorrY, 10) }, LoadState["PinCapt_" + i], LoadState["PinColor_" + i]);
+            }
+
+            //Correcting new counter not showing up in new markers
+            if (LoadState["Counter"] != "") {
+                MarkerCounter = LoadState["Counter"];
+                MarkerCounter++;
+            }
+
+            if (isNaN(LoadState["Counter"]) == true) {
+                MarkerCounter = 0;
+            }
+
+            PinColor = "#ff0000";
+        };
+
+        //Initializing map
+        //Coords used are center of US, disabled StreetView for billing purposes
+        function initMap() {
+            const geocoder = new google.maps.Geocoder();
+            map = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: 41.850033, lng: -87.6500523 },
+                streetViewControl: false,
+                rotateControl: true,
+                zoom: 4,
+                disableDefaultUI: true,
+            });
+
+            map.controls[google.maps.ControlPosition.LEFT_TOP].push(bigpicture_btn);
+            map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(settings_btn);
+            map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(deletelp_btn);
+            map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(get_location);
+            map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(caption_btn);
+            map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(color_picker);
+            map.controls[google.maps.ControlPosition.RIGHT_TOP].push(zoom_control_in);
+            map.controls[google.maps.ControlPosition.RIGHT_TOP].push(zoom_control_out);
+
+            map.addListener("click", (e) => {
+                placeMarker(map, e.latLng, caption, PinColor);
+                localStorage.setItem("PinCoor_" + MarkerCounter, e.latLng);
+                localStorage.setItem("PinCapt_" + MarkerCounter, caption);
+                localStorage.setItem("PinColor_" + MarkerCounter, PinColor);
+                localStorage.setItem("Counter", MarkerCounter);
+                MarkerCounter++;
+                caption = "";
+                console.log(MarkerCounter);
+                console.log(markers);
+            });
+        }
+
+        function appendFromLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(appendLocation);
+            } else {
+                alert("Can't Find Location");
+            }
+        }
+
+        function appendLocation(position) {
+            placeMarker(map, { lat: parseFloat(position.coords.latitude, 10), lng: parseFloat(position.coords.longitude, 10) }, caption, PinColor);
+            localStorage.setItem("PinCoor_" + MarkerCounter, "(" + parseFloat(position.coords.latitude, 10) + ", " + parseFloat(position.coords.longitude, 10) + ")");
+            localStorage.setItem("PinCapt_" + MarkerCounter, caption);
+            localStorage.setItem("PinColor_" + MarkerCounter, PinColor);
+            localStorage.setItem("Counter", MarkerCounter);
+            MarkerCounter++;
+            caption = "";
+            console.log(MarkerCounter);
+            console.log(markers);
+        }
+
+        function removeMarker() {
+            let confirmclear = "Are you sure you want to clear all pins?\n(This will also clear the Journal)";
+
+            if (confirm(confirmclear) == true) {
+                for (let i = 0; i < markers.length; i++) {
+                    markers[i].setMap(null);
+                    localStorage.removeItem("PinCoor_" + i);
+                    localStorage.removeItem("PinCapt_" + i);
+                    localStorage.removeItem("PinColor_" + i);
+                }
+                for (let i = 0; i < markers.length; i++) {
+                    document.getElementById("journalEntry").remove();
+                }
+                //reset vars
+                markers = [];
+                localStorage.removeItem("Counter");
+                MarkerCounter = 0;
+                state = "";
+                console.clear();
+            } else {
+            }
+        }
+
+        function removeLastMarker() {
+            markers[Math.abs(MarkerCounter - 1)].setMap(null);
+            localStorage.removeItem("PinCoor_" + Math.abs(MarkerCounter - 1));
+            localStorage.removeItem("PinCapt_" + Math.abs(MarkerCounter - 1));
+            localStorage.removeItem("PinColor_" + Math.abs(MarkerCounter - 1));
+            localStorage.setItem("Counter", MarkerCounter);
+            MarkerCounter--;
+            if (MarkerCounter == 0) {
+                removeMarker();
+            }
+            console.log(document.cookie);
+            console.log(MarkerCounter);
+            console.log(markers);
+
+            if (MarkerCounter < 0) {
+                removeMarker();
+            }
+        }
+
+        function placeMarker(map, coor, title, color) {
+            const geocoder = new google.maps.Geocoder();
+            //Using PinNum instead of MarkerCounter because of an unknown error in console otherwise
+            state[PinNum] = coor;
+            PinNum++;
+            var marker = new google.maps.Marker({
+                position: coor,
+                map: map,
+                animation: google.maps.Animation.Drop,
+                title: title,
+                clickable: true,
+                draggable: false,
+                labelInBackground: false,
+                labelClass: "label",
+                icon: {
+                    path:
+                        "M38+4.5C21.4906+4.5+8.09375+17.9077+8.09375+34.4375C8.09375+49.34+19.0104+61.5861+33.25+63.875L32.875+63.875L32.875+147.656L26.4375+147.656L38+175.219L49.5625+147.656L43.125+147.656L43.125+63.875L42.75+63.875C56.9896+61.5861+67.9062+49.34+67.9062+34.4375C67.9062+17.9077+54.5094+4.5+38+4.5Z",
+                    fillColor: color,
+                    fillOpacity: 0.6,
+                    strokeWeight: 1,
+                    rotation: 0,
+                    scale: 0.285,
+                    anchor: new google.maps.Point(38, 180),
+                },
+            });
+
+            geocodeLatLng(geocoder, map, coor, title, color);
+
+            function geocodeLatLng(geocoder, map, coor, caption, color) {
+                geocoder
+                    .geocode({ location: coor })
+                    .then((response) => {
+                        if (response.results[0]) {
+                            console.log(response.results[0].formatted_address);
+                            GeocoderBuffer = response.results[0].formatted_address;
+                            appendJournal(caption, GeocoderBuffer, color);
+                        } else {
+                            console.log("No results found");
+                        }
+                    })
+                    .catch((e) => console.log("Geocoder failed due to: " + e));
+            }
+
+            var InfoWindow = new google.maps.InfoWindow({
+                content: "<div class = 'label'>" + title + "</div>",
+            });
+
+            marker.addListener("click", () => {
+                InfoWindow.open({
+                    anchor: marker,
+                    map,
+                    shouldFocus: false,
+                });
+            });
+
+            markers.push(marker);
+            state = markers;
+        }
+
+        function changePinColor() {
+            PinColor = document.getElementById("color_picker").value;
+            console.log(document.getElementById("color_picker").value);
+        }
+
+        function ToggleJournal() {
+            if (document.getElementById("journal").style.display == "none") {
+                document.getElementById("journal").style.display = "block";
+            } else {
+                document.getElementById("journal").style.display = "none";
+            }
+        }
+
+        function ToggleSettings() {
+            if (document.getElementById("settings").style.display == "none") {
+                document.getElementById("settings").style.display = "block";
+            } else {
+                document.getElementById("settings").style.display = "none";
+            }
+        }
+
+        function About() {
+            prompt("Odyssey, Version " + version + " (" + release + "), With <3 by Kevin George.\n" + "Powered by Google Maps.\n", "http://kgeok.github.io");
+        }
+
+        function appendJournal(caption, location, color) {
+            var date = new Date();
+            var dateNow = "Added - " + date.toDateString();
+
+            let journalEntry = document.createElement("div");
+            journalEntry.id = "journalEntry";
+            journalEntry.style.backgroundColor = color;
+            journalEntry.innerHTML = caption + "<br/>" + location + "<br/>";
+
+            let lineBreak = document.createElement("br");
+            lineBreak.id = "br";
+
+            document.getElementById("journal-item").insertAdjacentElement("afterend", journalEntry);
+            document.getElementById("journalEntry").insertAdjacentElement("afterend", lineBreak);
+        }
+
+        function exportJSONFile() {
+            var a = document.createElement("a");
+            a.href = URL.createObjectURL(
+                new Blob([JSON.stringify(LoadState)], {
+                    type: "application/json",
+                })
+            );
+
+            a.setAttribute("download", "OdysseyExport.json");
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function makeCaption() {
+            caption = prompt("Caption");
+            //Fix for 'null'
+            if (caption == "" || caption == null) {
+                caption = " ";
+            }
+        }
+
+        function ToggleMapView() {
+            switch (map.getMapTypeId()) {
+                case "roadmap":
+                    map.setMapTypeId("hybrid");
+                    break;
+
+                case "hybrid":
+                    map.setMapTypeId("roadmap");
+                    break;
+
+                case "terrain":
+                    map.setMapTypeId("hybrid");
+                    break;
+
+                case "satellite":
+                    map.setMapTypeId("roadmap");
+                    break;
+            }
+        }
+
+        function ToggleMapOptions() {
+            switch (map.getMapTypeId()) {
+                case "roadmap":
+                    map.setMapTypeId("terrain");
+                    break;
+
+                case "satellite":
+                    map.setMapTypeId("hybrid");
+                    break;
+
+                case "terrain":
+                    map.setMapTypeId("roadmap");
+                    break;
+
+                case "hybrid":
+                    map.setMapTypeId("satellite");
+                    break;
+            }
+        }
+    </script>
+    <div id="map"></div>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSHRuDqzWL6x42T7WYs9KybTz6BMYY_0g&callback=initMap&libraries=&v=weekly" async></script>
+</body>
+</html>
