@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_typing_uninitialized_variables, prefer_const_constructors, unused_import, avoid_print, prefer_conditional_assignment
+// ignore_for_file: prefer_typing_uninitialized_variables, prefer_const_constructors, unused_import, avoid_print, prefer_conditional_assignment, unrelated_type_equality_checks
 
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -9,6 +9,7 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:odyssey/dialogs.dart';
 import 'package:odyssey/theme/custom_theme.dart';
 import 'package:odyssey/data_management.dart';
+import 'package:location/location.dart' as prefix;
 import 'package:geocoding/geocoding.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:ui' as ui;
@@ -31,10 +32,10 @@ class MyApp extends StatefulWidget {
 
 GlobalKey<MyAppState> key = GlobalKey();
 //Variables that we will be using, will try to minimize in the future
-const double version = 1.0;
+const version = "1.0";
 const release = "Beta";
 Color pincolor = Color(int.parse(defaultPinColor));
-var colorBuffer = "FF0000";
+var colorBuffer = "FF0000"; //Default Pin Color when Map settings are un-init'd
 Color pickerColor = Color(0xffff0000);
 Color currentColor = Color(0xffff0000);
 LatLng center = LatLng(defaultCenterLat, defaultCenterLng); //Center of the USA
@@ -43,9 +44,9 @@ double bearing = defaultBearing; //Rotation of Map
 double mapZoom = defaultMapZoom; //Zoom of Map
 int pinCounter = 0;
 var caption = ""; //Null if not init'd
-var captionBuffer;
-var locationBuffer;
-var addressBuffer;
+var captionBuffer; //Temp Buffer for the Caption before it goes into PinData
+var locationBuffer; //Temp Buffer for the results for reverseGeocoder before it goes into PinData
+var addressBuffer; //Temp Buffer for Pin From Address before it goes into geocoder
 var currentTheme;
 var pins = [];
 List<int> journal = [];
@@ -119,7 +120,7 @@ class MyAppState extends State<MyApp> {
       setState(() {
         _markers.add(
           Marker(
-              markerId: MarkerId(i.toString()),
+              markerId: MarkerId((i + 1).toString()),
               position: pins[i].pincoor,
               infoWindow: InfoWindow(
                 title: caption,
@@ -172,12 +173,12 @@ class MyAppState extends State<MyApp> {
         pincaption: caption,
         pinlocation: locationBuffer.toString()));
 
+    OdysseyDatabase.instance
+        .addPinDB(pinCounter, caption, pincolor, latLng, locationBuffer);
+
     setState(() {
       journal.add(pinCounter - 1);
     });
-
-    OdysseyDatabase.instance
-        .addPinDB(pinCounter, caption, pincolor, latLng, locationBuffer);
 
     caption = "";
     captionBuffer = "";
@@ -207,13 +208,94 @@ class MyAppState extends State<MyApp> {
     }
   }
 
-  void _clearMarkers() {
+  Future<void> appendFromLocation() async {
+    bool _serviceEnabled;
+    prefix.PermissionStatus _permissionGranted;
+    prefix.Location location = prefix.Location();
+    prefix.LocationData currentPosition;
+    _serviceEnabled = await location.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = location.requestService() as bool;
+
+      if (!_serviceEnabled) {
+        simpleDialog(context, "No Location", "Unable to Determine Location",
+            "Check your Location or Privacy Settings", "error");
+        return;
+      }
+
+      _permissionGranted = await location.hasPermission();
+
+      if (_permissionGranted == prefix.PermissionStatus.denied) {
+        _permissionGranted = await location.requestPermission();
+        if (_permissionGranted != prefix.PermissionStatus.granted) {
+          simpleDialog(context, "No Location", "Unable to Determine Location",
+              "Check your Location or Privacy Settings", "error");
+          return;
+        }
+        if (_permissionGranted == prefix.PermissionStatus.deniedForever) {
+          simpleDialog(context, "No Location", "Unable to Determine Location",
+              "Check your Location or Privacy Settings", "error");
+          return;
+        }
+      }
+    }
+    currentPosition = await location.getLocation();
+    appendMarker(LatLng(currentPosition.latitude!.toDouble(),
+        currentPosition.longitude!.toDouble()));
+  }
+
+  Future<void> cameraLocation() async {
+    bool _serviceEnabled;
+    prefix.PermissionStatus _permissionGranted;
+    prefix.Location location = prefix.Location();
+    prefix.LocationData currentPosition;
+    _serviceEnabled = await location.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = location.requestService() as bool;
+
+      if (!_serviceEnabled) {
+        simpleDialog(context, "No Location", "Unable to Determine Location",
+            "Check your Location or Privacy Settings", "error");
+        return;
+      }
+
+      _permissionGranted = await location.hasPermission();
+
+      if (_permissionGranted == prefix.PermissionStatus.denied) {
+        _permissionGranted = await location.requestPermission();
+        if (_permissionGranted != prefix.PermissionStatus.granted) {
+          simpleDialog(context, "No Location", "Unable to Determine Location",
+              "Check your Location or Privacy Settings", "error");
+          return;
+        }
+        if (_permissionGranted == prefix.PermissionStatus.deniedForever) {
+          simpleDialog(context, "No Location", "Unable to Determine Location",
+              "Check your Location or Privacy Settings", "error");
+          return;
+        }
+      }
+    }
+    currentPosition = await location.getLocation();
+
+    mapController.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: LatLng(currentPosition.latitude!.toDouble(),
+              currentPosition.longitude!.toDouble()),
+          bearing: 0,
+          zoom: 12,
+        ),
+      ),
+    );
+  }
+
+  void clearMarkers() {
     caption = "";
     captionBuffer = "";
     pinCounter = 0;
     pins.clear();
     OdysseyDatabase.instance.clearPinsDB();
-    pincolor = Color(0xffff0000);
+
     setState(() {
       _markers = {};
       journal = [];
@@ -221,13 +303,14 @@ class MyAppState extends State<MyApp> {
   }
 
   void deleteMarker() {
-    pins.remove(pinCounter);
-    pins[pinCounter - 1] = "";
-    Marker marker = _markers
-        .firstWhere((marker) => marker.markerId.value == pinCounter.toString());
+    Marker lastmarker = _markers.firstWhere(
+        (marker) => marker.markerId.value == (_markers.length).toString());
+
     setState(() {
-      _markers.remove(marker);
+      _markers.remove(lastmarker);
     });
+    pins.removeLast();
+    journal.removeLast();
     OdysseyDatabase.instance.deletePinDB(pinCounter);
     pinCounter--;
   }
@@ -342,9 +425,11 @@ class MyAppState extends State<MyApp> {
   }
 
   Widget journalEntry(var caption, var color, var subtitle) {
+    final captionBuffer = caption;
+    final colorBuffer = color;
+    final subtitleBuffer = subtitle;
     return Center(
-        child: Positioned(
-            child: Wrap(
+        child: Wrap(
       direction: Axis.vertical,
       spacing: 4,
       children: [
@@ -358,7 +443,7 @@ class MyAppState extends State<MyApp> {
                     offset: const Offset(0, 3), // changes position of shadow
                   ),
                 ],
-                color: color,
+                color: colorBuffer,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10))),
             height: 85.0,
@@ -367,12 +452,12 @@ class MyAppState extends State<MyApp> {
                 child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                  Text(caption,
+                  Text(captionBuffer,
                       style: GoogleFonts.quicksand(
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
                           fontSize: 20)),
-                  Text(subtitle,
+                  Text(subtitleBuffer,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.quicksand(
                           fontWeight: FontWeight.w500,
@@ -381,13 +466,15 @@ class MyAppState extends State<MyApp> {
                 ]))),
         const SizedBox(height: 2.5),
       ],
-    )));
+    ));
   }
 
   List<Widget> makeJournalEntry() {
     return List<Widget>.generate(journal.length, (int index) {
-      return journalEntry("Entry Not Available", pincolor,
-          "Journal Coming Soon"); //TODO:Create Place holder for Journal Entry
+/*       return journalEntry(caption, pincolor,
+          "Journal Coming Soon"); */ //TODO:Create Place holder for Journal Entry
+      return journalEntry(pins[pins.length - 1].pincaption,
+          pins[pins.length - 1].pincolor, pins[pins.length - 1].pinlocation);
     });
   }
 
@@ -490,6 +577,79 @@ class MyAppState extends State<MyApp> {
     );
   }
 
+  void settings(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+            title: Text("Settings",
+                style: GoogleFonts.quicksand(
+                    fontWeight: FontWeight.w700, color: Colors.white)),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  SimpleDialogOption(
+                    onPressed: () {
+                      clearWarning(context);
+                    },
+                    child: Text('Clear All Pins',
+                        style: GoogleFonts.quicksand(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.red[400])),
+                  ),
+                  SimpleDialogOption(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      toggleMapView();
+                    },
+                    child: Text('Toggle Map View',
+                        style: GoogleFonts.quicksand(
+                            fontWeight: FontWeight.w600, color: Colors.white)),
+                  ),
+                  SimpleDialogOption(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      toggleMapModes();
+                    },
+                    child: Text('Toggle Map Details',
+                        style: GoogleFonts.quicksand(
+                            fontWeight: FontWeight.w600, color: Colors.white)),
+                  ),
+                  SimpleDialogOption(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      helpDialog(context);
+                    },
+                    child: Text('Help',
+                        style: GoogleFonts.quicksand(
+                            fontWeight: FontWeight.w600, color: Colors.white)),
+                  ),
+                  SimpleDialogOption(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      aboutDialog(context);
+                    },
+                    child: Text('About',
+                        style: GoogleFonts.quicksand(
+                            fontWeight: FontWeight.w600, color: Colors.white)),
+                  )
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('Dismiss',
+                    style: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w600, color: Colors.white)),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              )
+            ]);
+      },
+    );
+  }
+
   void clearWarning(BuildContext context) {
     showDialog(
       context: context,
@@ -525,7 +685,7 @@ class MyAppState extends State<MyApp> {
                     style: GoogleFonts.quicksand(
                         fontWeight: FontWeight.w600, color: Colors.white)),
                 onPressed: () {
-                  _clearMarkers();
+                  clearMarkers();
                   Navigator.of(context).pop();
                 },
               )
@@ -535,11 +695,21 @@ class MyAppState extends State<MyApp> {
   }
 
   Widget actionMenu() => PopupMenuButton<int>(
+      tooltip: "Show Pin Menu",
       itemBuilder: (context) => [
             PopupMenuItem(
-              value: 1,
+                value: 1,
+                child: Text(
+                  "Set Color",
+                  style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
+                ),
+                onTap: () {
+                  colorPicker(context);
+                }),
+            PopupMenuItem(
+              value: 2,
               child: Text(
-                "Caption",
+                "Set Caption",
                 style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
               ),
               onTap: () {
@@ -547,16 +717,7 @@ class MyAppState extends State<MyApp> {
               },
             ),
             PopupMenuItem(
-                value: 2,
-                child: Text(
-                  "Color",
-                  style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
-                ),
-                onTap: () {
-                  colorPicker(context);
-                }),
-            PopupMenuItem(
-                value: 2,
+                value: 3,
                 child: Text(
                   "Pin From Address",
                   style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
@@ -564,35 +725,34 @@ class MyAppState extends State<MyApp> {
                 onTap: () {
                   addressDialog(context);
                 }),
+            PopupMenuItem(
+                value: 4,
+                child: Text(
+                  "Pin My Location",
+                  style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
+                ),
+                onTap: () {
+                  appendFromLocation();
+                }),
             const PopupMenuDivider(height: 20),
             PopupMenuItem(
-              value: 3,
+              value: 5,
               child: Text(
                 "Delete Last Pin",
-                style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
+                style: GoogleFonts.quicksand(
+                    fontWeight: FontWeight.w700, color: Colors.red),
               ),
               onTap: deleteMarker,
             ),
             const PopupMenuDivider(height: 20),
             PopupMenuItem(
-              value: 3,
+              value: 6,
               child: Text(
-                "Help and About",
+                "Settings",
                 style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
               ),
               onTap: () {
-                aboutDialog(context);
-              },
-            ),
-            PopupMenuItem(
-              value: 3,
-              child: Text(
-                "Clear All Pins",
-                style: GoogleFonts.quicksand(
-                    color: Colors.red, fontWeight: FontWeight.w700),
-              ),
-              onTap: () {
-                clearWarning(context);
+                settings(context);
               },
             ),
           ],
@@ -638,6 +798,7 @@ class MyAppState extends State<MyApp> {
             leading: Builder(builder: (BuildContext context) {
               return IconButton(
                 icon: const Icon(Icons.menu),
+                enableFeedback: true,
                 tooltip: "Open Journal",
                 onPressed: () {
                   Scaffold.of(context).openDrawer();
@@ -653,7 +814,7 @@ class MyAppState extends State<MyApp> {
               padding: EdgeInsets.zero,
               children: [
                 SizedBox(
-                    height: 140.0,
+                    height: 120.0, //140.0 if header cuts off on Android
                     child: DrawerHeader(
                       decoration: const BoxDecoration(),
                       child: Text(
@@ -671,6 +832,7 @@ class MyAppState extends State<MyApp> {
           body: Stack(children: <Widget>[
             GoogleMap(
               onMapCreated: _onMapCreated,
+              compassEnabled: false,
               zoomControlsEnabled: false,
               onCameraMove: (CameraPosition cp) {
                 center = cp.target;
@@ -688,17 +850,7 @@ class MyAppState extends State<MyApp> {
                 appendMarker(latLng);
               },
               onLongPress: (LatLng latlng) async {
-                var currentZoomLevel = await mapController.getZoomLevel();
-                currentZoomLevel = 4;
-                mapController.animateCamera(
-                  CameraUpdate.newCameraPosition(
-                    CameraPosition(
-                      target: center,
-                      bearing: 0,
-                      zoom: currentZoomLevel,
-                    ),
-                  ),
-                );
+                toggleMapModes();
               },
               markers: _markers,
             ),
@@ -731,9 +883,10 @@ class MyAppState extends State<MyApp> {
                                     borderRadius: BorderRadius.circular(4)),
                               ),
                               child: IconButton(
-                                icon: const Icon(Icons.map_outlined),
+                                icon: const Icon(Icons.my_location_outlined),
                                 color: Colors.white,
-                                onPressed: toggleMapView,
+                                enableFeedback: true,
+                                onPressed: cameraLocation,
                               ),
                             ),
                             Container(
@@ -756,10 +909,20 @@ class MyAppState extends State<MyApp> {
                                     borderRadius: BorderRadius.circular(4)),
                               ),
                               child: IconButton(
-                                icon: const Icon(Icons.layers_outlined),
-                                color: Colors.white,
-                                onPressed: toggleMapModes,
-                              ),
+                                  icon: const Icon(Icons.layers_outlined),
+                                  color: Colors.white,
+                                  enableFeedback: true,
+                                  onPressed: () async {
+                                    mapController.animateCamera(
+                                      CameraUpdate.newCameraPosition(
+                                        CameraPosition(
+                                          target: center,
+                                          bearing: 0,
+                                          zoom: 6,
+                                        ),
+                                      ),
+                                    );
+                                  }),
                             ),
                           ],
                         )))),
@@ -796,10 +959,10 @@ class MyAppState extends State<MyApp> {
                               child: IconButton(
                                   icon: const Icon(Icons.add),
                                   color: Colors.white,
+                                  enableFeedback: true,
                                   onPressed: () async {
                                     var currentZoomLevel =
                                         await mapController.getZoomLevel();
-
                                     currentZoomLevel = currentZoomLevel + 2;
                                     mapController.animateCamera(
                                       CameraUpdate.newCameraPosition(
@@ -834,22 +997,24 @@ class MyAppState extends State<MyApp> {
                                         bottom: Radius.circular(10))),
                               ),
                               child: IconButton(
-                                  icon: const Icon(Icons.remove),
-                                  color: Colors.white,
-                                  onPressed: () async {
-                                    var currentZoomLevel =
-                                        await mapController.getZoomLevel();
-                                    currentZoomLevel = currentZoomLevel - 2;
-                                    mapController.animateCamera(
-                                      CameraUpdate.newCameraPosition(
-                                        CameraPosition(
-                                          target: center,
-                                          bearing: bearing,
-                                          zoom: currentZoomLevel,
-                                        ),
+                                icon: const Icon(Icons.remove),
+                                color: Colors.white,
+                                enableFeedback: true,
+                                onPressed: () async {
+                                  var currentZoomLevel =
+                                      await mapController.getZoomLevel();
+                                  currentZoomLevel = currentZoomLevel - 2;
+                                  mapController.animateCamera(
+                                    CameraUpdate.newCameraPosition(
+                                      CameraPosition(
+                                        target: center,
+                                        bearing: bearing,
+                                        zoom: currentZoomLevel,
                                       ),
-                                    );
-                                  }),
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
                           ],
                         )))),

@@ -106,15 +106,6 @@ void aboutDialog(BuildContext context) {
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Help',
-                  style: GoogleFonts.quicksand(
-                      fontWeight: FontWeight.w600, color: Colors.white)),
-              onPressed: () {
-                Navigator.of(context).pop();
-                helpDialog(context);
-              },
-            ),
-            TextButton(
               child: Text('Dismiss',
                   style: GoogleFonts.quicksand(
                       fontWeight: FontWeight.w600, color: Colors.white)),
@@ -152,22 +143,21 @@ void helpDialog(BuildContext context) {
                     style: GoogleFonts.quicksand(
                         fontWeight: FontWeight.w600, color: Colors.white)),
                 const Text(''),
-                Text('Tap The Menu button to open the Journal',
+                Text('Tap Color before setting a Pin to set the Pin\'s Color',
+                    style: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w600, color: Colors.white)),
+                const Text(''),
+                Text('Long Press the Map to quickly toggle Map Details',
+                    style: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w600, color: Colors.white)),
+                const Text(''),
+                Text('Tap the Menu button to open the Journal',
                     style: GoogleFonts.quicksand(
                         fontWeight: FontWeight.w600, color: Colors.white)),
               ],
             ),
           ),
           actions: <Widget>[
-            TextButton(
-              child: Text('About',
-                  style: GoogleFonts.quicksand(
-                      fontWeight: FontWeight.w600, color: Colors.white)),
-              onPressed: () {
-                Navigator.of(context).pop();
-                aboutDialog(context);
-              },
-            ),
             TextButton(
               child: Text('Dismiss',
                   style: GoogleFonts.quicksand(
