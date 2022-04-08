@@ -59,16 +59,13 @@ class OdysseyDatabase {
     print("DB Made!");
   }
 
-  Future addPinDB(id, caption, color, latLng, location) async {
+  Future addPinDB(id, caption, date, color, latLng, location) async {
     final db = await instance.database;
 
     caption = caption.toString();
     var colorBuffer = color.toString();
     colorBuffer = colorBuffer.replaceAll("Color(", "");
     colorBuffer = colorBuffer.replaceAll(")", "");
-    DateTime currentDate = DateTime.now();
-    String date = currentDate.toString().substring(0, 10);
-    date.toString();
 
     //split latlng and make it a two parter float
 
@@ -135,6 +132,16 @@ class OdysseyDatabase {
         captionBuffer = await db.query("Pins", columns: ["caption"]);
         caption = captionBuffer[i]["caption"].toString();
 
+        //Parse the Location
+
+        //We can't reuse locationBuffer because we can't assign it an array
+        var locationBuffer2 = await db.query("Pins", columns: ["location"]);
+        var location = locationBuffer2[i]["location"].toString();
+
+        //Parse the Pin's date
+        var dateBuffer = await db.query("Pins", columns: ["date"]);
+        var date = dateBuffer[i]["date"].toString();
+
         //Parse the Pin's Lat and Lng
         var locationBufferlat = await db.query("Pins", columns: ["lat"]);
         var locationBufferlng = await db.query("Pins", columns: ["lng"]);
@@ -146,8 +153,9 @@ class OdysseyDatabase {
             pinid: i,
             pincolor: pincolor,
             pincoor: latLng,
+            pindate: date,
             pincaption: caption,
-            pinlocation: locationBuffer.toString()));
+            pinlocation: location));
       }
     } else {
       print("Empty/No DB, Skipping...");

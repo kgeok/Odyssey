@@ -9,6 +9,55 @@ var buttonaction1 = "";
 var buttonaction2 = "";
 var dialogColor;
 
+void journalDialog(BuildContext context, var caption, var location, var latlng,
+    var color, var date) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+          backgroundColor: color,
+          title: Text(caption,
+              style: GoogleFonts.quicksand(
+                  fontWeight: FontWeight.w700, color: Colors.white)),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(location,
+                    style: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w600, color: Colors.white)),
+                const Text(""),
+                Text(latlng.toString(),
+                    style: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w600, color: Colors.white)),
+                const Text(""),
+                Text(date.toString(),
+                    style: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w600, color: Colors.white)),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text("",
+                  style: GoogleFonts.quicksand(
+                      fontWeight: FontWeight.w600, color: Colors.white)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text("Dismiss",
+                  style: GoogleFonts.quicksand(
+                      fontWeight: FontWeight.w600, color: Colors.white)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            )
+          ]);
+    },
+  );
+}
+
 void simpleDialog(
     BuildContext context, var header, var body1, var body2, var type) {
   switch (type) {
@@ -22,6 +71,15 @@ void simpleDialog(
       buttonaction1 = "";
       buttonaction2 = "Dismiss";
       dialogColor = Colors.red[900];
+      break;
+
+    case "info":
+      buttonaction1 = "";
+      buttonaction2 = "OK";
+      dialogColor =
+          MediaQuery.of(context).platformBrightness == Brightness.light
+              ? lightMode.withOpacity(0.8)
+              : darkMode.withOpacity(0.8);
       break;
 
     default:
