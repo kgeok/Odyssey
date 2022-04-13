@@ -18,37 +18,44 @@ void journalDialog(BuildContext context, var caption, var location, var latlng,
           backgroundColor: color,
           title: Text(caption,
               style: GoogleFonts.quicksand(
-                  fontWeight: FontWeight.w700, color: Colors.white)),
+                  fontWeight: FontWeight.w700,
+                  color: color.computeLuminance() > 0.5
+                      ? Colors.black
+                      : Colors.white)),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
                 Text(location,
                     style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
+                        fontWeight: FontWeight.w600,
+                        color: color.computeLuminance() > 0.5
+                            ? Colors.black
+                            : Colors.white)),
                 const Text(""),
                 Text(latlng.toString(),
                     style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
+                        fontWeight: FontWeight.w600,
+                        color: color.computeLuminance() > 0.5
+                            ? Colors.black
+                            : Colors.white)),
                 const Text(""),
                 Text(date.toString(),
                     style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
+                        fontWeight: FontWeight.w600,
+                        color: color.computeLuminance() > 0.5
+                            ? Colors.black
+                            : Colors.white)),
               ],
             ),
           ),
           actions: <Widget>[
             TextButton(
-              child: Text("",
-                  style: GoogleFonts.quicksand(
-                      fontWeight: FontWeight.w600, color: Colors.white)),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
               child: Text("Dismiss",
                   style: GoogleFonts.quicksand(
-                      fontWeight: FontWeight.w600, color: Colors.white)),
+                      fontWeight: FontWeight.w600,
+                      color: color.computeLuminance() > 0.5
+                          ? Colors.black
+                          : Colors.white)),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -210,6 +217,52 @@ void helpDialog(BuildContext context) {
                         fontWeight: FontWeight.w600, color: Colors.white)),
                 const Text(''),
                 Text('Tap the Menu button to open the Journal',
+                    style: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w600, color: Colors.white)),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Dismiss',
+                  style: GoogleFonts.quicksand(
+                      fontWeight: FontWeight.w600, color: Colors.white)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            )
+          ]);
+    },
+  );
+}
+
+void acknowledgeDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+          title: Text("Acknowledgements",
+              style: GoogleFonts.quicksand(
+                  fontWeight: FontWeight.w700, color: Colors.white)),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Please visit:',
+                    style: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w600, color: Colors.white)),
+                const Text(''),
+                TextField(
+                    controller: TextEditingController(
+                        text:
+                            "https://github.com/kgeok/Odyssey/blob/main/ACKNOWLEDGEMENTS.md"),
+                    autofocus: true,
+                    decoration: InputDecoration(
+                        fillColor: Colors.grey[300],
+                        filled: true,
+                        border: const OutlineInputBorder(),
+                        hintText: "Caption")),
+                const Text(''),
+                Text('For more Information',
                     style: GoogleFonts.quicksand(
                         fontWeight: FontWeight.w600, color: Colors.white)),
               ],

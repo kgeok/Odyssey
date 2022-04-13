@@ -1,19 +1,18 @@
 // ignore_for_file: prefer_typing_uninitialized_variables, prefer_const_constructors, unused_import, avoid_print, prefer_conditional_assignment, unrelated_type_equality_checks
-
+import 'dart:ui' as ui;
+import 'dart:io';
+import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'dart:async';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:odyssey/dialogs.dart';
 import 'package:odyssey/theme/custom_theme.dart';
 import 'package:odyssey/data_management.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:location/location.dart' as prefix;
 import 'package:geocoding/geocoding.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'dart:ui' as ui;
-import 'dart:io';
 
 void main() async {
   runApp(const MaterialApp(home: MyApp()));
@@ -103,253 +102,6 @@ Future<BitmapDescriptor> _bitmapDescriptorFromSvg(BuildContext context) async {
 class MyAppState extends State<MyApp> {
   late GoogleMapController mapController;
   Set<Marker> _markers = {};
-
-  /* REMOVE THIS AFTER DEMO */
-
-  void demoModeSeq1() {
-    clearMarkers();
-    pinCounter = 19;
-
-    pins.add(PinData(
-        pinid: 0,
-        pincolor: Color.fromARGB(255, 0, 181, 21),
-        pincoor: LatLng(40.7384455, -74.1709049),
-        pindate: "2018-03-18",
-        pincaption: "Starbucks ☕️",
-        pinlocation: "Broad St: Newark NJ US"));
-
-    pins.add(PinData(
-        pinid: 0,
-        pincolor: Color(0xFF99A45A),
-        pincoor: LatLng(41.8835332, -87.619267),
-        pindate: "2022-07-24",
-        pincaption: "July Chicago Trip",
-        pinlocation: "Maggie Daley: Chicago IL US"));
-
-    pins.add(PinData(
-        pinid: 0,
-        pincolor: Color(0xFFA32626),
-        pincoor: LatLng(35.6835979, 139.7541839),
-        pindate: "2023-11-09",
-        pincaption: "Japan 2023",
-        pinlocation: "Imperial Palace: Chiyoda Tokyo JP"));
-
-    pins.add(PinData(
-        pinid: 0,
-        pincolor: Color(0xFF0F01A3),
-        pincoor: LatLng(41.0286593, -73.9690393),
-        pindate: "2020-06-20",
-        pincaption: "Work",
-        pinlocation: "Ramland Rd: Tappan NY US"));
-
-    pins.add(PinData(
-        pinid: 0,
-        pincolor: Color(0xFF056426),
-        pincoor: LatLng(37.754208660644075, -122.42534479498104),
-        pindate: "2018-03-09",
-        pincaption: "Delores Park",
-        pinlocation: "Dolores: San Francisco CA US"));
-
-    pins.add(PinData(
-        pinid: 0,
-        pincolor: Color(0xff800000),
-        pincoor: LatLng(40.7129822, -73.989463),
-        pindate: "2022-02-14",
-        pincaption: "✨ Date Night ✨",
-        pinlocation: "New York, NY US"));
-
-    pins.add(PinData(
-        pinid: 0,
-        pincolor: Color(0xFFB24E4E),
-        pincoor: LatLng(40.7901614, -74.0007664),
-        pindate: "2021-09-23",
-        pincaption: "KBBQ with Friends",
-        pinlocation: "John F Kennedy Blvd: Guttenberg NJ US"));
-
-    pins.add(PinData(
-        pinid: 0,
-        pincolor: Color(0xFFB962B0),
-        pincoor: LatLng(40.7576793, -74.181126),
-        pindate: "2022-03-30",
-        pincaption: "Cherry Blossoms 🌸",
-        pinlocation: "Branch Brook Park: Newark NJ US"));
-
-    pins.add(PinData(
-        pinid: 0,
-        pincolor: Color(0xFF00FF88),
-        pincoor: LatLng(40.7520337, -73.9847019),
-        pindate: "2021-09-11",
-        pincaption: "Spyglass Rooftop",
-        pinlocation: "45 W 38th St: New York NY US"));
-
-    pins.add(PinData(
-        pinid: 0,
-        pincolor: Color(0xFF9A9579),
-        pincoor: LatLng(40.8497459, -73.9677),
-        pindate: "2020-08-04",
-        pincaption: "Menya Sandaime 🍜",
-        pinlocation: "Parker Ave: Fort Lee NJ US"));
-
-    pins.add(PinData(
-        pinid: 0,
-        pincolor: Color(0xFF029A6F),
-        pincoor: LatLng(40.64682, 74.07638),
-        pindate: "2017-05-03",
-        pincaption: "Staten Island Trip with Alex",
-        pinlocation: "Staten Island NY US"));
-
-    pins.add(PinData(
-        pinid: 0,
-        pincolor: Color(0xFF907300),
-        pincoor: LatLng(40.7533424, -74.0010089),
-        pindate: "2021-12-19",
-        pincaption: "The Vessel",
-        pinlocation: "Hudson Yards: New York NY US"));
-
-    pins.add(PinData(
-        pinid: 0,
-        pincolor: Color(0xFF53719C),
-        pincoor: LatLng(40.7311252, -74.064059),
-        pindate: "2018-07-02",
-        pincaption: "Journal Square",
-        pinlocation: "Journal Square Plaza: Jersey City NJ US"));
-
-    Future.delayed(Duration(milliseconds: 4500));
-
-    pins.add(PinData(
-        pinid: 0,
-        pincolor: Color.fromARGB(255, 178, 75, 2),
-        pincoor: LatLng(40.7795261, -74.0821609),
-        pindate: "2020-12-28",
-        pincaption: "Work Some More",
-        pinlocation: "Meadowlands Pkwy: New Jersey NJ US"));
-
-    pins.add(PinData(
-        pinid: 0,
-        pincolor: Color(0xffffbff0),
-        pincoor: LatLng(40.70994, 73.98846),
-        pindate: "2021-10-02",
-        pincaption: "Dinner with Friends",
-        pinlocation: "Pier 35: New York NY US"));
-
-    pins.add(PinData(
-        pinid: 0,
-        pincolor: Color(0xFF58008E),
-        pincoor: LatLng(37.334331, -122.0080858),
-        pindate: "2022-02-02",
-        pincaption: "Apple Park",
-        pinlocation: "Apple Park: Cupertino CA US"));
-
-    pins.add(PinData(
-        pinid: 0,
-        pincolor: Color(0xFFAFBF00),
-        pincoor: LatLng(40.22034, -73.99972),
-        pindate: "2022-02-02",
-        pincaption: "Asbury Park",
-        pinlocation: "Main St: Asbury Park NJ US"));
-
-    pins.add(PinData(
-        pinid: 0,
-        pincolor: Color(0xFFFFC4AF),
-        pincoor: LatLng(40.1071883, -75.2964526),
-        pindate: "2022-02-02",
-        pincaption: "Interview",
-        pinlocation: "Davis Dr: Plymouth Meeting PA US"));
-
-    pins.add(PinData(
-        pinid: 0,
-        pincolor: Color(0xFF612610),
-        pincoor: LatLng(40.7530408, -74.025004),
-        pindate: "2022-02-02",
-        pincaption: "Hidden Grounds Coffee",
-        pinlocation: "Hudson St: Hoboken NJ US"));
-
-    populateMapfromState();
-  }
-
-  void demoModeSeq2() {
-    clearMarkers();
-    pinCounter = 6;
-    pins.add(PinData(
-        pinid: 0,
-        pincolor: Color(0xffDC582A),
-        pincoor: LatLng(28.3751829, -81.5494031),
-        pindate: "2022-02-02",
-        pincaption: "Florida",
-        pinlocation: "Bay Lake FL US"));
-
-    pins.add(PinData(
-        pinid: 0,
-        pincolor: Color(0xffDC582A),
-        pincoor: LatLng(28.3751829, -81.5494031),
-        pindate: "2022-02-02",
-        pincaption: "Florida Again",
-        pinlocation: "Bay Lake FL US"));
-
-    pins.add(PinData(
-        pinid: 0,
-        pincolor: Color(0xffDC582A),
-        pincoor: LatLng(28.3751829, -81.5494031),
-        pindate: "2022-02-02",
-        pincaption: "Maybe Florida",
-        pinlocation: "Bay Lake FL US"));
-
-    pins.add(PinData(
-        pinid: 0,
-        pincolor: Color(0xff013220),
-        pincoor: LatLng(28.3751829, -81.5494031),
-        pindate: "2022-02-02",
-        pincaption: "Not Florida",
-        pinlocation: "Denver CO US"));
-
-    pins.add(PinData(
-        pinid: 0,
-        pincolor: Color(0xffDC582A),
-        pincoor: LatLng(28.3751829, -81.5494031),
-        pindate: "2022-02-02",
-        pincaption: "Florida Forever 🥺",
-        pinlocation: "Bay Lake FL US"));
-
-    pins.add(PinData(
-        pinid: 0,
-        pincolor: Color(0xff00008b),
-        pincoor: LatLng(40.7129822, -74.007205),
-        pindate: "2022-02-02",
-        pincaption: "Urban Florida",
-        pinlocation: "New York NY US"));
-
-    populateMapfromState();
-  }
-
-  void demoModeSeq3() {
-    clearMarkers();
-    pinCounter = 1;
-    pins.add(PinData(
-        pinid: 0,
-        pincolor: Color(0xffff0000),
-        pincoor: LatLng(30.2642643, -97.7475016),
-        pindate: "2022-03-31",
-        pincaption: "Austin Trip",
-        pinlocation: "Austin, TX US"));
-
-    populateMapfromState();
-  }
-
-  void demoModeSeq4() {
-    clearMarkers();
-    pinCounter = 1;
-    pins.add(PinData(
-        pinid: 0,
-        pincolor: Color(0xff35DB5C),
-        pincoor: LatLng(36.1667469, -115.1487083),
-        pindate: "2022-04-20",
-        pincaption: "Vegas Trip",
-        pinlocation: "Las Vegas, NV US"));
-
-    populateMapfromState();
-  }
-
-  /* XXXXXXXXXXXXXXXXXXXX */
 
   void populateMapfromState() async {
     await Future.delayed(Duration(
@@ -719,7 +471,9 @@ class MyAppState extends State<MyApp> {
                           maxLines: 1,
                           style: GoogleFonts.quicksand(
                               fontWeight: FontWeight.w700,
-                              color: Colors.white,
+                              color: color.computeLuminance() > 0.5
+                                  ? Colors.black
+                                  : Colors.white,
                               fontSize: 20)),
                       Text(subtitle,
                           overflow: TextOverflow.fade,
@@ -727,7 +481,9 @@ class MyAppState extends State<MyApp> {
                           maxLines: 1,
                           style: GoogleFonts.quicksand(
                               fontWeight: FontWeight.w500,
-                              color: Colors.white,
+                              color: color.computeLuminance() > 0.5
+                                  ? Colors.black
+                                  : Colors.white,
                               fontSize: 18))
                     ])))),
         const SizedBox(height: 2.5),
@@ -900,39 +656,12 @@ class MyAppState extends State<MyApp> {
                   SimpleDialogOption(
                     onPressed: () {
                       Navigator.of(context).pop();
-                      demoModeSeq1();
+                      acknowledgeDialog(context);
                     },
-                    child: Text('Demo Mode 1',
+                    child: Text('Acknowledgements',
                         style: GoogleFonts.quicksand(
                             fontWeight: FontWeight.w600, color: Colors.white)),
                   ),
-                  SimpleDialogOption(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      demoModeSeq2();
-                    },
-                    child: Text('Demo Mode 2',
-                        style: GoogleFonts.quicksand(
-                            fontWeight: FontWeight.w600, color: Colors.white)),
-                  ),
-                  SimpleDialogOption(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      demoModeSeq3();
-                    },
-                    child: Text('Demo Mode 3',
-                        style: GoogleFonts.quicksand(
-                            fontWeight: FontWeight.w600, color: Colors.white)),
-                  ),
-                  SimpleDialogOption(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      demoModeSeq4();
-                    },
-                    child: Text('Demo Mode 4',
-                        style: GoogleFonts.quicksand(
-                            fontWeight: FontWeight.w600, color: Colors.white)),
-                  )
                 ],
               ),
             ),
