@@ -861,6 +861,7 @@ class MyAppState extends State<MyApp> {
           ),
           body: Stack(children: <Widget>[
             GoogleMap(
+              mapToolbarEnabled: false,
               onMapCreated: _onMapCreated,
               compassEnabled: false,
               zoomControlsEnabled: false,
