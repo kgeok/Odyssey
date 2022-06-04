@@ -12,6 +12,7 @@ import 'package:sqflite/sqflite.dart';
 var defaultCenterLat = 41.850033;
 var defaultCenterLng = -87.6500523;
 var defaultMapType = MapType.normal;
+var defaultPinShape = 'circle';
 double defaultBearing = 0;
 var defaultPinColor = '0xffff0000';
 double defaultMapZoom = 4.0;
@@ -42,18 +43,19 @@ class OdysseyDatabase {
 
   Future _createDB(Database db, int version) async {
     db.execute(
-        'CREATE TABLE Pins (id INTEGER, caption TEXT, color TEXT, lat FLOAT, lng FLOAT, date TEXT, location TEXT)');
+        'CREATE TABLE Pins (id INTEGER, caption TEXT, color TEXT, lat FLOAT, lng FLOAT, date TEXT, location TEXT, shape TEXT, note MEDIUMTEXT, photo LONGBLOB)');
     db.execute(
-        'CREATE TABLE Prefs (mapcenterlat FLOAT, mapcenterlng FLOAT, maplayer TEXT, bearing INT(255), pincolor TEXT, mapzoom INT(255))');
+        'CREATE TABLE Prefs (mapcenterlat FLOAT, mapcenterlng FLOAT, maplayer TEXT, bearing INT(255), pincolor TEXT, mapzoom INT(255), onboarding TINYINT)');
     db.rawInsert(
-        'INSERT INTO Prefs (mapcenterlat, mapcenterlng, maplayer, bearing, pincolor, mapzoom) VALUES(?, ?, ?, ?, ?, ?)',
+        'INSERT INTO Prefs (mapcenterlat, mapcenterlng, maplayer, bearing, pincolor, mapzoom, onboarding) VALUES(?, ?, ?, ?, ?, ?, ?)',
         [
           defaultCenterLat,
           defaultCenterLng,
           defaultMapType.toString(),
           '$defaultBearing',
           defaultPinColor,
-          '$defaultMapZoom'
+          '$defaultMapZoom',
+          '1'
         ]);
 
     print("DB Made!");
@@ -88,6 +90,26 @@ class OdysseyDatabase {
     db.close();
   }
 
+  Future updatePrefsDB(mapZoom, bearing, latLng) async {
+    final db = await instance.database;
+
+    //split latlng and make it a two parter float
+
+    var latLngBuffer = latLng.toString();
+    latLngBuffer = latLngBuffer.replaceAll("LatLng(", "");
+    latLngBuffer = latLngBuffer.replaceAll(")", "");
+    var latLngBuffer2 = latLngBuffer.split(", ");
+    var lat = double.parse(latLngBuffer2[0].trim());
+    var lng = double.parse(latLngBuffer2[1].trim());
+
+    /* Hijacking the pincolors pref because it's redundant when populateMapfromState assigns the last pin's color as current color
+        Since I never thought to assign an ID to prefs because I didn't orgininally think that I needed it, will use the now redundant variable as a mock ID */
+
+    db.rawUpdate(
+        '''UPDATE Prefs SET mapzoom = ?, bearing = ?, mapcenterlat = ?, mapcenterlng = ? WHERE pincolor = ?''',
+        [mapZoom, bearing, lat, lng, '0xffff0000']);
+  }
+
   Future initStatefromDB() async {
     //Let's using this function to fill up the map and Journal when booting the app
     //Is using all these variables the way that I am the smartest way to do it?
@@ -96,19 +118,19 @@ class OdysseyDatabase {
 
     if (pathBuffer != null) {
       //Load Prefs Data
-      var centerBufferlat = await db.query("Prefs", columns: ["mapcenterlat"]);
-      var centerBufferlng = await db.query("Prefs", columns: ["mapcenterlng"]);
-/*     center = LatLng(double.parse(centerBufferlat[0]["mapcenterlat"].toString()),
-        double.parse(centerBufferlng[0]["mapcenterlng"].toString())); */ //Null error on Android
 
-      var bearingBuffer = await db.query("Prefs", columns: ["bearing"]);
-      // bearing = double.parse(bearingBuffer[0]['bearing'].toString());
+      var mapZoomBuffer = await db.query("Prefs", columns: ["mapzoom"]);
+      mapZoom = double.parse(mapZoomBuffer[0]['mapzoom'].toString());
 
       var mapTypeBuffer = await db.query("Prefs", columns: ["maplayer"]);
       //mapType = mapTypeBuffer[0]['maplayer'].toString() as MapType; //Tried casting this one didn't work...
 
-      var mapZoomBuffer = await db.query("Prefs", columns: ["mapzoom"]);
-      //mapZoom = double.parse(mapZoomBuffer[0]['mapzoom'].toString());
+      var bearingBuffer = await db.query("Prefs", columns: ["bearing"]);
+      bearing = double.parse(bearingBuffer[0]['bearing'].toString());
+
+      var onboardingBuffer = await db.query("Prefs", columns: ["onboarding"]);
+      onboarding = int.parse(onboardingBuffer[0]['onboarding'].toString());
+      print(onboarding);
 
       //Load User Data
       var counterBuffer = await db.query("Pins", columns: ["MAX(id)"]);
@@ -116,7 +138,6 @@ class OdysseyDatabase {
       var colorBuffer = await db.query("Pins", columns: ["color"]);
 
       counter ??= 0;
-      //print(counter);
 
       pinCounter = counter;
       //This part is the star of the show, we are parsing everything from the Pins DB

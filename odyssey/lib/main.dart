@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_typing_uninitialized_variables, prefer_const_constructors, unused_import, avoid_print, prefer_conditional_assignment, unrelated_type_equality_checks
+// ignore_for_file: prefer_typing_uninitialized_variables, prefer_const_constructors, unused_import, avoid_print, prefer_conditional_assignment, unrelated_type_equality_checks, use_build_context_synchronously
 import 'dart:ui' as ui;
 import 'dart:io';
 import 'dart:async';
@@ -16,6 +16,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 void main() async {
   runApp(const MaterialApp(home: MyApp()));
+
   OdysseyDatabase.instance.initStatefromDB();
 }
 
@@ -31,8 +32,8 @@ class MyApp extends StatefulWidget {
 
 GlobalKey<MyAppState> key = GlobalKey();
 //Variables that we will be using, will try to minimize in the future
-const version = "1.0";
-const release = "Release";
+const version = "1.1";
+const release = "Pre-Release";
 Color pincolor = Color(int.parse(defaultPinColor));
 var colorBuffer = "FF0000"; //Default Pin Color when Map settings are un-init'd
 Color pickerColor = Color(0xffff0000);
@@ -47,6 +48,8 @@ var captionBuffer; //Temp Buffer for the Caption before it goes into PinData
 var locationBuffer; //Temp Buffer for the results for reverseGeocoder before it goes into PinData
 var addressBuffer; //Temp Buffer for Pin From Address before it goes into geocoder
 var currentTheme;
+int onboarding =
+    0; //would be bool but we need to parse db which only has tinyint
 var pins = [];
 List<int> journal = [];
 
@@ -64,25 +67,29 @@ class PinData {
   late Color pincolor;
   late LatLng pincoor;
   late var pinlocation;
+  late var pinnote;
+  late var pinshape;
+  late var pinphoto;
 
   PinData(
       {this.pinid,
       this.pincaption,
       this.pindate,
+      this.pinnote,
+      this.pinphoto,
+      this.pinshape,
       required this.pincolor,
       required this.pincoor,
       required this.pinlocation});
 }
 
-Future<BitmapDescriptor> _bitmapDescriptorFromSvg(BuildContext context) async {
+Future<BitmapDescriptor> bitmapDescriptorFromSvg(BuildContext context) async {
   String svgString =
       '''<?xml version="1.0" encoding="UTF-8" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg height="100%" style="fill-rule:nonzero;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="100%" version="1.1" viewBox="0 0 76 180.001">
 <defs/>
 <g stroke="black" stroke-width="2.5">
-<path d="M38+4.5C21.4906+4.5+8.09375+17.9077+8.09375+34.4375C8.09375+49.34+19.0104+61.5861+33.25+63.875L32.875+63.875L32.875+147.656L26.4375+147.656L38+175.219L49.5625+147.656L43.125+147.656L43.125+63.875L42.75+63.875C56.9896+61.5861+67.9062+49.34+67.9062+34.4375C67.9062+17.9077+54.5094+4.5+38+4.5Z" opacity="1" fill="#''' +
-          colorBuffer +
-          '''"/>
+<path d="M38+4.5C21.4906+4.5+8.09375+17.9077+8.09375+34.4375C8.09375+49.34+19.0104+61.5861+33.25+63.875L32.875+63.875L32.875+147.656L26.4375+147.656L38+175.219L49.5625+147.656L43.125+147.656L43.125+63.875L42.75+63.875C56.9896+61.5861+67.9062+49.34+67.9062+34.4375C67.9062+17.9077+54.5094+4.5+38+4.5Z" opacity="1" fill="#$colorBuffer"/>
 </g>
 </svg>
 ''';
@@ -95,7 +102,6 @@ Future<BitmapDescriptor> _bitmapDescriptorFromSvg(BuildContext context) async {
   ui.Picture picture = svgDrawableRoot.toPicture(size: Size(width, height));
   ui.Image image = await picture.toImage(width.toInt(), height.toInt());
   ByteData? bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-  //print(pincolor.toString());
   return BitmapDescriptor.fromBytes(bytes!.buffer.asUint8List());
 }
 
@@ -107,6 +113,7 @@ class MyAppState extends State<MyApp> {
     await Future.delayed(Duration(
         milliseconds:
             1500)); //It apparently takes 1 second or so for DB to populate State
+
     var pinCounterBuffer =
         pinCounter; //I need to freeze the state of the counter so that it doesn't keep iterating on append
     for (var i = 0; i < pinCounterBuffer; i++) {
@@ -114,7 +121,7 @@ class MyAppState extends State<MyApp> {
       colorToHex(pincolor);
       pickerColor = pincolor;
       BitmapDescriptor bitmapDescriptor =
-          await _bitmapDescriptorFromSvg(context);
+          await bitmapDescriptorFromSvg(context);
       caption = pins[i].pincaption;
 
       setState(() {
@@ -130,13 +137,30 @@ class MyAppState extends State<MyApp> {
         );
         journal.add(i - 1);
       });
+      center = pins[i]
+          .pincoor; //For whatever reason this was the only way that Center sticks after every cycle
+      print("Restored Pin: ${i + 1}");
     }
     captionBuffer = "";
+    caption = "";
+
+    print("Center: $center");
+    print("Bearing: $bearing");
+    print("Zoom: $mapZoom");
+    mapController.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: center,
+          bearing: bearing,
+          zoom: mapZoom,
+        ),
+      ),
+    );
   }
 
   void appendMarker(LatLng latLng) async {
     pinCounter++;
-    BitmapDescriptor bitmapDescriptor = await _bitmapDescriptorFromSvg(context);
+    BitmapDescriptor bitmapDescriptor = await bitmapDescriptorFromSvg(context);
     reverseGeocoder(latLng);
     setState(() {
       _markers.add(
@@ -158,13 +182,8 @@ class MyAppState extends State<MyApp> {
 
     var pinlocation = placeMarks;
 
-    locationBuffer = pinlocation[0].name.toString() +
-        ": " +
-        pinlocation[0].locality.toString() +
-        " " +
-        pinlocation[0].administrativeArea.toString() +
-        " " +
-        pinlocation[0].isoCountryCode.toString();
+    locationBuffer =
+        "${pinlocation[0].name}: ${pinlocation[0].locality} ${pinlocation[0].administrativeArea} ${pinlocation[0].isoCountryCode}";
 
     DateTime currentDate = DateTime.now();
     String date = currentDate.toString().substring(0, 10);
@@ -185,11 +204,12 @@ class MyAppState extends State<MyApp> {
       journal.add(pinCounter - 1);
     });
 
+    mapZoom = await mapController.getZoomLevel();
+    OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, latLng);
+
     caption = "";
     captionBuffer = "";
     pinlocation = [];
-    //print(pins[pinCounter - 1].pincaption.toString() + pins[pinCounter - 1].pincolor.toString() + pins[pinCounter - 1].pinlocation.toString());
-    //TODO: Causing RangeError when tapping ocean, test this...
   }
 
   void geocoder(String address) async {
@@ -214,30 +234,30 @@ class MyAppState extends State<MyApp> {
   }
 
   Future<void> appendFromLocation() async {
-    bool _serviceEnabled;
-    prefix.PermissionStatus _permissionGranted;
+    bool serviceEnabled;
+    prefix.PermissionStatus permissionGranted;
     prefix.Location location = prefix.Location();
     prefix.LocationData currentPosition;
-    _serviceEnabled = await location.serviceEnabled();
-    if (!_serviceEnabled) {
-      _serviceEnabled = location.requestService() as bool;
+    serviceEnabled = await location.serviceEnabled();
+    if (!serviceEnabled) {
+      serviceEnabled = location.requestService() as bool;
 
-      if (!_serviceEnabled) {
+      if (!serviceEnabled) {
         simpleDialog(context, "No Location", "Unable to Determine Location",
             "Check your Location or Privacy Settings", "error");
         return;
       }
 
-      _permissionGranted = await location.hasPermission();
+      permissionGranted = await location.hasPermission();
 
-      if (_permissionGranted == prefix.PermissionStatus.denied) {
-        _permissionGranted = await location.requestPermission();
-        if (_permissionGranted != prefix.PermissionStatus.granted) {
+      if (permissionGranted == prefix.PermissionStatus.denied) {
+        permissionGranted = await location.requestPermission();
+        if (permissionGranted != prefix.PermissionStatus.granted) {
           simpleDialog(context, "No Location", "Unable to Determine Location",
               "Check your Location or Privacy Settings", "error");
           return;
         }
-        if (_permissionGranted == prefix.PermissionStatus.deniedForever) {
+        if (permissionGranted == prefix.PermissionStatus.deniedForever) {
           simpleDialog(context, "No Location", "Unable to Determine Location",
               "Check your Location or Privacy Settings", "error");
           return;
@@ -250,30 +270,30 @@ class MyAppState extends State<MyApp> {
   }
 
   Future<void> cameraLocation() async {
-    bool _serviceEnabled;
-    prefix.PermissionStatus _permissionGranted;
+    bool serviceEnabled;
+    prefix.PermissionStatus permissionGranted;
     prefix.Location location = prefix.Location();
     prefix.LocationData currentPosition;
-    _serviceEnabled = await location.serviceEnabled();
-    if (!_serviceEnabled) {
-      _serviceEnabled = location.requestService() as bool;
+    serviceEnabled = await location.serviceEnabled();
+    if (!serviceEnabled) {
+      serviceEnabled = location.requestService() as bool;
 
-      if (!_serviceEnabled) {
+      if (!serviceEnabled) {
         simpleDialog(context, "No Location", "Unable to Determine Location",
             "Check your Location or Privacy Settings", "error");
         return;
       }
 
-      _permissionGranted = await location.hasPermission();
+      permissionGranted = await location.hasPermission();
 
-      if (_permissionGranted == prefix.PermissionStatus.denied) {
-        _permissionGranted = await location.requestPermission();
-        if (_permissionGranted != prefix.PermissionStatus.granted) {
+      if (permissionGranted == prefix.PermissionStatus.denied) {
+        permissionGranted = await location.requestPermission();
+        if (permissionGranted != prefix.PermissionStatus.granted) {
           simpleDialog(context, "No Location", "Unable to Determine Location",
               "Check your Location or Privacy Settings", "error");
           return;
         }
-        if (_permissionGranted == prefix.PermissionStatus.deniedForever) {
+        if (permissionGranted == prefix.PermissionStatus.deniedForever) {
           simpleDialog(context, "No Location", "Unable to Determine Location",
               "Check your Location or Privacy Settings", "error");
           return;
@@ -299,6 +319,8 @@ class MyAppState extends State<MyApp> {
     captionBuffer = "";
     pinCounter = 0;
     pins.clear();
+    OdysseyDatabase.instance.updatePrefsDB(defaultMapZoom, defaultBearing,
+        LatLng(defaultCenterLat, defaultCenterLng));
     OdysseyDatabase.instance.clearPinsDB();
 
     setState(() {
@@ -662,6 +684,15 @@ class MyAppState extends State<MyApp> {
                         style: GoogleFonts.quicksand(
                             fontWeight: FontWeight.w600, color: Colors.white)),
                   ),
+                  SimpleDialogOption(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      privacyDialog(context);
+                    },
+                    child: Text('Privacy Policy',
+                        style: GoogleFonts.quicksand(
+                            fontWeight: FontWeight.w600, color: Colors.white)),
+                  ),
                 ],
               ),
             ),
@@ -766,12 +797,12 @@ class MyAppState extends State<MyApp> {
             const PopupMenuDivider(height: 20),
             PopupMenuItem(
               value: 5,
+              onTap: deleteMarker,
               child: Text(
                 "Delete Last Pin",
                 style: GoogleFonts.quicksand(
                     fontWeight: FontWeight.w700, color: Colors.red),
               ),
-              onTap: deleteMarker,
             ),
             const PopupMenuDivider(height: 20),
             PopupMenuItem(
@@ -807,13 +838,31 @@ class MyAppState extends State<MyApp> {
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
     populateMapfromState();
+
     //This is only for Pre-Release Versions, This doesn't apply for release versions.
-    /*   simpleDialog(
+    simpleDialog(
         context,
         "Pre-Release Version",
         "Confidential and Proprietary, Please Don't Share Information or Screenshots",
         "Please Report any Bugs and Crashes, Take note of what you were doing when they occurred.",
-        "error"); */
+        "error");
+  }
+
+  Future startOnboarding() async {
+    if (onboarding == 1) {
+      complexDialog(
+          context,
+          "Welcome to Odyssey",
+          "Give a new emotional meaning to your places.",
+          "Keep track of the destinations you traveled with customizable pins on a beautiful map. With the Journal, you can get a glance of your overall pins and keep notes of where you went and where you want to go.",
+          "Tap anywhere on the map to set a Pin.",
+          "Open the Pin Menu to Customize those Pins.",
+          "info");
+
+      print("Onboarding...");
+    } else {
+      print("No Onboarding...");
+    }
   }
 
   //UI of the app
@@ -1004,6 +1053,8 @@ class MyAppState extends State<MyApp> {
                                         ),
                                       ),
                                     );
+                                    mapZoom =
+                                        await mapController.getZoomLevel();
                                   }),
                             ),
                             Container(
@@ -1044,6 +1095,7 @@ class MyAppState extends State<MyApp> {
                                       ),
                                     ),
                                   );
+                                  mapZoom = await mapController.getZoomLevel();
                                 },
                               ),
                             ),

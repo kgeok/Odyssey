@@ -140,6 +140,96 @@ void simpleDialog(
   );
 }
 
+void complexDialog(BuildContext context, var header, var body1, var body2,
+    var body3, var body4, var type) {
+  switch (type) {
+    case "warning":
+      buttonaction1 = "Cancel";
+      buttonaction2 = "OK";
+      dialogColor = Colors.orange[800];
+      break;
+
+    case "error":
+      buttonaction1 = "";
+      buttonaction2 = "Dismiss";
+      dialogColor = Colors.red[900];
+      break;
+
+    case "info":
+      buttonaction1 = "";
+      buttonaction2 = "OK";
+      dialogColor =
+          MediaQuery.of(context).platformBrightness == Brightness.light
+              ? lightMode.withOpacity(0.8)
+              : darkMode.withOpacity(0.8);
+      break;
+
+    default:
+      buttonaction1 = "Cancel";
+      buttonaction2 = "OK";
+      dialogColor =
+          MediaQuery.of(context).platformBrightness == Brightness.light
+              ? lightMode.withOpacity(0.8)
+              : darkMode.withOpacity(0.8);
+      break;
+  }
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+          backgroundColor: dialogColor,
+          title: Text(header,
+              style: GoogleFonts.quicksand(
+                  fontWeight: FontWeight.w700, color: Colors.white)),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(body1,
+                    style: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w600, color: Colors.white)),
+                Text("",
+                    style: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w600, color: Colors.white)),
+                Text(body2,
+                    style: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w600, color: Colors.white)),
+                Text("",
+                    style: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w600, color: Colors.white)),
+                Text(body3,
+                    style: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w600, color: Colors.white)),
+                Text("",
+                    style: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w600, color: Colors.white)),
+                Text(body4,
+                    style: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w600, color: Colors.white)),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(buttonaction1,
+                  style: GoogleFonts.quicksand(
+                      fontWeight: FontWeight.w600, color: Colors.white)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text(buttonaction2,
+                  style: GoogleFonts.quicksand(
+                      fontWeight: FontWeight.w600, color: Colors.white)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            )
+          ]);
+    },
+  );
+}
+
 void aboutDialog(BuildContext context) {
   showDialog(
     context: context,
@@ -151,7 +241,7 @@ void aboutDialog(BuildContext context) {
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text("Version " + version.toString() + " (" + release + ")",
+                Text("Version $version ($release)",
                     style: GoogleFonts.quicksand(
                         fontWeight: FontWeight.w600, color: Colors.white)),
                 const Text(''),
@@ -255,6 +345,52 @@ void acknowledgeDialog(BuildContext context) {
                     controller: TextEditingController(
                         text:
                             "https://github.com/kgeok/Odyssey/blob/main/ACKNOWLEDGEMENTS.md"),
+                    autofocus: true,
+                    decoration: InputDecoration(
+                        fillColor: Colors.grey[300],
+                        filled: true,
+                        border: const OutlineInputBorder(),
+                        hintText: "Caption")),
+                const Text(''),
+                Text('For more Information',
+                    style: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w600, color: Colors.white)),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Dismiss',
+                  style: GoogleFonts.quicksand(
+                      fontWeight: FontWeight.w600, color: Colors.white)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            )
+          ]);
+    },
+  );
+}
+
+void privacyDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+          title: Text("Privacy Policy",
+              style: GoogleFonts.quicksand(
+                  fontWeight: FontWeight.w700, color: Colors.white)),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Please visit:',
+                    style: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w600, color: Colors.white)),
+                const Text(''),
+                TextField(
+                    controller: TextEditingController(
+                        text:
+                            "https://github.com/kgeok/Odyssey/blob/main/PrivacyPolicy.pdf"),
                     autofocus: true,
                     decoration: InputDecoration(
                         fillColor: Colors.grey[300],
