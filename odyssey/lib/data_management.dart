@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, unused_local_variable, prefer_typing_uninitialized_variables
+// ignore_for_file: avoid_print, unused_local_variable, prefer_typing_uninitialized_variables, depend_on_referenced_packages
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:path/path.dart';
 import 'package:odyssey/main.dart';
@@ -15,6 +15,7 @@ var defaultMapType = MapType.normal;
 var defaultPinShape = 'circle';
 double defaultBearing = 0;
 var defaultPinColor = '0xffff0000';
+String defaultShape = 'circle';
 double defaultMapZoom = 4.0;
 var pathBuffer;
 
@@ -38,12 +39,13 @@ class OdysseyDatabase {
     pathBuffer =
         path; //We wanna use this variable in the initState so that we don't read a dead DB
 
-    return await openDatabase(path, version: 1, onCreate: _createDB);
+    return await openDatabase(path,
+        version: 2, onCreate: _createDB, onUpgrade: _upgradeDB);
   }
 
   Future _createDB(Database db, int version) async {
     db.execute(
-        'CREATE TABLE Pins (id INTEGER, caption TEXT, color TEXT, lat FLOAT, lng FLOAT, date TEXT, location TEXT, shape TEXT, note MEDIUMTEXT, photo LONGBLOB)');
+        'CREATE TABLE Pins (id INTEGER, caption TEXT, color TEXT, lat FLOAT, lng FLOAT, date TEXT, location TEXT, shape TEXT, note MEDIUMTEXT, photo LONGBLOB, waypoint INTEGER)');
     db.execute(
         'CREATE TABLE Prefs (mapcenterlat FLOAT, mapcenterlng FLOAT, maplayer TEXT, bearing INT(255), pincolor TEXT, mapzoom INT(255), onboarding TINYINT)');
     db.rawInsert(
@@ -61,7 +63,8 @@ class OdysseyDatabase {
     print("DB Made!");
   }
 
-  Future addPinDB(id, caption, date, color, latLng, location) async {
+  Future addPinDB(
+      id, caption, date, color, shape, latLng, location, note) async {
     final db = await instance.database;
 
     caption = caption.toString();
@@ -81,8 +84,18 @@ class OdysseyDatabase {
     location.toString();
 
     db.rawInsert(
-        'INSERT INTO Pins (id, caption, color, lat, lng, date, location) VALUES(?, ?, ?, ?, ?, ?, ?)',
-        ['$id', '$caption', colorBuffer, '$lat', '$lng', date, '$location']);
+        'INSERT INTO Pins (id, caption, color, lat, lng, date, location, shape, note) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+          '$id',
+          '$caption',
+          colorBuffer,
+          '$lat',
+          '$lng',
+          date,
+          '$location',
+          '$shape',
+          '$note'
+        ]);
   }
 
   Future closeDB() async {
@@ -90,7 +103,7 @@ class OdysseyDatabase {
     db.close();
   }
 
-  Future updatePrefsDB(mapZoom, bearing, latLng) async {
+  Future updatePrefsDB(mapZoom, bearing, latLng, mt) async {
     final db = await instance.database;
 
     //split latlng and make it a two parter float
@@ -106,8 +119,8 @@ class OdysseyDatabase {
         Since I never thought to assign an ID to prefs because I didn't orgininally think that I needed it, will use the now redundant variable as a mock ID */
 
     db.rawUpdate(
-        '''UPDATE Prefs SET mapzoom = ?, bearing = ?, mapcenterlat = ?, mapcenterlng = ? WHERE pincolor = ?''',
-        [mapZoom, bearing, lat, lng, '0xffff0000']);
+        '''UPDATE Prefs SET mapzoom = ?, bearing = ?, mapcenterlat = ?, mapcenterlng = ?, maplayer = ? WHERE pincolor = ?''',
+        [mapZoom, bearing, lat, lng, mt.toString(), '0xffff0000']);
   }
 
   Future initStatefromDB() async {
@@ -123,14 +136,15 @@ class OdysseyDatabase {
       mapZoom = double.parse(mapZoomBuffer[0]['mapzoom'].toString());
 
       var mapTypeBuffer = await db.query("Prefs", columns: ["maplayer"]);
+      mapTypeHandler(mapTypeBuffer[0]['maplayer'].toString());
       //mapType = mapTypeBuffer[0]['maplayer'].toString() as MapType; //Tried casting this one didn't work...
 
       var bearingBuffer = await db.query("Prefs", columns: ["bearing"]);
       bearing = double.parse(bearingBuffer[0]['bearing'].toString());
 
-      var onboardingBuffer = await db.query("Prefs", columns: ["onboarding"]);
+/*       var onboardingBuffer = await db.query("Prefs", columns: ["onboarding"]);
       onboarding = int.parse(onboardingBuffer[0]['onboarding'].toString());
-      print(onboarding);
+      print("Onboarding: $onboarding"); */ //Onboarding will come in a later update when needed...
 
       //Load User Data
       var counterBuffer = await db.query("Pins", columns: ["MAX(id)"]);
@@ -145,8 +159,6 @@ class OdysseyDatabase {
       for (var i = 0; i <= counter - 1; i++) {
         //Parse the Pin's Color
         var colorBuffer2 = colorBuffer[i]["color"].toString();
-        //colorBuffer2 = colorBuffer2.split('(0x')[1].split(')')[0]; //Depreciated
-        //int colorBuffer3 = int.parse(colorBuffer2, radix: 16); //Depreciated
         pincolor = Color(int.parse(colorBuffer2));
 
         //Parse the Caption
@@ -163,6 +175,14 @@ class OdysseyDatabase {
         var dateBuffer = await db.query("Pins", columns: ["date"]);
         var date = dateBuffer[i]["date"].toString();
 
+        //Parse the Pin's note
+        var noteBuffer = await db.query("Pins", columns: ["note"]);
+        var note = noteBuffer[i]["note"].toString();
+
+        //Parse the Pin's shape
+        var shapeBuffer = await db.query("Pins", columns: ["shape"]);
+        var shape = shapeBuffer[i]["shape"].toString();
+
         //Parse the Pin's Lat and Lng
         var locationBufferlat = await db.query("Pins", columns: ["lat"]);
         var locationBufferlng = await db.query("Pins", columns: ["lng"]);
@@ -175,7 +195,9 @@ class OdysseyDatabase {
             pincolor: pincolor,
             pincoor: latLng,
             pindate: date,
+            pinnote: note,
             pincaption: caption,
+            pinshape: shape,
             pinlocation: location));
       }
     } else {
@@ -199,6 +221,21 @@ class OdysseyDatabase {
         ]);
   }
 
+  void _upgradeDB(Database db, int oldVersion, int newVersion) async {
+    //This is for upgrading from 1.0 to 1.1 and future updates
+    if (oldVersion < newVersion) {
+      print("Updating DB...");
+      db.execute(
+          "ALTER TABLE Pins ADD COLUMN shape TEXT DEFAULT 'circle' NOT NULL;");
+      db.execute(
+          "ALTER TABLE Pins ADD COLUMN note MEDIUMTEXT DEFAULT '' NOT NULL;");
+      db.execute("ALTER TABLE Pins ADD COLUMN photo LONGBLOB;");
+      db.execute("ALTER TABLE Pins ADD COLUMN waypoint INTEGER;");
+      db.execute(
+          "ALTER TABLE Prefs ADD COLUMN onboarding TINYINT DEFAULT '1' NOT NULL;");
+    }
+  }
+
   Future deletePinDB(id) async {
     final db = await instance.database;
     db.query("Pins");
@@ -209,4 +246,30 @@ class OdysseyDatabase {
     final db = await instance.database;
     db.delete("Pins");
   }
+}
+
+void mapTypeHandler(String mt) {
+//We're going to use this function to "do a String conversion to MapType"
+  switch (mt) {
+    case ("MapType.normal"):
+      mapType = MapType.normal;
+      break;
+
+    case ("MapType.hybrid"):
+      mapType = MapType.hybrid;
+      break;
+
+    case ("MapType.terrain"):
+      mapType = MapType.terrain;
+      break;
+
+    case ("MapType.satellite"):
+      mapType = MapType.satellite;
+      break;
+
+    default:
+      mapType = MapType.normal;
+      break;
+  }
+  print(mapType);
 }

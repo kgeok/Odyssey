@@ -2,8 +2,8 @@
 import 'dart:ui' as ui;
 import 'dart:io';
 import 'dart:async';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:odyssey/dialogs.dart';
 import 'package:odyssey/theme/custom_theme.dart';
 import 'package:odyssey/data_management.dart';
@@ -40,14 +40,20 @@ Color pickerColor = Color(0xffff0000);
 Color currentColor = Color(0xffff0000);
 LatLng center = LatLng(defaultCenterLat, defaultCenterLng); //Center of the USA
 MapType mapType = defaultMapType; //Default Map Type
+var pinshape = defaultPinShape;
 double bearing = defaultBearing; //Rotation of Map
 double mapZoom = defaultMapZoom; //Zoom of Map
+String shape = defaultShape;
 int pinCounter = 0;
 var caption = ""; //Null if not init'd
 var captionBuffer; //Temp Buffer for the Caption before it goes into PinData
+var note = "";
+var noteBuffer; //Temp Buffer for the Note before it goes into PinData
 var locationBuffer; //Temp Buffer for the results for reverseGeocoder before it goes into PinData
 var addressBuffer; //Temp Buffer for Pin From Address before it goes into geocoder
-var currentTheme;
+var currentTheme; //Light or Dark theme
+String svgString =
+    ""; //We're just leaving this blank to init it, shapeHandler will return the real value
 int onboarding =
     0; //would be bool but we need to parse db which only has tinyint
 var pins = [];
@@ -83,18 +89,93 @@ class PinData {
       required this.pinlocation});
 }
 
-Future<BitmapDescriptor> bitmapDescriptorFromSvg(BuildContext context) async {
-  String svgString =
-      '''<?xml version="1.0" encoding="UTF-8" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg height="100%" style="fill-rule:nonzero;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="100%" version="1.1" viewBox="0 0 76 180.001">
+String shapeHandler(shape) {
+  pinshape = shape;
+  switch (shape) {
+    case "circle":
+      return svgString = '''
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg height="100%" stroke-miterlimit="10" style="fill-rule:nonzero;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;" version="1.1" viewBox="0 0 76 180" width="100%" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <defs/>
-<g stroke="black" stroke-width="2.5">
-<path d="M38+4.5C21.4906+4.5+8.09375+17.9077+8.09375+34.4375C8.09375+49.34+19.0104+61.5861+33.25+63.875L32.875+63.875L32.875+147.656L26.4375+147.656L38+175.219L49.5625+147.656L43.125+147.656L43.125+63.875L42.75+63.875C56.9896+61.5861+67.9062+49.34+67.9062+34.4375C67.9062+17.9077+54.5094+4.5+38+4.5Z" opacity="1" fill="#$colorBuffer"/>
+<g>
+<path d="M32 22L43.97 22L44 149L51 149L37.9156 173.735L25 149L32 149L32 22Z" fill="#$colorBuffer" fill-rule="evenodd" opacity="1" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
+<path d="M8 35.6558C8 19.0873 21.4315 5.65582 38 5.65582C54.5685 5.65582 68 19.0873 68 35.6558C68 52.2244 54.5685 65.6558 38 65.6558C21.4315 65.6558 8 52.2244 8 35.6558Z" fill="#$colorBuffer" fill-rule="evenodd" opacity="1" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
 </g>
 </svg>
 ''';
+
+    case "square":
+      return svgString = '''
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg height="100%" stroke-miterlimit="10" style="fill-rule:nonzero;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;" version="1.1" viewBox="0 0 76 180" width="100%" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:vectornator="http://vectornator.io" xmlns:xlink="http://www.w3.org/1999/xlink">
+<defs/>
+<g>
+<path d="M32 22L43.97 22L44 149L51 149L37.9156 173.735L25 149L32 149L32 22Z" fill="#$colorBuffer" fill-rule="evenodd" opacity="1" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
+<path d="M8 6L68 6L68 66L8 66L8 6Z" fill="#$colorBuffer" fill-rule="evenodd" opacity="1" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
+</g>
+</svg>
+
+''';
+    case "diamond":
+      return svgString = '''ß
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg height="100%" stroke-miterlimit="10" style="fill-rule:nonzero;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;" version="1.1" viewBox="0 0 76 180" width="100%" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<defs/>
+<g>
+<path d="M32 22L43.97 22L44 149L51 149L37.9156 173.735L25 149L32 149L32 22Z" fill="#$colorBuffer" fill-rule="evenodd" opacity="1" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
+<path d="M38 6L68 36L38 66L8 36L38 6Z" fill="#$colorBuffer" fill-rule="evenodd" opacity="1" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
+</g>
+</svg>
+
+''';
+
+    case "star":
+      return svgString = '''
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg height="100%" stroke-miterlimit="10" style="fill-rule:nonzero;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;" version="1.1" viewBox="0 0 76 180" width="100%" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<defs/>
+<g>
+<path d="M32 22L43.97 22L44 149L51 149L37.9156 173.735L25 149L32 149L32 22Z" fill="#$colorBuffer" fill-rule="evenodd" opacity="1" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
+<path d="M38 3L47.2705 22.7508L68 25.918L53 41.2918L56.541 63L38 52.7508L19.459 63L23 41.2918L8 25.918L28.7295 22.7508L38 3Z" fill="#$colorBuffer" fill-rule="evenodd" opacity="1" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
+</g>
+</svg>
+''';
+
+    case "heart":
+      return svgString = '''
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg height="100%" stroke-miterlimit="10" style="fill-rule:nonzero;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;" version="1.1" viewBox="0 0 76 180" width="100%" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<defs/>
+<g>
+<path d="M32 22L43.97 22L44 149L51 149L37.9156 173.735L25 149L32 149L32 22Z" fill="#$colorBuffer" fill-rule="evenodd" opacity="1" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
+<path d="M23.8309 7.0076C22.9785 6.98114 22.2559 7.02616 21.6403 7.10552C21.0246 7.1849 20.4213 7.30577 19.8294 7.46455C19.2374 7.6233 18.5938 7.82628 17.9308 8.11733C17.2678 8.40838 16.7214 8.70134 16.2952 8.96594C15.8689 9.23053 15.4251 9.54206 14.9516 9.91247C14.478 10.2829 13.9939 10.7091 13.5204 11.1854C13.0468 11.6617 12.6085 12.1576 12.206 12.6868C11.8035 13.216 11.3999 13.8716 10.95 14.6125C10.5002 15.3533 10.1243 16.0275 9.84012 16.6361C9.55598 17.2447 9.28275 17.9251 9.02229 18.6924C8.76183 19.4597 8.53439 20.4392 8.32129 21.6299C8.10819 22.8205 8 24.048 8 25.3181C8 26.5881 8.12477 27.9938 8.40892 29.5285C8.69305 31.0631 9.02315 32.3665 9.402 33.4778C9.78085 34.5891 10.4244 36.046 11.3005 37.8188C12.1766 39.5916 13.0019 41.0732 13.7832 42.2903C14.5646 43.5075 15.498 44.8435 16.5872 46.2723C17.6764 47.7011 18.8776 49.1642 20.1799 50.6459C21.4822 52.1277 22.9163 53.6605 24.5027 55.248C26.0891 56.8356 28.1044 58.6861 30.5196 60.8293C32.9348 62.9725 34.7045 64.5115 35.8647 65.464C37.0249 66.4166 37.6851 66.9451 37.8509 66.9981C38.0166 67.051 39.3662 66.0203 41.8524 63.93C44.3386 61.8397 46.7172 59.6962 49.0377 57.5001C51.3581 55.304 53.4982 53.097 55.4635 50.8744C57.4288 48.6518 58.8463 46.9857 59.6987 45.848C60.5511 44.7102 61.3195 43.6098 62.0061 42.5515C62.6928 41.4931 63.3419 40.4051 63.9339 39.3202C64.5258 38.2354 65.0155 37.262 65.3943 36.4153C65.7732 35.5686 66.1033 34.7612 66.3874 33.9674C66.6715 33.1736 66.9392 32.3212 67.176 31.4216C67.4128 30.5219 67.5889 29.5998 67.731 28.6472C67.873 27.6947 67.9702 26.7726 67.9938 25.8729C68.0175 24.9733 67.9717 24.0573 67.877 23.1313C67.7823 22.2052 67.6686 21.4163 67.5265 20.7813C67.3844 20.1462 67.1736 19.4597 66.9131 18.6924C66.6527 17.925 66.3794 17.2447 66.0953 16.6361C65.8112 16.0275 65.4353 15.3533 64.9854 14.6125C64.5355 13.8716 64.0917 13.2036 63.6418 12.6215C63.1919 12.0394 62.7536 11.5435 62.3274 11.1201C61.9012 10.6968 61.4006 10.2317 60.8086 9.78191C60.2166 9.33211 59.6647 8.96325 59.1437 8.67219C58.6228 8.38114 58.0361 8.12699 57.4204 7.88885C56.8048 7.65072 56.1335 7.46012 55.3759 7.30135C54.6182 7.14259 53.8095 7.03405 52.9808 7.0076C52.152 6.98114 51.3157 7.03851 50.4397 7.1708C49.5636 7.30309 48.7494 7.48751 48.0154 7.72566C47.2813 7.96379 46.5185 8.27529 45.7371 8.67219C44.9557 9.06908 44.29 9.48294 43.7217 9.87983C43.1535 10.2767 42.5557 10.7603 41.94 11.3159C41.3244 11.8716 40.4992 12.7302 39.4573 13.8944C38.9364 14.4765 38.4302 15.0422 37.9093 15.6243C37.3055 14.9364 36.7022 14.256 36.0984 13.568C34.8908 12.1922 33.7979 11.1429 32.8271 10.4021C31.8562 9.66119 30.9797 9.06908 30.1983 8.67219C29.4169 8.2753 28.6541 7.96379 27.9201 7.72566C27.186 7.48752 26.5314 7.30927 25.9631 7.20343C25.3948 7.0976 24.6833 7.03406 23.8309 7.0076Z" fill="#$colorBuffer" fill-rule="evenodd" opacity="1" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
+</g>
+</svg>
+''';
+
+    default:
+      return svgString = '''
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg height="100%" stroke-miterlimit="10" style="fill-rule:nonzero;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;" version="1.1" viewBox="0 0 76 180" width="100%" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<defs/>
+<g>
+<path d="M32 22L43.97 22L44 149L51 149L37.9156 173.735L25 149L32 149L32 22Z" fill="#$colorBuffer" fill-rule="evenodd" opacity="1" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
+<path d="M8 35.6558C8 19.0873 21.4315 5.65582 38 5.65582C54.5685 5.65582 68 19.0873 68 35.6558C68 52.2244 54.5685 65.6558 38 65.6558C21.4315 65.6558 8 52.2244 8 35.6558Z" fill="#$colorBuffer" fill-rule="evenodd" opacity="1" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
+</g>
+</svg>''';
+  }
+}
+
+Future<BitmapDescriptor> bitmapDescriptorFromSvg(
+    BuildContext context, String shape) async {
   DrawableRoot svgDrawableRoot =
-      await svg.fromSvgString(svgString, null.toString());
+      await svg.fromSvgString(shapeHandler(shape), null.toString());
   MediaQueryData queryData = MediaQuery.of(context);
   double devicePixelRatio = queryData.devicePixelRatio;
   double width = 50 * devicePixelRatio;
@@ -120,9 +201,11 @@ class MyAppState extends State<MyApp> {
       pincolor = pins[i].pincolor;
       colorToHex(pincolor);
       pickerColor = pincolor;
+      shape = pins[i].pinshape;
       BitmapDescriptor bitmapDescriptor =
-          await bitmapDescriptorFromSvg(context);
+          await bitmapDescriptorFromSvg(context, shape);
       caption = pins[i].pincaption;
+      note = pins[i].pinnote;
 
       setState(() {
         _markers.add(
@@ -160,7 +243,8 @@ class MyAppState extends State<MyApp> {
 
   void appendMarker(LatLng latLng) async {
     pinCounter++;
-    BitmapDescriptor bitmapDescriptor = await bitmapDescriptorFromSvg(context);
+    BitmapDescriptor bitmapDescriptor =
+        await bitmapDescriptorFromSvg(context, shape);
     reverseGeocoder(latLng);
     setState(() {
       _markers.add(
@@ -194,21 +278,25 @@ class MyAppState extends State<MyApp> {
         pincolor: pincolor,
         pincoor: latLng,
         pindate: date,
+        pinnote: note,
         pincaption: caption,
+        pinshape: shape,
         pinlocation: locationBuffer.toString()));
 
-    OdysseyDatabase.instance
-        .addPinDB(pinCounter, caption, date, pincolor, latLng, locationBuffer);
+    OdysseyDatabase.instance.addPinDB(pinCounter, caption, date, pincolor,
+        shape, latLng, locationBuffer, note);
 
     setState(() {
       journal.add(pinCounter - 1);
     });
 
     mapZoom = await mapController.getZoomLevel();
-    OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, latLng);
+    OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, latLng, mapType);
 
     caption = "";
     captionBuffer = "";
+    note = "";
+    noteBuffer = "";
     pinlocation = [];
   }
 
@@ -231,6 +319,80 @@ class MyAppState extends State<MyApp> {
           "",
           "error");
     }
+  }
+
+  Widget journalEntry(final caption, final color, final subtitle, var latlng,
+      var date, var note) {
+    latlng = latlng.toString();
+    latlng = latlng.replaceAll("LatLng(", "");
+    latlng = latlng.replaceAll(")", "");
+    return Center(
+        child: Wrap(
+      direction: Axis.vertical,
+      spacing: 4,
+      children: [
+        InkWell(
+            splashColor: color,
+            highlightColor: color,
+            onTap: () => journalDialog(
+                context, caption, subtitle, latlng, color, date, note),
+            child: Container(
+                padding: const EdgeInsets.fromLTRB(2, 0, 0, 2),
+                decoration: ShapeDecoration(
+                    shadows: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.01),
+                        spreadRadius: 5,
+                        blurRadius: 7,
+                        offset:
+                            const Offset(0, 3), // changes position of shadow
+                      ),
+                    ],
+                    color: color,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10))),
+                height: 85.0,
+                width: 285.0,
+                child: Center(
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                      Text(caption,
+                          overflow: TextOverflow.fade,
+                          softWrap: false,
+                          maxLines: 1,
+                          style: GoogleFonts.quicksand(
+                              fontWeight: FontWeight.w700,
+                              color: color.computeLuminance() > 0.5
+                                  ? Colors.black
+                                  : Colors.white,
+                              fontSize: 20)),
+                      Text(subtitle,
+                          overflow: TextOverflow.fade,
+                          softWrap: false,
+                          maxLines: 1,
+                          style: GoogleFonts.quicksand(
+                              fontWeight: FontWeight.w500,
+                              color: color.computeLuminance() > 0.5
+                                  ? Colors.black
+                                  : Colors.white,
+                              fontSize: 18))
+                    ])))),
+        const SizedBox(height: 2.5),
+      ],
+    ));
+  }
+
+  List<Widget> makeJournalEntry() {
+    return List<Widget>.generate(journal.length, (int index) {
+      return journalEntry(
+          pins[index].pincaption,
+          pins[index].pincolor,
+          pins[index].pinlocation,
+          pins[index].pincoor,
+          pins[index].pindate,
+          pins[index].pinnote);
+    });
   }
 
   Future<void> appendFromLocation() async {
@@ -320,7 +482,7 @@ class MyAppState extends State<MyApp> {
     pinCounter = 0;
     pins.clear();
     OdysseyDatabase.instance.updatePrefsDB(defaultMapZoom, defaultBearing,
-        LatLng(defaultCenterLat, defaultCenterLng));
+        LatLng(defaultCenterLat, defaultCenterLng), defaultMapType);
     OdysseyDatabase.instance.clearPinsDB();
 
     setState(() {
@@ -414,9 +576,7 @@ class MyAppState extends State<MyApp> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(5.0),
               ),
-              title: Text('Select Color',
-                  style: GoogleFonts.quicksand(
-                      fontWeight: FontWeight.w700, color: Colors.white)),
+              title: Text('Select Color', style: dialogHeader),
               content: SingleChildScrollView(
                 child: ColorPicker(
                   pickerColor: pickerColor,
@@ -429,17 +589,20 @@ class MyAppState extends State<MyApp> {
               ),
               actions: <Widget>[
                 TextButton(
-                  child: Text('Cancel',
-                      style: GoogleFonts.quicksand(
-                          fontWeight: FontWeight.w600, color: Colors.white)),
+                  child: Text('Shape', style: dialogBody),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    shapeDialog(context);
+                  },
+                ),
+                TextButton(
+                  child: Text('Cancel', style: dialogBody),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
                 ),
                 TextButton(
-                  child: Text('OK',
-                      style: GoogleFonts.quicksand(
-                          fontWeight: FontWeight.w600, color: Colors.white)),
+                  child: Text('OK', style: dialogBody),
                   onPressed: () {
                     setState(() => currentColor = pickerColor);
                     setState(() => pincolor = currentColor);
@@ -451,83 +614,12 @@ class MyAppState extends State<MyApp> {
         });
   }
 
-  Widget journalEntry(
-      final caption, final color, final subtitle, var latlng, var date) {
-    latlng = latlng.toString();
-    latlng = latlng.replaceAll("LatLng(", "");
-    latlng = latlng.replaceAll(")", "");
-    return Center(
-        child: Wrap(
-      direction: Axis.vertical,
-      spacing: 4,
-      children: [
-        InkWell(
-            splashColor: color,
-            highlightColor: color,
-            onTap: () =>
-                journalDialog(context, caption, subtitle, latlng, color, date),
-            child: Container(
-                padding: const EdgeInsets.fromLTRB(2, 0, 0, 2),
-                decoration: ShapeDecoration(
-                    shadows: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.01),
-                        spreadRadius: 5,
-                        blurRadius: 7,
-                        offset:
-                            const Offset(0, 3), // changes position of shadow
-                      ),
-                    ],
-                    color: color,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10))),
-                height: 85.0,
-                width: 285.0,
-                child: Center(
-                    child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                      Text(caption,
-                          overflow: TextOverflow.fade,
-                          softWrap: false,
-                          maxLines: 1,
-                          style: GoogleFonts.quicksand(
-                              fontWeight: FontWeight.w700,
-                              color: color.computeLuminance() > 0.5
-                                  ? Colors.black
-                                  : Colors.white,
-                              fontSize: 20)),
-                      Text(subtitle,
-                          overflow: TextOverflow.fade,
-                          softWrap: false,
-                          maxLines: 1,
-                          style: GoogleFonts.quicksand(
-                              fontWeight: FontWeight.w500,
-                              color: color.computeLuminance() > 0.5
-                                  ? Colors.black
-                                  : Colors.white,
-                              fontSize: 18))
-                    ])))),
-        const SizedBox(height: 2.5),
-      ],
-    ));
-  }
-
-  List<Widget> makeJournalEntry() {
-    return List<Widget>.generate(journal.length, (int index) {
-      return journalEntry(pins[index].pincaption, pins[index].pincolor,
-          pins[index].pinlocation, pins[index].pincoor, pins[index].pindate);
-    });
-  }
-
   void captionDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-            title: Text('Enter Caption',
-                style: GoogleFonts.quicksand(
-                    fontWeight: FontWeight.w700, color: Colors.white)),
+            title: Text('Enter Caption', style: dialogHeader),
             content: SingleChildScrollView(
               child: ListBody(
                 children: <Widget>[
@@ -548,9 +640,30 @@ class MyAppState extends State<MyApp> {
             ),
             actions: <Widget>[
               TextButton(
-                child: Text('OK',
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
+                child: Text('Note', style: dialogBody),
+                onPressed: () {
+                  setState(() {
+                    if (captionBuffer == "") {
+                      captionBuffer = "";
+                    }
+                    if (captionBuffer == null) {
+                      captionBuffer = "";
+                    }
+                    caption = captionBuffer;
+                    captionBuffer = "";
+                    Navigator.pop(context);
+                    noteDialog(context);
+                  });
+                },
+              ),
+              TextButton(
+                child: Text('Cancel', style: dialogBody),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: Text('OK', style: dialogBody),
                 onPressed: () {
                   setState(() {
                     if (captionBuffer == "") {
@@ -570,14 +683,143 @@ class MyAppState extends State<MyApp> {
     );
   }
 
+  void shapeDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+            title: Text("Pin Shape", style: dialogHeader),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  SimpleDialogOption(
+                    onPressed: () {
+                      shape = "circle";
+                      Navigator.pop(context);
+                    },
+                    child: Text('Circle', style: dialogBody),
+                  ),
+                  SimpleDialogOption(
+                    onPressed: () {
+                      shape = "square";
+                      Navigator.pop(context);
+                    },
+                    child: Text('Square', style: dialogBody),
+                  ),
+                  SimpleDialogOption(
+                    onPressed: () {
+                      shape = "diamond";
+                      Navigator.pop(context);
+                    },
+                    child: Text('Diamond', style: dialogBody),
+                  ),
+                  SimpleDialogOption(
+                    onPressed: () {
+                      shape = "star";
+                      Navigator.pop(context);
+                    },
+                    child: Text('Star', style: dialogBody),
+                  ),
+                  SimpleDialogOption(
+                    onPressed: () {
+                      shape = "heart";
+                      Navigator.pop(context);
+                    },
+                    child: Text('Heart', style: dialogBody),
+                  ),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('Dismiss', style: dialogBody),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              )
+            ]);
+      },
+    );
+  }
+
+  void noteDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+            title: Text('Enter Note', style: dialogHeader),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  TextField(
+                      autofocus: true,
+                      keyboardType: TextInputType.multiline,
+                      minLines: 1,
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                          fillColor: Colors.grey[300],
+                          filled: true,
+                          border: const OutlineInputBorder(),
+                          hintText: "Note"),
+                      onChanged: (value) {
+                        setState(() {
+                          noteBuffer = value;
+                        });
+                      }),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('Caption', style: dialogBody),
+                onPressed: () {
+                  setState(() {
+                    if (noteBuffer == "") {
+                      noteBuffer = "";
+                    }
+                    if (noteBuffer == null) {
+                      noteBuffer = "";
+                    }
+                    note = noteBuffer;
+                    noteBuffer = "";
+                    Navigator.pop(context);
+                    captionDialog(context);
+                  });
+                },
+              ),
+              TextButton(
+                child: Text('Cancel', style: dialogBody),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: Text('OK', style: dialogBody),
+                onPressed: () {
+                  setState(() {
+                    if (noteBuffer == "") {
+                      captionBuffer = "";
+                    }
+                    if (noteBuffer == null) {
+                      captionBuffer = "";
+                    }
+                    note = noteBuffer;
+                    noteBuffer = "";
+                    Navigator.pop(context);
+                  });
+                },
+              )
+            ]);
+      },
+    );
+  }
+
   void addressDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-            title: Text('Enter an Address',
-                style: GoogleFonts.quicksand(
-                    fontWeight: FontWeight.w700, color: Colors.white)),
+            title: Text('Enter an Address', style: dialogHeader),
             content: SingleChildScrollView(
               child: ListBody(
                 children: <Widget>[
@@ -598,9 +840,13 @@ class MyAppState extends State<MyApp> {
             ),
             actions: <Widget>[
               TextButton(
-                child: Text('OK',
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
+                child: Text('Cancel', style: dialogBody),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: Text('OK', style: dialogBody),
                 onPressed: () {
                   setState(() {
                     if (addressBuffer == "") {
@@ -624,9 +870,7 @@ class MyAppState extends State<MyApp> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-            title: Text("Settings",
-                style: GoogleFonts.quicksand(
-                    fontWeight: FontWeight.w700, color: Colors.white)),
+            title: Text("Settings", style: dialogHeader),
             content: SingleChildScrollView(
               child: ListBody(
                 children: <Widget>[
@@ -644,63 +888,49 @@ class MyAppState extends State<MyApp> {
                       Navigator.of(context).pop();
                       toggleMapView();
                     },
-                    child: Text('Toggle Map View',
-                        style: GoogleFonts.quicksand(
-                            fontWeight: FontWeight.w600, color: Colors.white)),
+                    child: Text('Toggle Map View', style: dialogBody),
                   ),
                   SimpleDialogOption(
                     onPressed: () {
                       Navigator.of(context).pop();
                       toggleMapModes();
                     },
-                    child: Text('Toggle Map Details',
-                        style: GoogleFonts.quicksand(
-                            fontWeight: FontWeight.w600, color: Colors.white)),
+                    child: Text('Toggle Map Details', style: dialogBody),
                   ),
                   SimpleDialogOption(
                     onPressed: () {
                       Navigator.of(context).pop();
                       helpDialog(context);
                     },
-                    child: Text('Help',
-                        style: GoogleFonts.quicksand(
-                            fontWeight: FontWeight.w600, color: Colors.white)),
+                    child: Text('Help', style: dialogBody),
                   ),
                   SimpleDialogOption(
                     onPressed: () {
                       Navigator.of(context).pop();
                       aboutDialog(context);
                     },
-                    child: Text('About',
-                        style: GoogleFonts.quicksand(
-                            fontWeight: FontWeight.w600, color: Colors.white)),
+                    child: Text('About', style: dialogBody),
                   ),
                   SimpleDialogOption(
                     onPressed: () {
                       Navigator.of(context).pop();
                       acknowledgeDialog(context);
                     },
-                    child: Text('Acknowledgements',
-                        style: GoogleFonts.quicksand(
-                            fontWeight: FontWeight.w600, color: Colors.white)),
+                    child: Text('Acknowledgements', style: dialogBody),
                   ),
                   SimpleDialogOption(
                     onPressed: () {
                       Navigator.of(context).pop();
                       privacyDialog(context);
                     },
-                    child: Text('Privacy Policy',
-                        style: GoogleFonts.quicksand(
-                            fontWeight: FontWeight.w600, color: Colors.white)),
+                    child: Text('Privacy Policy', style: dialogBody),
                   ),
                 ],
               ),
             ),
             actions: <Widget>[
               TextButton(
-                child: Text('Dismiss',
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
+                child: Text('Dismiss', style: dialogBody),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -716,34 +946,25 @@ class MyAppState extends State<MyApp> {
       builder: (BuildContext context) {
         return AlertDialog(
             backgroundColor: Colors.orange[800],
-            title: Text("Clear Pins?",
-                style: GoogleFonts.quicksand(
-                    fontWeight: FontWeight.w700, color: Colors.white)),
+            title: Text("Clear Pins?", style: dialogHeader),
             content: SingleChildScrollView(
               child: ListBody(
                 children: <Widget>[
                   Text("Are you sure you want to clear all pins?",
-                      style: GoogleFonts.quicksand(
-                          fontWeight: FontWeight.w600, color: Colors.white)),
-                  Text("(This will also clear the Journal)",
-                      style: GoogleFonts.quicksand(
-                          fontWeight: FontWeight.w600, color: Colors.white)),
+                      style: dialogBody),
+                  Text("(This will also clear the Journal)", style: dialogBody),
                 ],
               ),
             ),
             actions: <Widget>[
               TextButton(
-                child: Text('Cancel',
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
+                child: Text('Cancel', style: dialogBody),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
               ),
               TextButton(
-                child: Text('OK',
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
+                child: Text('OK', style: dialogBody),
                 onPressed: () {
                   clearMarkers();
                   Navigator.of(context).pop();
@@ -760,7 +981,7 @@ class MyAppState extends State<MyApp> {
             PopupMenuItem(
                 value: 1,
                 child: Text(
-                  "Set Color",
+                  "Set Color/Shape",
                   style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
                 ),
                 onTap: () {
@@ -769,7 +990,7 @@ class MyAppState extends State<MyApp> {
             PopupMenuItem(
               value: 2,
               child: Text(
-                "Set Caption",
+                "Set Caption/Note",
                 style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
               ),
               onTap: () {
@@ -838,7 +1059,6 @@ class MyAppState extends State<MyApp> {
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
     populateMapfromState();
-
     //This is only for Pre-Release Versions, This doesn't apply for release versions.
     simpleDialog(
         context,

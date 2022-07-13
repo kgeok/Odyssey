@@ -51,7 +51,7 @@
     },
     {
       "name": "cupertino_icons",
-      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/cupertino_icons-1.0.4",
+      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/cupertino_icons-1.0.5",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
@@ -63,7 +63,7 @@
     },
     {
       "name": "ffi",
-      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/ffi-2.0.0",
+      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/ffi-2.0.1",
       "packageUri": "lib/",
       "languageVersion": "2.17"
     },
@@ -93,13 +93,13 @@
     },
     {
       "name": "flutter_plugin_android_lifecycle",
-      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_plugin_android_lifecycle-2.0.6",
+      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_plugin_android_lifecycle-2.0.7",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
     {
       "name": "flutter_svg",
-      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_svg-1.1.0",
+      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_svg-1.1.1+1",
       "packageUri": "lib/",
       "languageVersion": "2.17"
     },
@@ -135,19 +135,19 @@
     },
     {
       "name": "google_maps",
-      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/google_maps-6.1.0",
+      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/google_maps-6.2.0",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
     {
       "name": "google_maps_flutter",
-      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/google_maps_flutter-2.1.6",
+      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/google_maps_flutter-2.1.8",
       "packageUri": "lib/",
       "languageVersion": "2.14"
     },
     {
       "name": "google_maps_flutter_platform_interface",
-      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/google_maps_flutter_platform_interface-2.1.7",
+      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/google_maps_flutter_platform_interface-2.2.0",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
@@ -249,19 +249,19 @@
     },
     {
       "name": "path_provider",
-      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider-2.0.10",
+      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider-2.0.11",
       "packageUri": "lib/",
       "languageVersion": "2.14"
     },
     {
       "name": "path_provider_android",
-      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider_android-2.0.14",
+      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider_android-2.0.16",
       "packageUri": "lib/",
       "languageVersion": "2.14"
     },
     {
       "name": "path_provider_ios",
-      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider_ios-2.0.9",
+      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider_ios-2.0.10",
       "packageUri": "lib/",
       "languageVersion": "2.14"
     },
@@ -333,7 +333,7 @@
     },
     {
       "name": "sqflite",
-      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-2.0.2+1",
+      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-2.0.3",
       "packageUri": "lib/",
       "languageVersion": "2.16"
     },
@@ -422,7 +422,7 @@
       "languageVersion": "2.12"
     }
   ],
-  "generated": "2022-05-30T16:31:55.083028Z",
+  "generated": "2022-07-13T12:11:11.700115Z",
   "generator": "pub",
-  "generatorVersion": "2.17.1"
+  "generatorVersion": "2.17.5"
 }
