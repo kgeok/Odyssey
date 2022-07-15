@@ -201,25 +201,25 @@ header {
         user-select: none;
     }
 
-        .circlebtn:active {
-            text-align: center;
-            padding: 20px 20px;
-            height: 30px;
-            width: 30px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-            margin-bottom: 5px;
-            margin-right: 5px;
-            opacity: 0.9;
-            border-radius: 50%;
-            vertical-align: middle;
-            font-size: 26px;
-            background-color: #00084a;
-            color: #ffffff;
-            font-family: "Quicksand", sans-serif;
-            font-family: bolder;
-            cursor: pointer;
-            user-select: none;
-        }
+    .circlebtn:active {
+        text-align: center;
+        padding: 20px 20px;
+        height: 30px;
+        width: 30px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        margin-bottom: 5px;
+        margin-right: 5px;
+        opacity: 0.9;
+        border-radius: 50%;
+        vertical-align: middle;
+        font-size: 26px;
+        background-color: #00084a;
+        color: #ffffff;
+        font-family: "Quicksand", sans-serif;
+        font-family: bolder;
+        cursor: pointer;
+        user-select: none;
+    }
 
     .sqbtn {
         text-align: center;
@@ -241,25 +241,25 @@ header {
         user-select: none;
     }
 
-        .sqbtn:active {
-            text-align: center;
-            height: 50px;
-            width: 50px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-            margin-right: 10px;
-            opacity: 0.9;
-            vertical-align: middle;
-            font-size: 26px;
-            background-color: #00084a;
-            color: #ffffff;
-            font-family: "Quicksand", sans-serif;
-            font-family: bolder;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            user-select: none;
-        }
+    .sqbtn:active {
+        text-align: center;
+        height: 50px;
+        width: 50px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        margin-right: 10px;
+        opacity: 0.9;
+        vertical-align: middle;
+        font-size: 26px;
+        background-color: #00084a;
+        color: #ffffff;
+        font-family: "Quicksand", sans-serif;
+        font-family: bolder;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        user-select: none;
+    }
 
     .rectbtn {
         text-align: center;
@@ -281,33 +281,33 @@ header {
         user-select: none;
     }
 
-        .rectbtn:active {
-            text-align: center;
-            height: 50px;
-            width: 100px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-            margin-right: 10px;
-            opacity: 0.9;
-            vertical-align: middle;
-            font-size: 26px;
-            background-color: #00084a;
-            color: #ffffff;
-            font-family: "Quicksand", sans-serif;
-            font-family: bolder;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            user-select: none;
-        }
+    .rectbtn:active {
+        text-align: center;
+        height: 50px;
+        width: 100px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        margin-right: 10px;
+        opacity: 0.9;
+        vertical-align: middle;
+        font-size: 26px;
+        background-color: #00084a;
+        color: #ffffff;
+        font-family: "Quicksand", sans-serif;
+        font-family: bolder;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        user-select: none;
+    }
 
     a {
         color: rgb(255, 255, 255);
     }
 
-        a:visited {
-            color: rgb(255, 255, 255);
-        }
+    a:visited {
+        color: rgb(255, 255, 255);
+    }
 }
 
 @media (prefers-color-scheme: dark) {
@@ -444,25 +444,25 @@ header {
         user-select: none;
     }
 
-        .circlebtn:active {
-            text-align: center;
-            padding: 20px 20px;
-            height: 30px;
-            width: 30px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-            margin-bottom: 5px;
-            margin-right: 5px;
-            opacity: 0.9;
-            border-radius: 50%;
-            vertical-align: middle;
-            font-size: 26px;
-            background-color: #006994;
-            color: #ffffff;
-            font-family: "Quicksand", sans-serif;
-            font-family: bolder;
-            cursor: pointer;
-            user-select: none;
-        }
+    .circlebtn:active {
+        text-align: center;
+        padding: 20px 20px;
+        height: 30px;
+        width: 30px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        margin-bottom: 5px;
+        margin-right: 5px;
+        opacity: 0.9;
+        border-radius: 50%;
+        vertical-align: middle;
+        font-size: 26px;
+        background-color: #006994;
+        color: #ffffff;
+        font-family: "Quicksand", sans-serif;
+        font-family: bolder;
+        cursor: pointer;
+        user-select: none;
+    }
 
     .sqbtn {
         text-align: center;
@@ -484,25 +484,25 @@ header {
         user-select: none;
     }
 
-        .sqbtn:active {
-            text-align: center;
-            height: 50px;
-            width: 50px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-            margin-right: 10px;
-            opacity: 0.9;
-            vertical-align: middle;
-            font-size: 26px;
-            background-color: #006994;
-            color: #ffffff;
-            font-family: "Quicksand", sans-serif;
-            font-family: bolder;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            user-select: none;
-        }
+    .sqbtn:active {
+        text-align: center;
+        height: 50px;
+        width: 50px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        margin-right: 10px;
+        opacity: 0.9;
+        vertical-align: middle;
+        font-size: 26px;
+        background-color: #006994;
+        color: #ffffff;
+        font-family: "Quicksand", sans-serif;
+        font-family: bolder;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        user-select: none;
+    }
 
     .rectbtn {
         text-align: center;
@@ -524,33 +524,33 @@ header {
         user-select: none;
     }
 
-        .rectbtn:active {
-            text-align: center;
-            height: 50px;
-            width: 100px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-            margin-right: 10px;
-            opacity: 0.9;
-            vertical-align: middle;
-            font-size: 26px;
-            background-color: #006994;
-            color: #ffffff;
-            font-family: "Quicksand", sans-serif;
-            font-family: bolder;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            user-select: none;
-        }
+    .rectbtn:active {
+        text-align: center;
+        height: 50px;
+        width: 100px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        margin-right: 10px;
+        opacity: 0.9;
+        vertical-align: middle;
+        font-size: 26px;
+        background-color: #006994;
+        color: #ffffff;
+        font-family: "Quicksand", sans-serif;
+        font-family: bolder;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        user-select: none;
+    }
 
     a {
         color: white;
     }
 
-        a:visited {
-            color: white;
-        }
+    a:visited {
+        color: white;
+    }
 }
 
 h1 {
@@ -676,8 +676,8 @@ input[type="submit"]:active {
 #color_picker {
     text-align: center;
     padding: 20px 20px;
-    height: 30px;
-    width: 30px;
+    height: 70px;
+    width: 70px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
     margin-bottom: 5px;
     margin-right: 5px;
@@ -702,16 +702,16 @@ button {
     -moz-appearance: none;
 }
 
-    button:active {
-        font-family: "Quicksand", sans-serif;
-        background-color: rgb(161, 160, 160);
-        border-radius: 5px;
-        border: none;
-        text-align: center;
-        padding: 5px;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-    }
+button:active {
+    font-family: "Quicksand", sans-serif;
+    background-color: rgb(161, 160, 160);
+    border-radius: 5px;
+    border: none;
+    text-align: center;
+    padding: 5px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
 
 select {
     font-family: "Quicksand", sans-serif;
