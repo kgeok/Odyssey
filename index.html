@@ -166,6 +166,15 @@
         zoom_control_out.style.borderRadius = "0px 0px 7.5px 7.5px";
         zoom_control_out.setAttribute("onclick", "map.setZoom(map.getZoom() - 1);");
 
+        let zoomlocation_btn = document.createElement("div");
+        zoomlocation_btn.id = "mts";
+        zoomlocation_btn.innerHTML = '<span class="material-icons-outlined">gps_fixed</span>';
+        zoomlocation_btn.setAttribute("onclick", "zoomIntoLocation();");
+        zoomlocation_btn.className = "sqbtn";
+        zoomlocation_btn.style.borderRadius = "5px";
+        zoomlocation_btn.style.marginTop = "10px";
+        zoomlocation_btn.style.marginLeft = "10px";
+
         let bigpicture_btn = document.createElement("div");
         bigpicture_btn.id = "mts";
         bigpicture_btn.innerHTML = '<span class="material-icons-outlined">layers</span>';
@@ -216,6 +225,7 @@
                 disableDefaultUI: true,
             });
 
+            map.controls[google.maps.ControlPosition.LEFT_TOP].push(zoomlocation_btn);
             map.controls[google.maps.ControlPosition.LEFT_TOP].push(bigpicture_btn);
             map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(settings_btn);
             map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(deletelp_btn);
@@ -244,6 +254,21 @@
             } else {
                 alert("Can't Find Location");
             }
+        }
+
+        function zoomIntoLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(zoomLocation);
+            } else {
+                alert("Can't Find Location");
+            }
+        }
+
+        function zoomLocation(position) {
+
+            map.setCenter({ lat: parseFloat(position.coords.latitude, 10), lng: parseFloat(position.coords.longitude, 10) });
+            console.log(position.coords.latitude, position.coords.longitude);
+            map.setZoom(map.getZoom() + 8);
         }
 
         function appendLocation(position) {
