@@ -33,7 +33,7 @@ class MyApp extends StatefulWidget {
 GlobalKey<MyAppState> key = GlobalKey();
 //Variables that we will be using, will try to minimize in the future
 const version = "1.1";
-const release = "Pre-Release";
+const release = "Release";
 Color pincolor = Color(int.parse(defaultPinColor));
 var colorBuffer = "FF0000"; //Default Pin Color when Map settings are un-init'd
 Color pickerColor = Color(0xffff0000);
@@ -975,6 +975,24 @@ class MyAppState extends State<MyApp> {
     );
   }
 
+  void checkConnection() async {
+    try {
+      final mapsconnection = await InternetAddress.lookup('maps.google.com');
+      if (mapsconnection.isNotEmpty &&
+          mapsconnection[0].rawAddress.isNotEmpty) {
+        print('Connected to Google Maps');
+      }
+    } on SocketException catch (_) {
+      print('Not Connected to Google Maps');
+      simpleDialog(
+          context,
+          "No Internet Connection",
+          "Please check your device settings",
+          "Some functionality may not be available at this time.",
+          "error");
+    }
+  }
+
   Widget actionMenu() => PopupMenuButton<int>(
       tooltip: "Show Pin Menu",
       itemBuilder: (context) => [
@@ -1059,13 +1077,14 @@ class MyAppState extends State<MyApp> {
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
     populateMapfromState();
+    checkConnection();
     //This is only for Pre-Release Versions, This doesn't apply for release versions.
-    simpleDialog(
+    /*   simpleDialog(
         context,
         "Pre-Release Version",
         "Confidential and Proprietary, Please Don't Share Information or Screenshots",
         "Please Report any Bugs and Crashes, Take note of what you were doing when they occurred.",
-        "error");
+        "error"); */
   }
 
   Future startOnboarding() async {
