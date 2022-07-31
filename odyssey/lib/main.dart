@@ -300,83 +300,6 @@ class MyAppState extends State<MyApp> {
     pinlocation = [];
   }
 
-  void demoModeSeq1() {
-    clearMarkers();
-    pinCounter = 7;
-    pins.add(PinData(
-        pinid: 0,
-        pinshape: "circle",
-        pinnote:
-            "Switzerland is a mountainous Central European country, home to numerous lakes, villages and the high peaks of the Alps. ",
-        pincolor: Color(0xffff0000),
-        pincoor: LatLng(46.7157786, 8.4026551),
-        pindate: "2022-07-15",
-        pincaption: "Switzerland",
-        pinlocation: "Gadmen Bern CH"));
-
-    pins.add(PinData(
-        pinid: 1,
-        pinshape: "circle",
-        pinnote: "",
-        pincolor: Color(0xFFE7AE03),
-        pincoor: LatLng(9.6412629, -83.917331),
-        pindate: "2022-07-15",
-        pincaption: "Another Summer Trip",
-        pinlocation: "Dota: Dota San Jose CR"));
-
-    pins.add(PinData(
-        pinid: 2,
-        pinshape: "circle",
-        pinnote: "",
-        pincolor: Color(0xFF71775A),
-        pincoor: LatLng(10.4683174, 76.389833),
-        pindate: "2022-06-02",
-        pincaption: "Motherland",
-        pinlocation: "Kerala: KL IN"));
-
-    pins.add(PinData(
-        pinid: 3,
-        pinshape: "circle",
-        pinnote: "",
-        pincolor: Color(0xFFFFFFFF),
-        pincoor: LatLng(46.81380101, -71.2074194),
-        pindate: "2022-06-02",
-        pincaption: "🇨🇦",
-        pinlocation: "Quebec City QC CA"));
-
-    pins.add(PinData(
-        pinid: 4,
-        pinshape: "circle",
-        pinnote: "",
-        pincolor: Color(0xFF055D69),
-        pincoor: LatLng(40.7520241, -74.0264794),
-        pindate: "2022-06-02",
-        pincaption: "Bin 14",
-        pinlocation: "Hoboken NJ US"));
-
-    pins.add(PinData(
-        pinid: 5,
-        pinshape: "circle",
-        pinnote: "",
-        pincolor: Color(0xFF64014F),
-        pincoor: LatLng(40.7569536, -74.0507599),
-        pindate: "2022-06-02",
-        pincaption: "Home Sweet Home",
-        pinlocation: "Jersey City NJ US"));
-
-    pins.add(PinData(
-        pinid: 6,
-        pinshape: "circle",
-        pinnote: "",
-        pincolor: Color(0xFF99A45A),
-        pincoor: LatLng(41.8835332, -87.619267),
-        pindate: "2022-08-24",
-        pincaption: "Now August Chicago Trip",
-        pinlocation: "Maggie Daley: Chicago IL US"));
-
-    populateMapfromState();
-  }
-
   void geocoder(String address) async {
     try {
       List<Location> location = await locationFromAddress(address);
@@ -668,6 +591,9 @@ class MyAppState extends State<MyApp> {
                 TextButton(
                   child: Text('Shape', style: dialogBody),
                   onPressed: () {
+                    setState(() => currentColor = pickerColor);
+                    setState(() => pincolor = currentColor);
+                    colorToHex(pincolor);
                     Navigator.of(context).pop();
                     shapeDialog(context);
                   },
@@ -999,7 +925,6 @@ class MyAppState extends State<MyApp> {
                     onPressed: () {
                       Navigator.of(context).pop();
                       privacyDialog(context);
-                      demoModeSeq1();
                     },
                     child: Text('Privacy Policy', style: dialogBody),
                   ),
