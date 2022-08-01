@@ -141,13 +141,13 @@
     },
     {
       "name": "google_maps_flutter",
-      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/google_maps_flutter-2.1.8",
+      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/google_maps_flutter-2.1.10",
       "packageUri": "lib/",
       "languageVersion": "2.14"
     },
     {
       "name": "google_maps_flutter_platform_interface",
-      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/google_maps_flutter_platform_interface-2.2.0",
+      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/google_maps_flutter_platform_interface-2.2.1",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
@@ -255,13 +255,13 @@
     },
     {
       "name": "path_provider_android",
-      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider_android-2.0.16",
+      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider_android-2.0.17",
       "packageUri": "lib/",
       "languageVersion": "2.14"
     },
     {
       "name": "path_provider_ios",
-      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider_ios-2.0.10",
+      "rootUri": "file:///Users/kevingeorge/Developer/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider_ios-2.0.11",
       "packageUri": "lib/",
       "languageVersion": "2.14"
     },
@@ -422,7 +422,7 @@
       "languageVersion": "2.12"
     }
   ],
-  "generated": "2022-07-22T11:00:02.129620Z",
+  "generated": "2022-08-01T01:05:29.960162Z",
   "generator": "pub",
   "generatorVersion": "2.17.6"
 }
