@@ -4,13 +4,20 @@ import 'package:odyssey/main.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:odyssey/theme/custom_theme.dart';
+import 'package:flutter/services.dart';
 
 var buttonaction1 = "";
 var buttonaction2 = "";
 var dialogColor;
 
+var dialogHeader =
+    GoogleFonts.quicksand(fontWeight: FontWeight.w700, color: Colors.white);
+
+var dialogBody =
+    GoogleFonts.quicksand(fontWeight: FontWeight.w600, color: Colors.white);
+
 void journalDialog(BuildContext context, var caption, var location, var latlng,
-    var color, var date) {
+    var color, var date, var note) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -45,10 +52,29 @@ void journalDialog(BuildContext context, var caption, var location, var latlng,
                         color: color.computeLuminance() > 0.5
                             ? Colors.black
                             : Colors.white)),
+                const Text(""),
+                Text(note.toString(),
+                    style: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w600,
+                        color: color.computeLuminance() > 0.5
+                            ? Colors.black
+                            : Colors.white)),
               ],
             ),
           ),
           actions: <Widget>[
+            TextButton(
+              child: Text("Copy to Clipboard",
+                  style: GoogleFonts.quicksand(
+                      fontWeight: FontWeight.w600,
+                      color: color.computeLuminance() > 0.5
+                          ? Colors.black
+                          : Colors.white)),
+              onPressed: () {
+                Clipboard.setData(ClipboardData(
+                    text: caption + " " + location + ", " + date + " " + note));
+              },
+            ),
             TextButton(
               child: Text("Dismiss",
                   style: GoogleFonts.quicksand(
@@ -103,34 +129,94 @@ void simpleDialog(
     builder: (BuildContext context) {
       return AlertDialog(
           backgroundColor: dialogColor,
-          title: Text(header,
-              style: GoogleFonts.quicksand(
-                  fontWeight: FontWeight.w700, color: Colors.white)),
+          title: Text(header, style: dialogHeader),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text(body1,
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
-                Text(body2,
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
+                Text(body1, style: dialogBody),
+                Text(body2, style: dialogBody),
               ],
             ),
           ),
           actions: <Widget>[
             TextButton(
-              child: Text(buttonaction1,
-                  style: GoogleFonts.quicksand(
-                      fontWeight: FontWeight.w600, color: Colors.white)),
+              child: Text(buttonaction1, style: dialogBody),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text(buttonaction2,
-                  style: GoogleFonts.quicksand(
-                      fontWeight: FontWeight.w600, color: Colors.white)),
+              child: Text(buttonaction2, style: dialogBody),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            )
+          ]);
+    },
+  );
+}
+
+void complexDialog(BuildContext context, var header, var body1, var body2,
+    var body3, var body4, var type) {
+  switch (type) {
+    case "warning":
+      buttonaction1 = "Cancel";
+      buttonaction2 = "OK";
+      dialogColor = Colors.orange[800];
+      break;
+
+    case "error":
+      buttonaction1 = "";
+      buttonaction2 = "Dismiss";
+      dialogColor = Colors.red[900];
+      break;
+
+    case "info":
+      buttonaction1 = "";
+      buttonaction2 = "OK";
+      dialogColor =
+          MediaQuery.of(context).platformBrightness == Brightness.light
+              ? lightMode.withOpacity(0.8)
+              : darkMode.withOpacity(0.8);
+      break;
+
+    default:
+      buttonaction1 = "Cancel";
+      buttonaction2 = "OK";
+      dialogColor =
+          MediaQuery.of(context).platformBrightness == Brightness.light
+              ? lightMode.withOpacity(0.8)
+              : darkMode.withOpacity(0.8);
+      break;
+  }
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+          backgroundColor: dialogColor,
+          title: Text(header, style: dialogHeader),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(body1, style: dialogBody),
+                Text("", style: dialogBody),
+                Text(body2, style: dialogBody),
+                Text("", style: dialogBody),
+                Text(body3, style: dialogBody),
+                Text("", style: dialogBody),
+                Text(body4, style: dialogBody),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(buttonaction1, style: dialogBody),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text(buttonaction2, style: dialogBody),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -145,35 +231,24 @@ void aboutDialog(BuildContext context) {
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-          title: Text("Odyssey",
-              style: GoogleFonts.quicksand(
-                  fontWeight: FontWeight.w700, color: Colors.white)),
+          title: Text("Odyssey", style: dialogHeader),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text("Version " + version.toString() + " (" + release + ")",
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
+                Text("Version $version ($release)", style: dialogBody),
                 const Text(''),
-                Text('With 💖 by Kevin George',
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
+                Text('With 💖 by Kevin George', style: dialogBody),
                 const Text(''),
-                Text('http://kgeok.github.io/',
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
+                Text('http://kgeok.github.io/', style: dialogBody),
                 const Text(''),
                 Text('Powered by Google Maps, Material Design and Flutter.',
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
+                    style: dialogBody),
               ],
             ),
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Dismiss',
-                  style: GoogleFonts.quicksand(
-                      fontWeight: FontWeight.w600, color: Colors.white)),
+              child: Text('Dismiss', style: dialogBody),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -188,45 +263,34 @@ void helpDialog(BuildContext context) {
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-          title: Text("Quick Start",
-              style: GoogleFonts.quicksand(
-                  fontWeight: FontWeight.w700, color: Colors.white)),
+          title: Text("Quick Start", style: dialogHeader),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('Tap the Map to set a Pin',
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
+                Text('Tap the Map to set a Pin', style: dialogBody),
                 const Text(''),
                 Text(
                     'Tapping the Pin Menu will show options for managing and customizing pins',
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
+                    style: dialogBody),
                 const Text(''),
                 Text(
                     'Tap Caption before setting a Pin to set the Pin\'s Caption',
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
+                    style: dialogBody),
                 const Text(''),
                 Text('Tap Color before setting a Pin to set the Pin\'s Color',
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
+                    style: dialogBody),
                 const Text(''),
                 Text('Long Press the Map to quickly toggle Map Details',
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
+                    style: dialogBody),
                 const Text(''),
                 Text('Tap the Menu button to open the Journal',
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
+                    style: dialogBody),
               ],
             ),
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Dismiss',
-                  style: GoogleFonts.quicksand(
-                      fontWeight: FontWeight.w600, color: Colors.white)),
+              child: Text('Dismiss', style: dialogBody),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -241,15 +305,11 @@ void acknowledgeDialog(BuildContext context) {
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-          title: Text("Acknowledgements",
-              style: GoogleFonts.quicksand(
-                  fontWeight: FontWeight.w700, color: Colors.white)),
+          title: Text("Acknowledgements", style: dialogHeader),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('Please visit:',
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
+                Text('Please visit:', style: dialogBody),
                 const Text(''),
                 TextField(
                     controller: TextEditingController(
@@ -262,17 +322,51 @@ void acknowledgeDialog(BuildContext context) {
                         border: const OutlineInputBorder(),
                         hintText: "Caption")),
                 const Text(''),
-                Text('For more Information',
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600, color: Colors.white)),
+                Text('For more Information', style: dialogBody),
               ],
             ),
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Dismiss',
-                  style: GoogleFonts.quicksand(
-                      fontWeight: FontWeight.w600, color: Colors.white)),
+              child: Text('Dismiss', style: dialogBody),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            )
+          ]);
+    },
+  );
+}
+
+void privacyDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+          title: Text("Privacy Policy", style: dialogHeader),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Please visit:', style: dialogBody),
+                const Text(''),
+                TextField(
+                    controller: TextEditingController(
+                        text:
+                            "https://github.com/kgeok/Odyssey/blob/main/PrivacyPolicy.pdf"),
+                    autofocus: true,
+                    decoration: InputDecoration(
+                        fillColor: Colors.grey[300],
+                        filled: true,
+                        border: const OutlineInputBorder(),
+                        hintText: "Caption")),
+                const Text(''),
+                Text('For more Information', style: dialogBody),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Dismiss', style: dialogBody),
               onPressed: () {
                 Navigator.of(context).pop();
               },

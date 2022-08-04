@@ -19,17 +19,23 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>$(FLUTTER_BUILD_NAME)</string>
+	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_dartobservatory._tcp</string>
+	</array>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Odyssey needs Network access to connect to debugging services. You should only be seeing this on Pre-Release versions of Odyssey</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Odyssey needs your Location because you selected &quot;Pin My Location&quot; or are using a Location-based feature of the Map</string>
+	<string>Odyssey needs your Location because you selected "Pin My Location" or are using a Location-based feature of the Map</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Odyssey needs your Location because you selected &quot;Pin My Location&quot; or are using a Location-based feature of the Map</string>
+	<string>Odyssey needs your Location because you selected "Pin My Location" or are using a Location-based feature of the Map</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
