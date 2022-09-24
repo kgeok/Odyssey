@@ -13,6 +13,7 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:location/location.dart' as prefix;
 import 'package:geocoding/geocoding.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() async {
   runApp(const MaterialApp(home: MyApp()));
@@ -32,7 +33,7 @@ class MyApp extends StatefulWidget {
 
 GlobalKey<MyAppState> key = GlobalKey();
 //Variables that we will be using, will try to minimize in the future
-const version = "1.1";
+const version = "1.2";
 const release = "Release";
 Color pincolor = Color(int.parse(defaultPinColor));
 var colorBuffer = "FF0000"; //Default Pin Color when Map settings are un-init'd
@@ -58,6 +59,12 @@ int onboarding =
     0; //would be bool but we need to parse db which only has tinyint
 var pins = [];
 List<int> journal = [];
+
+Future<void> redirectURL(String url) async {
+  if (!await launchUrl(Uri.parse(url))) {
+    throw "Error launching link";
+  }
+}
 
 void colorToHex(Color color) {
   //Color for Flutter is parsed differently from HTML and CSS HEX Color codes which apparently SVG uses
@@ -323,6 +330,7 @@ class MyAppState extends State<MyApp> {
 
   Widget journalEntry(final caption, final color, final subtitle, var latlng,
       var date, var note) {
+    var target = latlng;
     latlng = latlng.toString();
     latlng = latlng.replaceAll("LatLng(", "");
     latlng = latlng.replaceAll(")", "");
@@ -334,8 +342,16 @@ class MyAppState extends State<MyApp> {
         InkWell(
             splashColor: color,
             highlightColor: color,
-            onTap: () => journalDialog(
-                context, caption, subtitle, latlng, color, date, note),
+            onTap: () {
+              journalDialog(
+                  context, caption, subtitle, latlng, color, date, note);
+              mapController
+                  .animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
+                target: target,
+                bearing: bearing,
+                zoom: mapZoom,
+              )));
+            },
             child: Container(
                 padding: const EdgeInsets.fromLTRB(2, 0, 0, 2),
                 decoration: ShapeDecoration(
@@ -917,14 +933,8 @@ class MyAppState extends State<MyApp> {
                   SimpleDialogOption(
                     onPressed: () {
                       Navigator.of(context).pop();
-                      acknowledgeDialog(context);
-                    },
-                    child: Text('Acknowledgements', style: dialogBody),
-                  ),
-                  SimpleDialogOption(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      privacyDialog(context);
+                      redirectURL(
+                          "https://github.com/kgeok/Odyssey/blob/main/PrivacyPolicy.pdf");
                     },
                     child: Text('Privacy Policy', style: dialogBody),
                   ),

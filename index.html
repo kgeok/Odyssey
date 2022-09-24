@@ -24,6 +24,7 @@
     <link rel="shortcut icon" href="https://github.com/kgeok/Odyssey/raw/main/icons/favicon.ico" />
     <meta name="msapplication-TileColor" content="#2b5797" />
     <meta name="msapplication-config" content="https://github.com/kgeok/Odyssey/raw/main/icons/browserconfig.xml" />
+    <link rel="canonical" href="https://kgeok.github.io/Odyssey/" />
 </head>
 
 <body>
@@ -95,7 +96,7 @@
     <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
     <script type="text/javascript">
         let product = "Odyssey";
-        let version = "1.1";
+        let version = "1.2";
         let release = "Release";
         let map;
         let markers = [];
@@ -108,6 +109,12 @@
         var CurrCorrX;
         var CurrCorrX;
         var GeocoderBuffer;
+
+        if (navigator.serviceWorker) {
+
+            navigator.serviceWorker.register('/Odyssey/pwabuilder-sw.js', { scope: '/Odyssey/' })
+
+        }
 
         let download_btn = document.createElement("div");
         download_btn.id = "download_btn";
@@ -343,7 +350,7 @@
                     path:
                         "M38+4.5C21.4906+4.5+8.09375+17.9077+8.09375+34.4375C8.09375+49.34+19.0104+61.5861+33.25+63.875L32.875+63.875L32.875+147.656L26.4375+147.656L38+175.219L49.5625+147.656L43.125+147.656L43.125+63.875L42.75+63.875C56.9896+61.5861+67.9062+49.34+67.9062+34.4375C67.9062+17.9077+54.5094+4.5+38+4.5Z",
                     fillColor: color,
-                    fillOpacity: 0.6,
+                    fillOpacity: 0.8,
                     strokeWeight: 1,
                     rotation: 0,
                     scale: 0.285,

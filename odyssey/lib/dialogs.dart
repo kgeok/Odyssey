@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_typing_uninitialized_variables
+// ignore_for_file: prefer_typing_uninitialized_variables, prefer_interpolation_to_compose_strings
 
 import 'package:odyssey/main.dart';
 import 'package:flutter/material.dart';
@@ -64,7 +64,19 @@ void journalDialog(BuildContext context, var caption, var location, var latlng,
           ),
           actions: <Widget>[
             TextButton(
-              child: Text("Copy to Clipboard",
+              child: Text("Full Map",
+                  style: GoogleFonts.quicksand(
+                      fontWeight: FontWeight.w600,
+                      color: color.computeLuminance() > 0.5
+                          ? Colors.black
+                          : Colors.white)),
+              onPressed: () {
+                redirectURL("https://www.google.com/maps/search/?api=1&query=" +
+                    latlng.replaceAll(", ", "%2C"));
+              },
+            ),
+            TextButton(
+              child: Text("Copy",
                   style: GoogleFonts.quicksand(
                       fontWeight: FontWeight.w600,
                       color: color.computeLuminance() > 0.5
@@ -248,11 +260,16 @@ void aboutDialog(BuildContext context) {
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Dismiss', style: dialogBody),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            )
+                child: Text('Acknowledgements', style: dialogBody),
+                onPressed: () {
+                  redirectURL(
+                      "https://github.com/kgeok/Odyssey/blob/main/ACKNOWLEDGEMENTS.md");
+                }),
+            TextButton(
+                child: Text('Dismiss', style: dialogBody),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                }),
           ]);
     },
   );
@@ -285,82 +302,6 @@ void helpDialog(BuildContext context) {
                 const Text(''),
                 Text('Tap the Menu button to open the Journal',
                     style: dialogBody),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Dismiss', style: dialogBody),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            )
-          ]);
-    },
-  );
-}
-
-void acknowledgeDialog(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-          title: Text("Acknowledgements", style: dialogHeader),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('Please visit:', style: dialogBody),
-                const Text(''),
-                TextField(
-                    controller: TextEditingController(
-                        text:
-                            "https://github.com/kgeok/Odyssey/blob/main/ACKNOWLEDGEMENTS.md"),
-                    autofocus: true,
-                    decoration: InputDecoration(
-                        fillColor: Colors.grey[300],
-                        filled: true,
-                        border: const OutlineInputBorder(),
-                        hintText: "Caption")),
-                const Text(''),
-                Text('For more Information', style: dialogBody),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Dismiss', style: dialogBody),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            )
-          ]);
-    },
-  );
-}
-
-void privacyDialog(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-          title: Text("Privacy Policy", style: dialogHeader),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('Please visit:', style: dialogBody),
-                const Text(''),
-                TextField(
-                    controller: TextEditingController(
-                        text:
-                            "https://github.com/kgeok/Odyssey/blob/main/PrivacyPolicy.pdf"),
-                    autofocus: true,
-                    decoration: InputDecoration(
-                        fillColor: Colors.grey[300],
-                        filled: true,
-                        border: const OutlineInputBorder(),
-                        hintText: "Caption")),
-                const Text(''),
-                Text('For more Information', style: dialogBody),
               ],
             ),
           ),

@@ -21,6 +21,7 @@ class CustomTheme {
     //1
     return ThemeData(
       //2
+      useMaterial3: false,
       primarySwatch: lightMode,
       primaryColor: lightMode,
       fontFamily: 'Quicksand',
@@ -34,6 +35,7 @@ class CustomTheme {
 
   static ThemeData get darkTheme {
     return ThemeData(
+      useMaterial3: false,
       primarySwatch: darkMode,
       primaryColor: darkMode,
       fontFamily: 'Quicksand',
