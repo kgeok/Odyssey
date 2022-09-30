@@ -1182,7 +1182,22 @@ class MyAppState extends State<MyApp> {
                 appendMarker(latLng);
               },
               onLongPress: (LatLng latlng) async {
-                toggleMapModes();
+                LatLng lastPin() {
+                  if (_markers.isEmpty == true) {
+                    return latlng;
+                  } else {
+                    return _markers.last.position;
+                  }
+                }
+
+                mapController.animateCamera(
+                  CameraUpdate.newCameraPosition(
+                    CameraPosition(
+                      target: lastPin(),
+                      zoom: await mapController.getZoomLevel(),
+                    ),
+                  ),
+                );
               },
               markers: _markers,
             ),

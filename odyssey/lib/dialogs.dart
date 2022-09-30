@@ -262,8 +262,12 @@ void aboutDialog(BuildContext context) {
             TextButton(
                 child: Text('Acknowledgements', style: dialogBody),
                 onPressed: () {
-                  redirectURL(
-                      "https://github.com/kgeok/Odyssey/blob/main/ACKNOWLEDGEMENTS.md");
+                  showLicensePage(
+                      context: context,
+                      useRootNavigator: false,
+                      applicationName: "Odyssey",
+                      applicationVersion: version,
+                      applicationLegalese: "Kevin George");
                 }),
             TextButton(
                 child: Text('Dismiss', style: dialogBody),
