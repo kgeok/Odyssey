@@ -1,4 +1,5 @@
 // ignore_for_file: prefer_typing_uninitialized_variables, prefer_const_constructors, unused_import, avoid_print, prefer_conditional_assignment, unrelated_type_equality_checks, use_build_context_synchronously
+import 'dart:math';
 import 'dart:ui' as ui;
 import 'dart:io';
 import 'dart:async';
@@ -268,13 +269,20 @@ class MyAppState extends State<MyApp> {
   }
 
   void reverseGeocoder(LatLng latLng) async {
-    List<Placemark> placeMarks =
-        await placemarkFromCoordinates(latLng.latitude, latLng.longitude);
+    var pinlocation;
+    try {
+      List<Placemark> placeMarks =
+          await placemarkFromCoordinates(latLng.latitude, latLng.longitude);
 
-    var pinlocation = placeMarks;
+      pinlocation = placeMarks;
 
-    locationBuffer =
-        "${pinlocation[0].name}: ${pinlocation[0].locality} ${pinlocation[0].administrativeArea} ${pinlocation[0].isoCountryCode}";
+      locationBuffer =
+          "${pinlocation[0].name}: ${pinlocation[0].locality} ${pinlocation[0].administrativeArea} ${pinlocation[0].isoCountryCode}";
+    } catch (e) {
+      //In case, for whatever reason theres no Internet or the platform can't get a location
+      pinlocation = "Location N/A";
+      locationBuffer = pinlocation;
+    }
 
     DateTime currentDate = DateTime.now();
     String date = currentDate.toString().substring(0, 10);
