@@ -211,6 +211,19 @@
             if (LoadState["Counter"] != "") {
                 MarkerCounter = LoadState["Counter"];
                 MarkerCounter++;
+
+                LoadState["PinCoor_" + parseInt(localStorage.getItem("Counter"))] = LoadState["PinCoor_" + parseInt(localStorage.getItem("Counter"))].replace("(", "");
+                LoadState["PinCoor_" + i] = LoadState["PinCoor_" + i].replace(")", "");
+                CurrCorrX = LoadState["PinCoor_" + parseInt(localStorage.getItem("Counter"))].split(",").shift();
+                CurrCorrY = LoadState["PinCoor_" + parseInt(localStorage.getItem("Counter"))].split(", ").pop();
+
+
+                map.moveCamera(google.maps.CameraOptions = {
+                    tilt: 0,
+                    heading: 0,
+                    zoom: 4,
+                    center: { lat: parseFloat(CurrCorrX, 10), lng: parseFloat(CurrCorrY, 10) },
+                })
             }
 
             if (isNaN(LoadState["Counter"]) == true) {
