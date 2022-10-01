@@ -211,6 +211,13 @@
             if (LoadState["Counter"] != "") {
                 MarkerCounter = LoadState["Counter"];
                 MarkerCounter++;
+            }
+
+            if (isNaN(LoadState["Counter"]) == true) {
+                MarkerCounter = 0;
+            }
+
+            else {
 
                 LoadState["PinCoor_" + parseInt(localStorage.getItem("Counter"))] = LoadState["PinCoor_" + parseInt(localStorage.getItem("Counter"))].replace("(", "");
                 LoadState["PinCoor_" + parseInt(localStorage.getItem("Counter"))] = LoadState["PinCoor_" + parseInt(localStorage.getItem("Counter"))].replace(")", "");
@@ -224,10 +231,7 @@
                     zoom: 4,
                     center: { lat: parseFloat(CurrCorrX, 10), lng: parseFloat(CurrCorrY, 10) },
                 })
-            }
 
-            if (isNaN(LoadState["Counter"]) == true) {
-                MarkerCounter = 0;
             }
 
             PinColor = "#ff0000";
