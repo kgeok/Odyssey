@@ -23,7 +23,7 @@ class CustomTheme {
       //2
       dialogTheme: DialogTheme(backgroundColor: lightMode),
       useMaterial3: false,
-      splashColor: darkMode,
+      splashColor: lightMode.withOpacity(0.4),
       primarySwatch: lightMode,
       primaryColor: lightMode,
       fontFamily: 'Quicksand',
@@ -44,7 +44,7 @@ class CustomTheme {
     return ThemeData(
       dialogTheme: DialogTheme(backgroundColor: darkMode),
       useMaterial3: false,
-      splashColor: lightMode,
+      splashColor: darkMode.withOpacity(0.4),
       primarySwatch: darkMode,
       primaryColor: darkMode,
       fontFamily: 'Quicksand',

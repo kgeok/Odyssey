@@ -1091,6 +1091,7 @@ class MyAppState extends State<MyApp> {
     mapController = controller;
     populateMapfromState();
     checkConnection();
+    startOnboarding();
     //This is only for Pre-Release Versions, This doesn't apply for release versions.
     /*   simpleDialog(
         context,
@@ -1101,6 +1102,10 @@ class MyAppState extends State<MyApp> {
   }
 
   Future startOnboarding() async {
+    await Future.delayed(Duration(
+        milliseconds:
+            1500)); //It apparently takes 1 second or so for DB to populate State
+
     if (onboarding == 1) {
       complexDialog(
           context,
@@ -1108,7 +1113,7 @@ class MyAppState extends State<MyApp> {
           "Give a new emotional meaning to your places.",
           "Keep track of the destinations you traveled with customizable pins on a beautiful map. With the Journal, you can get a glance of your overall pins and keep notes of where you went and where you want to go.",
           "Tap anywhere on the map to set a Pin.",
-          "Open the Pin Menu to Customize those Pins.",
+          "Open the Pin Menu to Customize the next set of Pins.",
           "info");
 
       print("Onboarding...");

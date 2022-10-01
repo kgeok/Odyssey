@@ -61,6 +61,7 @@ class OdysseyDatabase {
         ]);
 
     print("DB Made!");
+    onboarding = 1;
   }
 
   Future addPinDB(

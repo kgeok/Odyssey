@@ -301,7 +301,7 @@ void helpDialog(BuildContext context) {
                 Text('Tap Color before setting a Pin to set the Pin\'s Color',
                     style: dialogBody),
                 const Text(''),
-                Text('Long Press the Map to quickly toggle Map Details',
+                Text('Long Press the Map to see your last Pin',
                     style: dialogBody),
                 const Text(''),
                 Text('Tap the Menu button to open the Journal',
