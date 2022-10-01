@@ -61,6 +61,7 @@ class OdysseyDatabase {
         ]);
 
     print("DB Made!");
+    onboarding = 1;
   }
 
   Future addPinDB(
@@ -141,10 +142,6 @@ class OdysseyDatabase {
 
       var bearingBuffer = await db.query("Prefs", columns: ["bearing"]);
       bearing = double.parse(bearingBuffer[0]['bearing'].toString());
-
-/*       var onboardingBuffer = await db.query("Prefs", columns: ["onboarding"]);
-      onboarding = int.parse(onboardingBuffer[0]['onboarding'].toString());
-      print("Onboarding: $onboarding"); */ //Onboarding will come in a later update when needed...
 
       //Load User Data
       var counterBuffer = await db.query("Pins", columns: ["MAX(id)"]);

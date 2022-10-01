@@ -21,27 +21,43 @@ class CustomTheme {
     //1
     return ThemeData(
       //2
+      dialogTheme: DialogTheme(backgroundColor: lightMode),
+      useMaterial3: false,
+      splashColor: lightMode.withOpacity(0.4),
       primarySwatch: lightMode,
       primaryColor: lightMode,
       fontFamily: 'Quicksand',
       dialogBackgroundColor: lightMode,
       canvasColor: darkMode,
+      appBarTheme: AppBarTheme(
+        backgroundColor: lightMode,
+      ),
       textTheme: const TextTheme(
           bodyText1: TextStyle(color: Colors.white),
-          bodyText2: TextStyle(color: Colors.white)),
+          bodyText2: TextStyle(color: Colors.white),
+          headline1: TextStyle(color: Colors.white),
+          headline2: TextStyle(color: Colors.white)),
     );
   }
 
   static ThemeData get darkTheme {
     return ThemeData(
+      dialogTheme: DialogTheme(backgroundColor: darkMode),
+      useMaterial3: false,
+      splashColor: darkMode.withOpacity(0.4),
       primarySwatch: darkMode,
       primaryColor: darkMode,
       fontFamily: 'Quicksand',
       dialogBackgroundColor: darkMode,
       canvasColor: lightMode,
+      appBarTheme: AppBarTheme(
+        backgroundColor: darkMode,
+      ),
       textTheme: const TextTheme(
           bodyText1: TextStyle(color: Colors.white),
-          bodyText2: TextStyle(color: Colors.white)),
+          bodyText2: TextStyle(color: Colors.white),
+          headline1: TextStyle(color: Colors.white),
+          headline2: TextStyle(color: Colors.white)),
     );
   }
 }

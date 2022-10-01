@@ -1,4 +1,5 @@
 // ignore_for_file: prefer_typing_uninitialized_variables, prefer_const_constructors, unused_import, avoid_print, prefer_conditional_assignment, unrelated_type_equality_checks, use_build_context_synchronously
+import 'dart:math';
 import 'dart:ui' as ui;
 import 'dart:io';
 import 'dart:async';
@@ -13,6 +14,7 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:location/location.dart' as prefix;
 import 'package:geocoding/geocoding.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() async {
   runApp(const MaterialApp(home: MyApp()));
@@ -32,7 +34,7 @@ class MyApp extends StatefulWidget {
 
 GlobalKey<MyAppState> key = GlobalKey();
 //Variables that we will be using, will try to minimize in the future
-const version = "1.1";
+const version = "1.2";
 const release = "Release";
 Color pincolor = Color(int.parse(defaultPinColor));
 var colorBuffer = "FF0000"; //Default Pin Color when Map settings are un-init'd
@@ -58,6 +60,12 @@ int onboarding =
     0; //would be bool but we need to parse db which only has tinyint
 var pins = [];
 List<int> journal = [];
+
+Future<void> redirectURL(String url) async {
+  if (!await launchUrl(Uri.parse(url))) {
+    throw "Error launching link";
+  }
+}
 
 void colorToHex(Color color) {
   //Color for Flutter is parsed differently from HTML and CSS HEX Color codes which apparently SVG uses
@@ -261,13 +269,20 @@ class MyAppState extends State<MyApp> {
   }
 
   void reverseGeocoder(LatLng latLng) async {
-    List<Placemark> placeMarks =
-        await placemarkFromCoordinates(latLng.latitude, latLng.longitude);
+    var pinlocation;
+    try {
+      List<Placemark> placeMarks =
+          await placemarkFromCoordinates(latLng.latitude, latLng.longitude);
 
-    var pinlocation = placeMarks;
+      pinlocation = placeMarks;
 
-    locationBuffer =
-        "${pinlocation[0].name}: ${pinlocation[0].locality} ${pinlocation[0].administrativeArea} ${pinlocation[0].isoCountryCode}";
+      locationBuffer =
+          "${pinlocation[0].name}: ${pinlocation[0].locality} ${pinlocation[0].administrativeArea} ${pinlocation[0].isoCountryCode}";
+    } catch (e) {
+      //In case, for whatever reason theres no Internet or the platform can't get a location
+      pinlocation = "Location N/A";
+      locationBuffer = pinlocation;
+    }
 
     DateTime currentDate = DateTime.now();
     String date = currentDate.toString().substring(0, 10);
@@ -323,6 +338,7 @@ class MyAppState extends State<MyApp> {
 
   Widget journalEntry(final caption, final color, final subtitle, var latlng,
       var date, var note) {
+    var target = latlng;
     latlng = latlng.toString();
     latlng = latlng.replaceAll("LatLng(", "");
     latlng = latlng.replaceAll(")", "");
@@ -334,8 +350,16 @@ class MyAppState extends State<MyApp> {
         InkWell(
             splashColor: color,
             highlightColor: color,
-            onTap: () => journalDialog(
-                context, caption, subtitle, latlng, color, date, note),
+            onTap: () {
+              journalDialog(
+                  context, caption, subtitle, latlng, color, date, note);
+              mapController
+                  .animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
+                target: target,
+                bearing: bearing,
+                zoom: mapZoom,
+              )));
+            },
             child: Container(
                 padding: const EdgeInsets.fromLTRB(2, 0, 0, 2),
                 decoration: ShapeDecoration(
@@ -917,14 +941,8 @@ class MyAppState extends State<MyApp> {
                   SimpleDialogOption(
                     onPressed: () {
                       Navigator.of(context).pop();
-                      acknowledgeDialog(context);
-                    },
-                    child: Text('Acknowledgements', style: dialogBody),
-                  ),
-                  SimpleDialogOption(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      privacyDialog(context);
+                      redirectURL(
+                          "https://github.com/kgeok/Odyssey/blob/main/PrivacyPolicy.pdf");
                     },
                     child: Text('Privacy Policy', style: dialogBody),
                   ),
@@ -1081,6 +1099,7 @@ class MyAppState extends State<MyApp> {
     mapController = controller;
     populateMapfromState();
     checkConnection();
+    startOnboarding();
     //This is only for Pre-Release Versions, This doesn't apply for release versions.
     /*   simpleDialog(
         context,
@@ -1091,6 +1110,10 @@ class MyAppState extends State<MyApp> {
   }
 
   Future startOnboarding() async {
+    await Future.delayed(Duration(
+        milliseconds:
+            1500)); //It apparently takes 1 second or so for DB to populate State
+
     if (onboarding == 1) {
       complexDialog(
           context,
@@ -1098,7 +1121,7 @@ class MyAppState extends State<MyApp> {
           "Give a new emotional meaning to your places.",
           "Keep track of the destinations you traveled with customizable pins on a beautiful map. With the Journal, you can get a glance of your overall pins and keep notes of where you went and where you want to go.",
           "Tap anywhere on the map to set a Pin.",
-          "Open the Pin Menu to Customize those Pins.",
+          "Open the Pin Menu to Customize the next set of Pins.",
           "info");
 
       print("Onboarding...");
@@ -1172,7 +1195,22 @@ class MyAppState extends State<MyApp> {
                 appendMarker(latLng);
               },
               onLongPress: (LatLng latlng) async {
-                toggleMapModes();
+                LatLng lastPin() {
+                  if (_markers.isEmpty == true) {
+                    return latlng;
+                  } else {
+                    return _markers.last.position;
+                  }
+                }
+
+                mapController.animateCamera(
+                  CameraUpdate.newCameraPosition(
+                    CameraPosition(
+                      target: lastPin(),
+                      zoom: await mapController.getZoomLevel(),
+                    ),
+                  ),
+                );
               },
               markers: _markers,
             ),
