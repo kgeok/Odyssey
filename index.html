@@ -213,7 +213,7 @@
                 MarkerCounter++;
 
                 LoadState["PinCoor_" + parseInt(localStorage.getItem("Counter"))] = LoadState["PinCoor_" + parseInt(localStorage.getItem("Counter"))].replace("(", "");
-                LoadState["PinCoor_" + i] = LoadState["PinCoor_" + i].replace(")", "");
+                LoadState["PinCoor_" + parseInt(localStorage.getItem("Counter"))] = LoadState["PinCoor_" + parseInt(localStorage.getItem("Counter"))].replace(")", "");
                 CurrCorrX = LoadState["PinCoor_" + parseInt(localStorage.getItem("Counter"))].split(",").shift();
                 CurrCorrY = LoadState["PinCoor_" + parseInt(localStorage.getItem("Counter"))].split(", ").pop();
 
