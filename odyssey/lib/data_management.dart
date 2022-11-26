@@ -104,24 +104,19 @@ class OdysseyDatabase {
     db.close();
   }
 
-  Future updatePrefsDB(mapZoom, bearing, latLng, mt) async {
+  Future updatePrefsDB(mapZoom, bearing, mt) async {
     final db = await instance.database;
-
-    //split latlng and make it a two parter float
-
-    var latLngBuffer = latLng.toString();
-    latLngBuffer = latLngBuffer.replaceAll("LatLng(", "");
-    latLngBuffer = latLngBuffer.replaceAll(")", "");
-    var latLngBuffer2 = latLngBuffer.split(", ");
-    var lat = double.parse(latLngBuffer2[0].trim());
-    var lng = double.parse(latLngBuffer2[1].trim());
+    print(
+        "Updating values (Zoom, Bearing, Map Details): $mapZoom, $bearing, $mt");
+    //We're going to use this function to update all of the rows in Prefs
+    //Depreciating Center latLng here because we're not using it...
 
     /* Hijacking the pincolors pref because it's redundant when populateMapfromState assigns the last pin's color as current color
         Since I never thought to assign an ID to prefs because I didn't orgininally think that I needed it, will use the now redundant variable as a mock ID */
 
     db.rawUpdate(
-        '''UPDATE Prefs SET mapzoom = ?, bearing = ?, mapcenterlat = ?, mapcenterlng = ?, maplayer = ? WHERE pincolor = ?''',
-        [mapZoom, bearing, lat, lng, mt.toString(), '0xffff0000']);
+        '''UPDATE Prefs SET mapzoom = ?, bearing = ?, maplayer = ? WHERE pincolor = ?''',
+        [mapZoom, bearing, mt.toString(), '0xffff0000']);
   }
 
   Future initStatefromDB() async {

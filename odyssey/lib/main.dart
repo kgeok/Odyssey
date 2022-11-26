@@ -34,8 +34,8 @@ class MyApp extends StatefulWidget {
 
 GlobalKey<MyAppState> key = GlobalKey();
 //Variables that we will be using, will try to minimize in the future
-const version = "1.2";
-const release = "Release";
+const version = "1.3";
+const release = "Pre-Release";
 Color pincolor = Color(int.parse(defaultPinColor));
 var colorBuffer = "FF0000"; //Default Pin Color when Map settings are un-init'd
 Color pickerColor = Color(0xffff0000);
@@ -306,7 +306,7 @@ class MyAppState extends State<MyApp> {
     });
 
     mapZoom = await mapController.getZoomLevel();
-    OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, latLng, mapType);
+    OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
 
     caption = "";
     captionBuffer = "";
@@ -360,48 +360,51 @@ class MyAppState extends State<MyApp> {
                 zoom: mapZoom,
               )));
             },
-            child: Container(
-                padding: const EdgeInsets.fromLTRB(2, 0, 0, 2),
-                decoration: ShapeDecoration(
-                    shadows: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.01),
-                        spreadRadius: 5,
-                        blurRadius: 7,
-                        offset:
-                            const Offset(0, 3), // changes position of shadow
-                      ),
-                    ],
-                    color: color,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10))),
-                height: 85.0,
-                width: 285.0,
-                child: Center(
-                    child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                      Text(caption,
-                          overflow: TextOverflow.fade,
-                          softWrap: false,
-                          maxLines: 1,
-                          style: GoogleFonts.quicksand(
-                              fontWeight: FontWeight.w700,
-                              color: color.computeLuminance() > 0.5
-                                  ? Colors.black
-                                  : Colors.white,
-                              fontSize: 20)),
-                      Text(subtitle,
-                          overflow: TextOverflow.fade,
-                          softWrap: false,
-                          maxLines: 1,
-                          style: GoogleFonts.quicksand(
-                              fontWeight: FontWeight.w500,
-                              color: color.computeLuminance() > 0.5
-                                  ? Colors.black
-                                  : Colors.white,
-                              fontSize: 18))
-                    ])))),
+            child: AnimatedOpacity(
+                duration: Duration(milliseconds: 500),
+                opacity: 0.9,
+                child: Container(
+                    padding: const EdgeInsets.fromLTRB(2, 0, 0, 2),
+                    decoration: ShapeDecoration(
+                        shadows: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            spreadRadius: 5,
+                            blurRadius: 7,
+                            offset: const Offset(
+                                0, 3), // changes position of shadow
+                          ),
+                        ],
+                        color: color,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10))),
+                    height: 85.0,
+                    width: 292.5,
+                    child: Center(
+                        child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                          Text(caption,
+                              overflow: TextOverflow.fade,
+                              softWrap: false,
+                              maxLines: 1,
+                              style: GoogleFonts.quicksand(
+                                  fontWeight: FontWeight.w700,
+                                  color: color.computeLuminance() > 0.5
+                                      ? Colors.black
+                                      : Colors.white,
+                                  fontSize: 20)),
+                          Text(subtitle,
+                              overflow: TextOverflow.fade,
+                              softWrap: false,
+                              maxLines: 1,
+                              style: GoogleFonts.quicksand(
+                                  fontWeight: FontWeight.w500,
+                                  color: color.computeLuminance() > 0.5
+                                      ? Colors.black
+                                      : Colors.white,
+                                  fontSize: 18))
+                        ]))))),
         const SizedBox(height: 2.5),
       ],
     ));
@@ -418,6 +421,8 @@ class MyAppState extends State<MyApp> {
           pins[index].pinnote);
     });
   }
+
+  void resyncState() {}
 
   Future<void> appendFromLocation() async {
     bool serviceEnabled;
@@ -505,8 +510,8 @@ class MyAppState extends State<MyApp> {
     captionBuffer = "";
     pinCounter = 0;
     pins.clear();
-    OdysseyDatabase.instance.updatePrefsDB(defaultMapZoom, defaultBearing,
-        LatLng(defaultCenterLat, defaultCenterLng), defaultMapType);
+    OdysseyDatabase.instance
+        .updatePrefsDB(defaultMapZoom, defaultBearing, defaultMapType);
     OdysseyDatabase.instance.clearPinsDB();
 
     setState(() {
@@ -533,26 +538,31 @@ class MyAppState extends State<MyApp> {
       case MapType.normal:
         setState(() {
           mapType = MapType.hybrid;
+          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
         });
         break;
       case MapType.hybrid:
         setState(() {
           mapType = MapType.normal;
+          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
         });
         break;
       case MapType.terrain:
         setState(() {
           mapType = MapType.hybrid;
+          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
         });
         break;
       case MapType.satellite:
         setState(() {
           mapType = MapType.normal;
+          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
         });
         break;
       default:
         setState(() {
           mapType = MapType.normal;
+          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
         });
     }
   }
@@ -562,26 +572,31 @@ class MyAppState extends State<MyApp> {
       case MapType.normal:
         setState(() {
           mapType = MapType.terrain;
+          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
         });
         break;
       case MapType.satellite:
         setState(() {
           mapType = MapType.hybrid;
+          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
         });
         break;
       case MapType.terrain:
         setState(() {
           mapType = MapType.normal;
+          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
         });
         break;
       case MapType.hybrid:
         setState(() {
           mapType = MapType.satellite;
+          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
         });
         break;
       default:
         setState(() {
           mapType = MapType.normal;
+          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
         });
     }
   }
@@ -926,10 +941,29 @@ class MyAppState extends State<MyApp> {
                   ),
                   SimpleDialogOption(
                     onPressed: () {
+                      var clipBoard = "";
+                      for (var i = 0; i <= (pins.length - 1); i++) {
+                        clipBoard = "$clipBoard${pins[i].pincaption}\n";
+                        clipBoard = "$clipBoard${pins[i].pinlocation}\n";
+                        clipBoard = "$clipBoard${pins[i].pinnote}\n";
+                        clipBoard = "$clipBoard${pins[i].pindate}\n";
+                        clipBoard = "$clipBoard${pins[i].pincoor}\n";
+                        clipBoard =
+                            "$clipBoard${((pins[i].pinshape).toString()).toUpperCase()}\n";
+                        clipBoard = "$clipBoard\n";
+                        clipBoard = "$clipBoard\n";
+                      }
+                      print(clipBoard);
+                      Clipboard.setData(ClipboardData(text: clipBoard));
+                    },
+                    child: Text('Copy Journal Contents', style: dialogBody),
+                  ),
+                  SimpleDialogOption(
+                    onPressed: () {
                       Navigator.of(context).pop();
                       helpDialog(context);
                     },
-                    child: Text('Help', style: dialogBody),
+                    child: Text('Quick Start', style: dialogBody),
                   ),
                   SimpleDialogOption(
                     onPressed: () {
@@ -1011,6 +1045,26 @@ class MyAppState extends State<MyApp> {
           "Please check your device settings",
           "Some functionality may not be available at this time.",
           "error");
+    }
+  }
+
+  Future startOnboarding() async {
+    await Future.delayed(Duration(
+        milliseconds:
+            1500)); //It apparently takes 1 second or so for DB to populate State
+
+    if (onboarding == 1) {
+      onboardDialog(
+          context,
+          "Welcome to Odyssey",
+          "Give a new emotional meaning to your places.",
+          "Keep track of the destinations you traveled with customizable pins on a beautiful map. With the Journal, you can get a glance of your overall pins and keep notes of where you went and where you want to go.",
+          "Tap anywhere on the map to set a Pin.",
+          "Open the Pin Menu to Customize the next set of Pins.");
+
+      print("Onboarding...");
+    } else {
+      print("No Onboarding...");
     }
   }
 
@@ -1101,32 +1155,13 @@ class MyAppState extends State<MyApp> {
     checkConnection();
     startOnboarding();
     //This is only for Pre-Release Versions, This doesn't apply for release versions.
-    /*   simpleDialog(
-        context,
-        "Pre-Release Version",
-        "Confidential and Proprietary, Please Don't Share Information or Screenshots",
-        "Please Report any Bugs and Crashes, Take note of what you were doing when they occurred.",
-        "error"); */
-  }
-
-  Future startOnboarding() async {
-    await Future.delayed(Duration(
-        milliseconds:
-            1500)); //It apparently takes 1 second or so for DB to populate State
-
-    if (onboarding == 1) {
-      complexDialog(
+    if (release == "Pre-Release") {
+      simpleDialog(
           context,
-          "Welcome to Odyssey",
-          "Give a new emotional meaning to your places.",
-          "Keep track of the destinations you traveled with customizable pins on a beautiful map. With the Journal, you can get a glance of your overall pins and keep notes of where you went and where you want to go.",
-          "Tap anywhere on the map to set a Pin.",
-          "Open the Pin Menu to Customize the next set of Pins.",
-          "info");
-
-      print("Onboarding...");
-    } else {
-      print("No Onboarding...");
+          "Pre-Release Version",
+          "Confidential and Proprietary, Please Don't Share Information or Screenshots",
+          "Please Report any Bugs and Crashes, Take note of what you were doing when they occurred.",
+          "error");
     }
   }
 
@@ -1335,6 +1370,8 @@ class MyAppState extends State<MyApp> {
                                     );
                                     mapZoom =
                                         await mapController.getZoomLevel();
+                                    OdysseyDatabase.instance.updatePrefsDB(
+                                        mapZoom, bearing, mapType);
                                   }),
                             ),
                             Container(
@@ -1376,6 +1413,8 @@ class MyAppState extends State<MyApp> {
                                     ),
                                   );
                                   mapZoom = await mapController.getZoomLevel();
+                                  OdysseyDatabase.instance
+                                      .updatePrefsDB(mapZoom, bearing, mapType);
                                 },
                               ),
                             ),

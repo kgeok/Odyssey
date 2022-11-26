@@ -83,8 +83,66 @@ void journalDialog(BuildContext context, var caption, var location, var latlng,
                           ? Colors.black
                           : Colors.white)),
               onPressed: () {
-                Clipboard.setData(ClipboardData(
-                    text: caption + " " + location + ", " + date + " " + note));
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                        backgroundColor: color,
+                        title: Text("Copy",
+                            style: GoogleFonts.quicksand(
+                                fontWeight: FontWeight.w700,
+                                color: color.computeLuminance() > 0.5
+                                    ? Colors.black
+                                    : Colors.white)),
+                        content: SingleChildScrollView(
+                          child: ListBody(
+                            children: <Widget>[
+                              SimpleDialogOption(
+                                  child: Text("Copy Entry",
+                                      style: GoogleFonts.quicksand(
+                                          fontWeight: FontWeight.w600,
+                                          color: color.computeLuminance() > 0.5
+                                              ? Colors.black
+                                              : Colors.white)),
+                                  onPressed: () {
+                                    Clipboard.setData(ClipboardData(
+                                        text: caption +
+                                            " " +
+                                            location +
+                                            ", " +
+                                            date +
+                                            " " +
+                                            note));
+                                  }),
+                              SimpleDialogOption(
+                                  child: Text("Copy Address",
+                                      style: GoogleFonts.quicksand(
+                                          fontWeight: FontWeight.w600,
+                                          color: color.computeLuminance() > 0.5
+                                              ? Colors.black
+                                              : Colors.white)),
+                                  onPressed: () {
+                                    Clipboard.setData(
+                                        ClipboardData(text: location));
+                                  }),
+                            ],
+                          ),
+                        ),
+                        actions: <Widget>[
+                          TextButton(
+                            child: Text("Dismiss",
+                                style: GoogleFonts.quicksand(
+                                    fontWeight: FontWeight.w600,
+                                    color: color.computeLuminance() > 0.5
+                                        ? Colors.black
+                                        : Colors.white)),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          )
+                        ]);
+                  },
+                );
               },
             ),
             TextButton(
@@ -238,6 +296,49 @@ void complexDialog(BuildContext context, var header, var body1, var body2,
   );
 }
 
+void onboardDialog(BuildContext context, var header, var body1, var body2,
+    var body3, var body4) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+          backgroundColor:
+              MediaQuery.of(context).platformBrightness == Brightness.light
+                  ? lightMode.withOpacity(0.8)
+                  : darkMode.withOpacity(0.8),
+          title: Text(header, style: dialogHeader),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(body1, style: dialogBody),
+                Text("", style: dialogBody),
+                Text(body2, style: dialogBody),
+                Text("", style: dialogBody),
+                Text(body3, style: dialogBody),
+                Text("", style: dialogBody),
+                Text(body4, style: dialogBody),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text("Quick Start", style: dialogBody),
+              onPressed: () {
+                Navigator.of(context).pop();
+                helpDialog(context);
+              },
+            ),
+            TextButton(
+              child: Text("OK", style: dialogBody),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            )
+          ]);
+    },
+  );
+}
+
 void aboutDialog(BuildContext context) {
   showDialog(
     context: context,
@@ -284,6 +385,10 @@ void helpDialog(BuildContext context) {
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
+          backgroundColor:
+              MediaQuery.of(context).platformBrightness == Brightness.light
+                  ? lightMode.withOpacity(0.8)
+                  : darkMode.withOpacity(0.8),
           title: Text("Quick Start", style: dialogHeader),
           content: SingleChildScrollView(
             child: ListBody(
