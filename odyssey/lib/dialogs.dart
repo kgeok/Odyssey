@@ -1,9 +1,10 @@
-// ignore_for_file: prefer_typing_uninitialized_variables, prefer_interpolation_to_compose_strings
+// ignore_for_file: prefer_interpolation_to_compose_strings, prefer_typing_uninitialized_variables
 
 import 'package:odyssey/main.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:odyssey/theme/custom_theme.dart';
+import 'package:odyssey/data_management.dart';
 import 'package:flutter/services.dart';
 
 var buttonaction1 = "";
@@ -17,7 +18,7 @@ var dialogBody =
     GoogleFonts.quicksand(fontWeight: FontWeight.w600, color: Colors.white);
 
 void journalDialog(BuildContext context, var caption, var location, var latlng,
-    var color, var date, var note) {
+    var color, var date, var note, var id) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -76,7 +77,7 @@ void journalDialog(BuildContext context, var caption, var location, var latlng,
               },
             ),
             TextButton(
-              child: Text("Copy",
+              child: Text("Options",
                   style: GoogleFonts.quicksand(
                       fontWeight: FontWeight.w600,
                       color: color.computeLuminance() > 0.5
@@ -88,7 +89,7 @@ void journalDialog(BuildContext context, var caption, var location, var latlng,
                   builder: (BuildContext context) {
                     return AlertDialog(
                         backgroundColor: color,
-                        title: Text("Copy",
+                        title: Text("Options",
                             style: GoogleFonts.quicksand(
                                 fontWeight: FontWeight.w700,
                                 color: color.computeLuminance() > 0.5
@@ -125,6 +126,128 @@ void journalDialog(BuildContext context, var caption, var location, var latlng,
                                     Clipboard.setData(
                                         ClipboardData(text: location));
                                   }),
+                              SimpleDialogOption(
+                                  child: Text("Edit Caption",
+                                      style: GoogleFonts.quicksand(
+                                          fontWeight: FontWeight.w600,
+                                          color: color.computeLuminance() > 0.5
+                                              ? Colors.black
+                                              : Colors.white)),
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                            backgroundColor: color,
+                                            title: Text('Enter New Caption',
+                                                style: dialogHeader),
+                                            content: SingleChildScrollView(
+                                              child: ListBody(
+                                                children: <Widget>[
+                                                  TextField(
+                                                      autofocus: true,
+                                                      decoration: InputDecoration(
+                                                          fillColor:
+                                                              Colors.grey[300],
+                                                          filled: true,
+                                                          border:
+                                                              const OutlineInputBorder(),
+                                                          hintText: caption),
+                                                      onChanged: (value) {
+                                                        captionBuffer = value;
+                                                      }),
+                                                ],
+                                              ),
+                                            ),
+                                            actions: <Widget>[
+                                              TextButton(
+                                                child: Text('Cancel',
+                                                    style: dialogBody),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                              ),
+                                              TextButton(
+                                                child: Text('OK',
+                                                    style: dialogBody),
+                                                onPressed: () {
+                                                  if (captionBuffer == "") {
+                                                    captionBuffer = "";
+                                                  }
+                                                  captionBuffer ??= "";
+                                                  caption = captionBuffer;
+                                                  captionBuffer = "";
+                                                  Navigator.pop(context);
+                                                  OdysseyDatabase.instance
+                                                      .updatePinsDB(
+                                                          id, caption, note);
+                                                },
+                                              )
+                                            ]);
+                                      },
+                                    );
+                                  }),
+                              SimpleDialogOption(
+                                  child: Text("Edit Note",
+                                      style: GoogleFonts.quicksand(
+                                          fontWeight: FontWeight.w600,
+                                          color: color.computeLuminance() > 0.5
+                                              ? Colors.black
+                                              : Colors.white)),
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                            backgroundColor: color,
+                                            title: Text('Enter New Note',
+                                                style: dialogHeader),
+                                            content: SingleChildScrollView(
+                                              child: ListBody(
+                                                children: <Widget>[
+                                                  TextField(
+                                                      autofocus: true,
+                                                      decoration: InputDecoration(
+                                                          fillColor:
+                                                              Colors.grey[300],
+                                                          filled: true,
+                                                          border:
+                                                              const OutlineInputBorder(),
+                                                          hintText: note),
+                                                      onChanged: (value) {
+                                                        noteBuffer = value;
+                                                      }),
+                                                ],
+                                              ),
+                                            ),
+                                            actions: <Widget>[
+                                              TextButton(
+                                                child: Text('Cancel',
+                                                    style: dialogBody),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                              ),
+                                              TextButton(
+                                                child: Text('OK',
+                                                    style: dialogBody),
+                                                onPressed: () {
+                                                  if (noteBuffer == "") {
+                                                    noteBuffer = "";
+                                                  }
+                                                  noteBuffer ??= "";
+                                                  note = noteBuffer;
+                                                  noteBuffer = "";
+                                                  Navigator.pop(context);
+                                                  OdysseyDatabase.instance
+                                                      .updatePinsDB(
+                                                          id, caption, note);
+                                                },
+                                              )
+                                            ]);
+                                      },
+                                    );
+                                  })
                             ],
                           ),
                         ),

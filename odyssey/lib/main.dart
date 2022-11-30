@@ -1,5 +1,4 @@
-// ignore_for_file: prefer_typing_uninitialized_variables, prefer_const_constructors, unused_import, avoid_print, prefer_conditional_assignment, unrelated_type_equality_checks, use_build_context_synchronously
-import 'dart:math';
+// ignore_for_file: avoid_print, use_build_context_synchronously, prefer_typing_uninitialized_variables, prefer_const_constructors
 import 'dart:ui' as ui;
 import 'dart:io';
 import 'dart:async';
@@ -18,7 +17,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 void main() async {
   runApp(const MaterialApp(home: MyApp()));
-
   OdysseyDatabase.instance.initStatefromDB();
 }
 
@@ -27,8 +25,8 @@ class MyApp extends StatefulWidget {
   @override
   MyAppState createState() => MyAppState();
 
-  //debug
-  static final MyApp instance = MyApp._init();
+  //Debug
+  static const MyApp instance = MyApp._init();
   const MyApp._init();
 }
 
@@ -199,7 +197,7 @@ class MyAppState extends State<MyApp> {
   Set<Marker> _markers = {};
 
   void populateMapfromState() async {
-    await Future.delayed(Duration(
+    await Future.delayed(const Duration(
         milliseconds:
             1500)); //It apparently takes 1 second or so for DB to populate State
 
@@ -337,7 +335,7 @@ class MyAppState extends State<MyApp> {
   }
 
   Widget journalEntry(final caption, final color, final subtitle, var latlng,
-      var date, var note) {
+      var date, var note, var id) {
     var target = latlng;
     latlng = latlng.toString();
     latlng = latlng.replaceAll("LatLng(", "");
@@ -352,7 +350,7 @@ class MyAppState extends State<MyApp> {
             highlightColor: color,
             onTap: () {
               journalDialog(
-                  context, caption, subtitle, latlng, color, date, note);
+                  context, caption, subtitle, latlng, color, date, note, id);
               mapController
                   .animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
                 target: target,
@@ -361,7 +359,7 @@ class MyAppState extends State<MyApp> {
               )));
             },
             child: AnimatedOpacity(
-                duration: Duration(milliseconds: 500),
+                duration: const Duration(milliseconds: 500),
                 opacity: 0.9,
                 child: Container(
                     padding: const EdgeInsets.fromLTRB(2, 0, 0, 2),
@@ -418,11 +416,15 @@ class MyAppState extends State<MyApp> {
           pins[index].pinlocation,
           pins[index].pincoor,
           pins[index].pindate,
-          pins[index].pinnote);
+          pins[index].pinnote,
+          (index + 1));
     });
   }
 
-  void resyncState() {}
+  void reenumerateState() {
+    clearMarkers();
+    populateMapfromState();
+  }
 
   Future<void> appendFromLocation() async {
     bool serviceEnabled;
@@ -688,9 +690,7 @@ class MyAppState extends State<MyApp> {
                     if (captionBuffer == "") {
                       captionBuffer = "";
                     }
-                    if (captionBuffer == null) {
-                      captionBuffer = "";
-                    }
+                    captionBuffer ??= "";
                     caption = captionBuffer;
                     captionBuffer = "";
                     Navigator.pop(context);
@@ -711,9 +711,7 @@ class MyAppState extends State<MyApp> {
                     if (captionBuffer == "") {
                       captionBuffer = "";
                     }
-                    if (captionBuffer == null) {
-                      captionBuffer = "";
-                    }
+                    captionBuffer ??= "";
                     caption = captionBuffer;
                     captionBuffer = "";
                     Navigator.pop(context);
@@ -819,9 +817,7 @@ class MyAppState extends State<MyApp> {
                     if (noteBuffer == "") {
                       noteBuffer = "";
                     }
-                    if (noteBuffer == null) {
-                      noteBuffer = "";
-                    }
+                    noteBuffer ??= "";
                     note = noteBuffer;
                     noteBuffer = "";
                     Navigator.pop(context);
@@ -893,8 +889,8 @@ class MyAppState extends State<MyApp> {
                   setState(() {
                     if (addressBuffer == "") {
                       addressBuffer = " ";
-                    } else if (addressBuffer == null) {
-                      addressBuffer = " ";
+                    } else {
+                      addressBuffer ??= " ";
                     }
                     geocoder(addressBuffer);
                     addressBuffer = "";
@@ -1049,7 +1045,7 @@ class MyAppState extends State<MyApp> {
   }
 
   Future startOnboarding() async {
-    await Future.delayed(Duration(
+    await Future.delayed(const Duration(
         milliseconds:
             1500)); //It apparently takes 1 second or so for DB to populate State
 

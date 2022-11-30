@@ -1,4 +1,5 @@
-// ignore_for_file: avoid_print, unused_local_variable, prefer_typing_uninitialized_variables, depend_on_referenced_packages
+// ignore_for_file: avoid_print, unnecessary_null_comparison
+
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:path/path.dart';
 import 'package:odyssey/main.dart';
@@ -17,7 +18,7 @@ double defaultBearing = 0;
 var defaultPinColor = '0xffff0000';
 String defaultShape = 'circle';
 double defaultMapZoom = 4.0;
-var pathBuffer;
+var pathBuffer = "";
 
 class OdysseyDatabase {
   static final OdysseyDatabase instance = OdysseyDatabase._init();
@@ -117,6 +118,13 @@ class OdysseyDatabase {
     db.rawUpdate(
         '''UPDATE Prefs SET mapzoom = ?, bearing = ?, maplayer = ? WHERE pincolor = ?''',
         [mapZoom, bearing, mt.toString(), '0xffff0000']);
+  }
+
+  Future updatePinsDB(id, caption, note) async {
+    //This function will include other pin elements later
+    final db = await instance.database;
+    db.rawUpdate('''UPDATE Pins SET caption = ?, note = ? WHERE id = ?''',
+        [caption, note, id]);
   }
 
   Future initStatefromDB() async {
