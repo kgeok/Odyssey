@@ -120,11 +120,17 @@ class OdysseyDatabase {
         [mapZoom, bearing, mt.toString(), '0xffff0000']);
   }
 
-  Future updatePinsDB(id, caption, note) async {
+  Future updatePinsDB(id, caption, note, color) async {
     //This function will include other pin elements later
     final db = await instance.database;
-    db.rawUpdate('''UPDATE Pins SET caption = ?, note = ? WHERE id = ?''',
-        [caption, note, id]);
+
+    var colorBuffer = color.toString();
+    colorBuffer = colorBuffer.replaceAll("Color(", "");
+    colorBuffer = colorBuffer.replaceAll(")", "");
+
+    db.rawUpdate(
+        '''UPDATE Pins SET caption = ?, note = ?, color = ? WHERE id = ?''',
+        [caption, note, colorBuffer, id]);
   }
 
   Future initStatefromDB() async {
@@ -224,7 +230,7 @@ class OdysseyDatabase {
   void _upgradeDB(Database db, int oldVersion, int newVersion) async {
     //This is for upgrading from 1.0 to 1.1 and future updates
     if (oldVersion < newVersion) {
-      print("Updating DB...");
+      print("Updating DB to Version 2...");
       db.execute(
           "ALTER TABLE Pins ADD COLUMN shape TEXT DEFAULT 'circle' NOT NULL;");
       db.execute(
