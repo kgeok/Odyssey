@@ -1,0 +1,74 @@
+DO NOT MODIFY
+
+Make a copy and then move under Documents directory to use
+
+These are sample DBs of data to use for validation testing
+
+DB Structure:
+
+Version 1:
+
+- Pins
+id - int
+caption - text
+color - text
+lat - float
+lng - float
+date - text
+location - text
+
+- Prefs
+mapcenterlat - float
+mapcenterlng - float
+maplayer - text
+bearing - int(255)
+pincolor - text
+mapzoom - int(255)
+
+Version 2:
+
+id - int
+caption - text
+color - text
+lat - float
+lng - float
+date - text
+location - text
+shape - text
+note - mediumtext
+photo - longblob
+waypoint - int  
+
+- Prefs
+mapcenterlat - float
+mapcenterlng - float
+maplayer - text
+bearing - int(255)
+pincolor - text
+mapzoom - int(255)
+onboarding - tinyint
+
+Version 3: (Not Finalized)
+
+id - int
+caption - text
+color - text
+lat - float
+lng - float
+date - text
+location - text
+shape - text
+note - mediumtext
+photo - longblob
+waypoint - int  
+
+- Prefs
+maplayer - text
+bearing - int(255)
+mapzoom - int(255)
+theme - int
+
+
+
+
+

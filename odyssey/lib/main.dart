@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, use_build_context_synchronously, prefer_typing_uninitialized_variables, prefer_const_constructors, prefer_interpolation_to_compose_strings
+// ignore_for_file: avoid_print, use_build_context_synchronously, prefer_typing_uninitialized_variables, prefer_interpolation_to_compose_strings, prefer_const_constructors
 import 'dart:ui' as ui;
 import 'dart:io';
 import 'dart:async';
@@ -200,7 +200,7 @@ Future<BitmapDescriptor> bitmapDescriptorFromSvg(
 
 class MyAppState extends State<MyApp> {
   late GoogleMapController mapController;
-  Set<Marker> _markers = {};
+  Set<Marker> statemarkers = {};
 
   void populateMapfromState() async {
     await Future.delayed(const Duration(
@@ -220,7 +220,7 @@ class MyAppState extends State<MyApp> {
       note = pins[i].pinnote;
 
       setState(() {
-        _markers.add(
+        statemarkers.add(
           Marker(
               markerId: MarkerId((i + 1).toString()),
               position: pins[i].pincoor,
@@ -259,7 +259,7 @@ class MyAppState extends State<MyApp> {
         await bitmapDescriptorFromSvg(context, shape);
     reverseGeocoder(latLng);
     setState(() {
-      _markers.add(
+      statemarkers.add(
         Marker(
             markerId: MarkerId(pinCounter.toString()),
             position: latLng,
@@ -414,6 +414,7 @@ class MyAppState extends State<MyApp> {
     ));
   }
 
+  //Journal Dialog is long because each of these set of widgets are generated at once for each pin in real-time
   void journalDialog(BuildContext context, var caption, var location,
       var latlng, var color, var date, var note, var id) {
     showDialog(
@@ -838,7 +839,7 @@ class MyAppState extends State<MyApp> {
     pinCounter = 0;
     pins.clear();
     setState(() {
-      _markers = {};
+      statemarkers = {};
       journal = [];
     });
     OdysseyDatabase.instance.initStatefromDB();
@@ -926,7 +927,7 @@ class MyAppState extends State<MyApp> {
     );
   }
 
-  void clearMarkers() {
+  void clearstatemarkers() {
     caption = "";
     captionBuffer = "";
     noteBuffer = "";
@@ -938,17 +939,17 @@ class MyAppState extends State<MyApp> {
     OdysseyDatabase.instance.clearPinsDB();
 
     setState(() {
-      _markers = {};
+      statemarkers = {};
       journal = [];
     });
   }
 
   void deleteMarker() {
-    Marker lastmarker = _markers.firstWhere(
-        (marker) => marker.markerId.value == (_markers.length).toString());
+    Marker lastmarker = statemarkers.firstWhere(
+        (marker) => marker.markerId.value == (statemarkers.length).toString());
 
     setState(() {
-      _markers.remove(lastmarker);
+      statemarkers.remove(lastmarker);
     });
     pins.removeLast();
     journal.removeLast();
@@ -1438,7 +1439,7 @@ class MyAppState extends State<MyApp> {
               TextButton(
                 child: Text('OK', style: dialogBody),
                 onPressed: () {
-                  clearMarkers();
+                  clearstatemarkers();
                   Navigator.of(context).pop();
                 },
               )
@@ -1566,7 +1567,7 @@ class MyAppState extends State<MyApp> {
         child: const Icon(Icons.push_pin, color: Colors.white),
       ));
 
-  void _onMapCreated(GoogleMapController controller) {
+  void mapMade(GoogleMapController controller) {
     mapController = controller;
     populateMapfromState();
     checkConnection();
@@ -1628,7 +1629,7 @@ class MyAppState extends State<MyApp> {
           body: Stack(children: <Widget>[
             GoogleMap(
               mapToolbarEnabled: false,
-              onMapCreated: _onMapCreated,
+              onMapCreated: mapMade,
               compassEnabled: false,
               zoomControlsEnabled: false,
               onCameraMove: (CameraPosition cp) {
@@ -1648,10 +1649,10 @@ class MyAppState extends State<MyApp> {
               },
               onLongPress: (LatLng latlng) async {
                 LatLng lastPin() {
-                  if (_markers.isEmpty == true) {
+                  if (statemarkers.isEmpty == true) {
                     return latlng;
                   } else {
-                    return _markers.last.position;
+                    return statemarkers.last.position;
                   }
                 }
 
@@ -1664,7 +1665,7 @@ class MyAppState extends State<MyApp> {
                   ),
                 );
               },
-              markers: _markers,
+              markers: statemarkers,
             ),
             Positioned(
                 child: Align(

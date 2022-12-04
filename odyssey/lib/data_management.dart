@@ -1,5 +1,4 @@
 // ignore_for_file: avoid_print, unnecessary_null_comparison
-
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:path/path.dart';
 import 'package:odyssey/main.dart';
@@ -41,10 +40,10 @@ class OdysseyDatabase {
         path; //We wanna use this variable in the initState so that we don't read a dead DB
 
     return await openDatabase(path,
-        version: 2, onCreate: _createDB, onUpgrade: _upgradeDB);
+        version: 2, onCreate: createDB, onUpgrade: upgradeDB);
   }
 
-  Future _createDB(Database db, int version) async {
+  Future createDB(Database db, int version) async {
     db.execute(
         'CREATE TABLE Pins (id INTEGER, caption TEXT, color TEXT, lat FLOAT, lng FLOAT, date TEXT, location TEXT, shape TEXT, note MEDIUMTEXT, photo LONGBLOB, waypoint INTEGER)');
     db.execute(
@@ -227,18 +226,27 @@ class OdysseyDatabase {
         ]);
   }
 
-  void _upgradeDB(Database db, int oldVersion, int newVersion) async {
-    //This is for upgrading from 1.0 to 1.1 and future updates
+  void upgradeDB(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < newVersion) {
-      print("Updating DB to Version 2...");
-      db.execute(
-          "ALTER TABLE Pins ADD COLUMN shape TEXT DEFAULT 'circle' NOT NULL;");
-      db.execute(
-          "ALTER TABLE Pins ADD COLUMN note MEDIUMTEXT DEFAULT '' NOT NULL;");
-      db.execute("ALTER TABLE Pins ADD COLUMN photo LONGBLOB;");
-      db.execute("ALTER TABLE Pins ADD COLUMN waypoint INTEGER;");
-      db.execute(
-          "ALTER TABLE Prefs ADD COLUMN onboarding TINYINT DEFAULT '1' NOT NULL;");
+      switch (oldVersion) {
+        //If DB version is version 1, it needs to pick up ALL the newer changes, not just the latest ones
+        case 1:
+          print("Updating DB to Version 2...");
+          //Version 2 Changes
+          db.execute(
+              "ALTER TABLE Pins ADD COLUMN shape TEXT DEFAULT 'circle' NOT NULL;");
+          db.execute(
+              "ALTER TABLE Pins ADD COLUMN note MEDIUMTEXT DEFAULT '' NOT NULL;");
+          db.execute("ALTER TABLE Pins ADD COLUMN photo LONGBLOB;");
+          db.execute("ALTER TABLE Pins ADD COLUMN waypoint INTEGER;");
+          db.execute(
+              "ALTER TABLE Prefs ADD COLUMN onboarding TINYINT DEFAULT '1' NOT NULL;");
+          print("Update Complete.");
+          break;
+        default:
+          print("No changes made to DB...");
+          break;
+      }
     }
   }
 
