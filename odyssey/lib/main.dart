@@ -35,17 +35,22 @@ GlobalKey<MyAppState> key = GlobalKey();
 const version = "1.3";
 const release = "Pre-Release";
 Color pincolor = Color(int.parse(defaultPinColor));
-var colorBuffer = "FF0000"; //Default Pin Color when Map settings are un-init'd
-Color pickerColor = Color(0xffff0000);
-Color currentColor = Color(0xffff0000);
-LatLng center = LatLng(defaultCenterLat, defaultCenterLng); //Center of the USA
+var colorBuffer =
+    "FF0000"; //Default Pin Color when Map settings are not initialized
+Color pickerColor = Color(
+    0xffff0000); //Value is not constant because it is changed with the picker
+Color currentColor = Color(
+    0xffff0000); //Value is not constant because it is changed with the picker
+LatLng center =
+    LatLng(defaultCenterLat, defaultCenterLng); //Default center of Map
 MapType mapType = defaultMapType; //Default Map Type
-var pinshape = defaultPinShape;
+var pinshape = defaultPinShape; //Default Pin shape
 double bearing = defaultBearing; //Rotation of Map
 double mapZoom = defaultMapZoom; //Zoom of Map
-String shape = defaultShape;
+String shape =
+    defaultShape; //This variable is used to the BitMapDescriptor exclusively
 int pinCounter = 0;
-var caption = ""; //Null if not init'd
+var caption = ""; //Null if not initilized
 var captionBuffer; //Temp Buffer for the Caption before it goes into PinData
 var note = "";
 var noteBuffer; //Temp Buffer for the Note before it goes into PinData
@@ -54,9 +59,9 @@ var addressBuffer; //Temp Buffer for Pin From Address before it goes into geocod
 var currentTheme; //Light or Dark theme
 String svgString =
     ""; //We're just leaving this blank to init it, shapeHandler will return the real value
-int onboarding =
-    0; //would be bool but we need to parse db which only has tinyint
-var pins = [];
+int onboarding = 0;
+var pins =
+    []; //Pins is a seperate list from statemarkers, independent from whats used by GMapsController
 List<int> journal = [];
 
 Future<void> redirectURL(String url) async {
@@ -67,7 +72,7 @@ Future<void> redirectURL(String url) async {
 
 void colorToHex(Color color) {
   //Color for Flutter is parsed differently from HTML and CSS HEX Color codes which apparently SVG uses
-  colorBuffer = color.toString();
+  colorBuffer = color.toString(); //We have to assign a new variable
   colorBuffer = colorBuffer.replaceAll("Color(0xff", "");
   colorBuffer = colorBuffer.replaceAll(")", "");
 }
@@ -239,9 +244,8 @@ class MyAppState extends State<MyApp> {
     captionBuffer = "";
     caption = "";
 
-    print("Center: $center");
-    print("Bearing: $bearing");
-    print("Zoom: $mapZoom");
+    print("Center: $center, Bearing: $bearing, Zoom: $mapZoom");
+
     mapController.animateCamera(
       CameraUpdate.newCameraPosition(
         CameraPosition(
@@ -597,6 +601,7 @@ class MyAppState extends State<MyApp> {
                                                                   : Colors
                                                                       .white)),
                                                   onPressed: () {
+                                                    Navigator.of(context).pop();
                                                     if (captionBuffer == "") {
                                                       captionBuffer = "";
                                                     }
@@ -687,6 +692,7 @@ class MyAppState extends State<MyApp> {
                                                                   : Colors
                                                                       .white)),
                                                   onPressed: () {
+                                                    Navigator.of(context).pop();
                                                     if (noteBuffer == "") {
                                                       noteBuffer = "";
                                                     }
@@ -762,6 +768,8 @@ class MyAppState extends State<MyApp> {
                                                     child: Text('OK',
                                                         style: dialogBody),
                                                     onPressed: () {
+                                                      Navigator.of(context)
+                                                          .pop();
                                                       setState(() =>
                                                           currentColor =
                                                               pickerColor);
@@ -781,6 +789,60 @@ class MyAppState extends State<MyApp> {
                                                   )
                                                 ]);
                                           });
+                                    }),
+                                SimpleDialogOption(
+                                    child: Text("Delete Entry/Pin",
+                                        style: GoogleFonts.quicksand(
+                                            fontWeight: FontWeight.w600,
+                                            color:
+                                                color.computeLuminance() > 0.5
+                                                    ? Colors.black
+                                                    : Colors.white)),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                              backgroundColor:
+                                                  Colors.orange[800],
+                                              title: Text("Delete Entry?",
+                                                  style: dialogHeader),
+                                              content: SingleChildScrollView(
+                                                child: ListBody(
+                                                  children: <Widget>[
+                                                    Text(
+                                                        "Are you sure you want to delete this entry?",
+                                                        style: dialogBody),
+                                                    Text(
+                                                        "(This will also delete corresponding Pin)",
+                                                        style: dialogBody),
+                                                  ],
+                                                ),
+                                              ),
+                                              actions: <Widget>[
+                                                TextButton(
+                                                  child: Text('Cancel',
+                                                      style: dialogBody),
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                ),
+                                                TextButton(
+                                                  child: Text('OK',
+                                                      style: dialogBody),
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                    pins.removeAt(id - 1);
+                                                    OdysseyDatabase.instance
+                                                        .initDBfromState();
+                                                    reenumerateState();
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                )
+                                              ]);
+                                        },
+                                      );
                                     }),
                               ],
                             ),
@@ -927,7 +989,7 @@ class MyAppState extends State<MyApp> {
     );
   }
 
-  void clearstatemarkers() {
+  void clearStateMarkers() {
     caption = "";
     captionBuffer = "";
     noteBuffer = "";
@@ -944,7 +1006,7 @@ class MyAppState extends State<MyApp> {
     });
   }
 
-  void deleteMarker() {
+  void deleteLastMarker() {
     Marker lastmarker = statemarkers.firstWhere(
         (marker) => marker.markerId.value == (statemarkers.length).toString());
 
@@ -1439,7 +1501,7 @@ class MyAppState extends State<MyApp> {
               TextButton(
                 child: Text('OK', style: dialogBody),
                 onPressed: () {
-                  clearstatemarkers();
+                  clearStateMarkers();
                   Navigator.of(context).pop();
                 },
               )
@@ -1529,7 +1591,7 @@ class MyAppState extends State<MyApp> {
             const PopupMenuDivider(height: 20),
             PopupMenuItem(
               value: 5,
-              onTap: deleteMarker,
+              onTap: deleteLastMarker,
               child: Text(
                 "Delete Last Pin",
                 style: GoogleFonts.quicksand(
