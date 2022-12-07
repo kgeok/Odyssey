@@ -32,6 +32,8 @@
 	</array>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Odyssey needs Network access to connect to debugging services. You should only be seeing this on Pre-Release versions of Odyssey</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Odyssey needs your Location because you selected "Pin My Location" or are using a Location-based feature of the Map</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>Odyssey needs your Location because you selected "Pin My Location" or are using a Location-based feature of the Map</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

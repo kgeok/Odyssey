@@ -1,5 +1,4 @@
-// ignore_for_file: prefer_typing_uninitialized_variables, prefer_const_constructors, unused_import, avoid_print, prefer_conditional_assignment, unrelated_type_equality_checks, use_build_context_synchronously
-import 'dart:math';
+// ignore_for_file: avoid_print, use_build_context_synchronously, prefer_typing_uninitialized_variables, prefer_interpolation_to_compose_strings, prefer_const_constructors
 import 'dart:ui' as ui;
 import 'dart:io';
 import 'dart:async';
@@ -18,7 +17,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 void main() async {
   runApp(const MaterialApp(home: MyApp()));
-
   OdysseyDatabase.instance.initStatefromDB();
 }
 
@@ -27,27 +25,32 @@ class MyApp extends StatefulWidget {
   @override
   MyAppState createState() => MyAppState();
 
-  //debug
-  static final MyApp instance = MyApp._init();
+  //Debug
+  static const MyApp instance = MyApp._init();
   const MyApp._init();
 }
 
 GlobalKey<MyAppState> key = GlobalKey();
 //Variables that we will be using, will try to minimize in the future
-const version = "1.2";
+const version = "1.3";
 const release = "Release";
 Color pincolor = Color(int.parse(defaultPinColor));
-var colorBuffer = "FF0000"; //Default Pin Color when Map settings are un-init'd
-Color pickerColor = Color(0xffff0000);
-Color currentColor = Color(0xffff0000);
-LatLng center = LatLng(defaultCenterLat, defaultCenterLng); //Center of the USA
+var colorBuffer =
+    "FF0000"; //Default Pin Color when Map settings are not initialized
+Color pickerColor = Color(
+    0xffff0000); //Value is not constant because it is changed with the picker
+Color currentColor = Color(
+    0xffff0000); //Value is not constant because it is changed with the picker
+LatLng center =
+    LatLng(defaultCenterLat, defaultCenterLng); //Default center of Map
 MapType mapType = defaultMapType; //Default Map Type
-var pinshape = defaultPinShape;
+var pinshape = defaultPinShape; //Default Pin shape
 double bearing = defaultBearing; //Rotation of Map
 double mapZoom = defaultMapZoom; //Zoom of Map
-String shape = defaultShape;
+String shape =
+    defaultShape; //This variable is used to the BitMapDescriptor exclusively
 int pinCounter = 0;
-var caption = ""; //Null if not init'd
+var caption = ""; //Null if not initilized
 var captionBuffer; //Temp Buffer for the Caption before it goes into PinData
 var note = "";
 var noteBuffer; //Temp Buffer for the Note before it goes into PinData
@@ -56,9 +59,9 @@ var addressBuffer; //Temp Buffer for Pin From Address before it goes into geocod
 var currentTheme; //Light or Dark theme
 String svgString =
     ""; //We're just leaving this blank to init it, shapeHandler will return the real value
-int onboarding =
-    0; //would be bool but we need to parse db which only has tinyint
-var pins = [];
+int onboarding = 0;
+var pins =
+    []; //Pins is a seperate list from statemarkers, independent from whats used by GMapsController
 List<int> journal = [];
 
 Future<void> redirectURL(String url) async {
@@ -69,7 +72,7 @@ Future<void> redirectURL(String url) async {
 
 void colorToHex(Color color) {
   //Color for Flutter is parsed differently from HTML and CSS HEX Color codes which apparently SVG uses
-  colorBuffer = color.toString();
+  colorBuffer = color.toString(); //We have to assign a new variable
   colorBuffer = colorBuffer.replaceAll("Color(0xff", "");
   colorBuffer = colorBuffer.replaceAll(")", "");
 }
@@ -127,7 +130,7 @@ String shapeHandler(shape) {
 
 ''';
     case "diamond":
-      return svgString = '''ß
+      return svgString = '''
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg height="100%" stroke-miterlimit="10" style="fill-rule:nonzero;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;" version="1.1" viewBox="0 0 76 180" width="100%" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -196,10 +199,10 @@ Future<BitmapDescriptor> bitmapDescriptorFromSvg(
 
 class MyAppState extends State<MyApp> {
   late GoogleMapController mapController;
-  Set<Marker> _markers = {};
+  Set<Marker> statemarkers = {};
 
   void populateMapfromState() async {
-    await Future.delayed(Duration(
+    await Future.delayed(const Duration(
         milliseconds:
             1500)); //It apparently takes 1 second or so for DB to populate State
 
@@ -216,7 +219,7 @@ class MyAppState extends State<MyApp> {
       note = pins[i].pinnote;
 
       setState(() {
-        _markers.add(
+        statemarkers.add(
           Marker(
               markerId: MarkerId((i + 1).toString()),
               position: pins[i].pincoor,
@@ -235,9 +238,8 @@ class MyAppState extends State<MyApp> {
     captionBuffer = "";
     caption = "";
 
-    print("Center: $center");
-    print("Bearing: $bearing");
-    print("Zoom: $mapZoom");
+    print("Center: $center, Bearing: $bearing, Zoom: $mapZoom");
+
     mapController.animateCamera(
       CameraUpdate.newCameraPosition(
         CameraPosition(
@@ -255,7 +257,7 @@ class MyAppState extends State<MyApp> {
         await bitmapDescriptorFromSvg(context, shape);
     reverseGeocoder(latLng);
     setState(() {
-      _markers.add(
+      statemarkers.add(
         Marker(
             markerId: MarkerId(pinCounter.toString()),
             position: latLng,
@@ -306,7 +308,7 @@ class MyAppState extends State<MyApp> {
     });
 
     mapZoom = await mapController.getZoomLevel();
-    OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, latLng, mapType);
+    OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
 
     caption = "";
     captionBuffer = "";
@@ -337,7 +339,7 @@ class MyAppState extends State<MyApp> {
   }
 
   Widget journalEntry(final caption, final color, final subtitle, var latlng,
-      var date, var note) {
+      var date, var note, var id) {
     var target = latlng;
     latlng = latlng.toString();
     latlng = latlng.replaceAll("LatLng(", "");
@@ -352,7 +354,7 @@ class MyAppState extends State<MyApp> {
             highlightColor: color,
             onTap: () {
               journalDialog(
-                  context, caption, subtitle, latlng, color, date, note);
+                  context, caption, subtitle, latlng, color, date, note, id);
               mapController
                   .animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
                 target: target,
@@ -360,51 +362,516 @@ class MyAppState extends State<MyApp> {
                 zoom: mapZoom,
               )));
             },
-            child: Container(
-                padding: const EdgeInsets.fromLTRB(2, 0, 0, 2),
-                decoration: ShapeDecoration(
-                    shadows: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.01),
-                        spreadRadius: 5,
-                        blurRadius: 7,
-                        offset:
-                            const Offset(0, 3), // changes position of shadow
-                      ),
-                    ],
-                    color: color,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10))),
-                height: 85.0,
-                width: 285.0,
-                child: Center(
-                    child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                      Text(caption,
-                          overflow: TextOverflow.fade,
-                          softWrap: false,
-                          maxLines: 1,
-                          style: GoogleFonts.quicksand(
-                              fontWeight: FontWeight.w700,
-                              color: color.computeLuminance() > 0.5
-                                  ? Colors.black
-                                  : Colors.white,
-                              fontSize: 20)),
-                      Text(subtitle,
-                          overflow: TextOverflow.fade,
-                          softWrap: false,
-                          maxLines: 1,
-                          style: GoogleFonts.quicksand(
-                              fontWeight: FontWeight.w500,
-                              color: color.computeLuminance() > 0.5
-                                  ? Colors.black
-                                  : Colors.white,
-                              fontSize: 18))
-                    ])))),
+            child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 500),
+                opacity: 0.9,
+                child: Container(
+                    padding: const EdgeInsets.fromLTRB(2, 0, 0, 2),
+                    decoration: ShapeDecoration(
+                        shadows: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            spreadRadius: 5,
+                            blurRadius: 7,
+                            offset: const Offset(
+                                0, 3), // changes position of shadow
+                          ),
+                        ],
+                        color: color,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10))),
+                    height: 85.0,
+                    width: 292.5,
+                    child: Center(
+                        child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                          Text(caption,
+                              overflow: TextOverflow.fade,
+                              softWrap: false,
+                              maxLines: 1,
+                              style: GoogleFonts.quicksand(
+                                  fontWeight: FontWeight.w700,
+                                  color: color.computeLuminance() > 0.5
+                                      ? Colors.black
+                                      : Colors.white,
+                                  fontSize: 20)),
+                          Text(subtitle,
+                              overflow: TextOverflow.fade,
+                              softWrap: false,
+                              maxLines: 1,
+                              style: GoogleFonts.quicksand(
+                                  fontWeight: FontWeight.w500,
+                                  color: color.computeLuminance() > 0.5
+                                      ? Colors.black
+                                      : Colors.white,
+                                  fontSize: 18))
+                        ]))))),
         const SizedBox(height: 2.5),
       ],
     ));
+  }
+
+  //Journal Dialog is long because each of these set of widgets are generated at once for each pin in real-time
+  void journalDialog(BuildContext context, var caption, var location,
+      var latlng, var color, var date, var note, var id) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+            backgroundColor: color,
+            title: Text(caption,
+                style: GoogleFonts.quicksand(
+                    fontWeight: FontWeight.w700,
+                    color: color.computeLuminance() > 0.5
+                        ? Colors.black
+                        : Colors.white)),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  Text(location,
+                      style: GoogleFonts.quicksand(
+                          fontWeight: FontWeight.w600,
+                          color: color.computeLuminance() > 0.5
+                              ? Colors.black
+                              : Colors.white)),
+                  const Text(""),
+                  Text(latlng.toString(),
+                      style: GoogleFonts.quicksand(
+                          fontWeight: FontWeight.w600,
+                          color: color.computeLuminance() > 0.5
+                              ? Colors.black
+                              : Colors.white)),
+                  const Text(""),
+                  Text(date.toString(),
+                      style: GoogleFonts.quicksand(
+                          fontWeight: FontWeight.w600,
+                          color: color.computeLuminance() > 0.5
+                              ? Colors.black
+                              : Colors.white)),
+                  const Text(""),
+                  Text(note.toString(),
+                      style: GoogleFonts.quicksand(
+                          fontWeight: FontWeight.w600,
+                          color: color.computeLuminance() > 0.5
+                              ? Colors.black
+                              : Colors.white)),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text("Full Map",
+                    style: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w600,
+                        color: color.computeLuminance() > 0.5
+                            ? Colors.black
+                            : Colors.white)),
+                onPressed: () {
+                  redirectURL(
+                      "https://www.google.com/maps/search/?api=1&query=" +
+                          latlng.replaceAll(", ", "%2C"));
+                },
+              ),
+              TextButton(
+                child: Text("Options",
+                    style: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w600,
+                        color: color.computeLuminance() > 0.5
+                            ? Colors.black
+                            : Colors.white)),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                          backgroundColor: color,
+                          title: Text("Options",
+                              style: GoogleFonts.quicksand(
+                                  fontWeight: FontWeight.w700,
+                                  color: color.computeLuminance() > 0.5
+                                      ? Colors.black
+                                      : Colors.white)),
+                          content: SingleChildScrollView(
+                            child: ListBody(
+                              children: <Widget>[
+                                SimpleDialogOption(
+                                    child: Text("Copy Entry",
+                                        style: GoogleFonts.quicksand(
+                                            fontWeight: FontWeight.w600,
+                                            color:
+                                                color.computeLuminance() > 0.5
+                                                    ? Colors.black
+                                                    : Colors.white)),
+                                    onPressed: () {
+                                      Clipboard.setData(ClipboardData(
+                                          text: caption +
+                                              " " +
+                                              location +
+                                              ", " +
+                                              date +
+                                              " " +
+                                              note));
+                                    }),
+                                SimpleDialogOption(
+                                    child: Text("Copy Address",
+                                        style: GoogleFonts.quicksand(
+                                            fontWeight: FontWeight.w600,
+                                            color:
+                                                color.computeLuminance() > 0.5
+                                                    ? Colors.black
+                                                    : Colors.white)),
+                                    onPressed: () {
+                                      Clipboard.setData(
+                                          ClipboardData(text: location));
+                                    }),
+                                SimpleDialogOption(
+                                    child: Text("Edit Caption",
+                                        style: GoogleFonts.quicksand(
+                                            fontWeight: FontWeight.w600,
+                                            color:
+                                                color.computeLuminance() > 0.5
+                                                    ? Colors.black
+                                                    : Colors.white)),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                              backgroundColor: color,
+                                              title: Text('Enter New Caption',
+                                                  style: GoogleFonts.quicksand(
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color:
+                                                          color.computeLuminance() >
+                                                                  0.5
+                                                              ? Colors.black
+                                                              : Colors.white)),
+                                              content: SingleChildScrollView(
+                                                child: ListBody(
+                                                  children: <Widget>[
+                                                    TextField(
+                                                        autofocus: true,
+                                                        decoration: InputDecoration(
+                                                            fillColor: Colors
+                                                                .grey[300],
+                                                            filled: true,
+                                                            border:
+                                                                const OutlineInputBorder(),
+                                                            hintText: caption),
+                                                        onChanged: (value) {
+                                                          captionBuffer = value;
+                                                        }),
+                                                  ],
+                                                ),
+                                              ),
+                                              actions: <Widget>[
+                                                TextButton(
+                                                  child: Text('Cancel',
+                                                      style: GoogleFonts.quicksand(
+                                                          fontWeight: FontWeight
+                                                              .w700,
+                                                          color:
+                                                              color.computeLuminance() >
+                                                                      0.5
+                                                                  ? Colors.black
+                                                                  : Colors
+                                                                      .white)),
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                ),
+                                                TextButton(
+                                                  child: Text('OK',
+                                                      style: GoogleFonts.quicksand(
+                                                          fontWeight: FontWeight
+                                                              .w700,
+                                                          color:
+                                                              color.computeLuminance() >
+                                                                      0.5
+                                                                  ? Colors.black
+                                                                  : Colors
+                                                                      .white)),
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                    if (captionBuffer == "") {
+                                                      captionBuffer = "";
+                                                    }
+                                                    captionBuffer ??= "";
+                                                    caption = captionBuffer;
+                                                    captionBuffer = "";
+                                                    Navigator.pop(context);
+                                                    OdysseyDatabase.instance
+                                                        .updatePinsDB(
+                                                            id,
+                                                            caption,
+                                                            note,
+                                                            color);
+                                                    reenumerateState();
+                                                  },
+                                                )
+                                              ]);
+                                        },
+                                      );
+                                    }),
+                                SimpleDialogOption(
+                                    child: Text("Edit Note",
+                                        style: GoogleFonts.quicksand(
+                                            fontWeight: FontWeight.w600,
+                                            color:
+                                                color.computeLuminance() > 0.5
+                                                    ? Colors.black
+                                                    : Colors.white)),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                              backgroundColor: color,
+                                              title: Text('Enter New Note',
+                                                  style: GoogleFonts.quicksand(
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color:
+                                                          color.computeLuminance() >
+                                                                  0.5
+                                                              ? Colors.black
+                                                              : Colors.white)),
+                                              content: SingleChildScrollView(
+                                                child: ListBody(
+                                                  children: <Widget>[
+                                                    TextField(
+                                                        autofocus: true,
+                                                        decoration: InputDecoration(
+                                                            fillColor: Colors
+                                                                .grey[300],
+                                                            filled: true,
+                                                            border:
+                                                                const OutlineInputBorder(),
+                                                            hintText: note),
+                                                        onChanged: (value) {
+                                                          noteBuffer = value;
+                                                        }),
+                                                  ],
+                                                ),
+                                              ),
+                                              actions: <Widget>[
+                                                TextButton(
+                                                  child: Text('Cancel',
+                                                      style: GoogleFonts.quicksand(
+                                                          fontWeight: FontWeight
+                                                              .w700,
+                                                          color:
+                                                              color.computeLuminance() >
+                                                                      0.5
+                                                                  ? Colors.black
+                                                                  : Colors
+                                                                      .white)),
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                ),
+                                                TextButton(
+                                                  child: Text('OK',
+                                                      style: GoogleFonts.quicksand(
+                                                          fontWeight: FontWeight
+                                                              .w700,
+                                                          color:
+                                                              color.computeLuminance() >
+                                                                      0.5
+                                                                  ? Colors.black
+                                                                  : Colors
+                                                                      .white)),
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                    if (noteBuffer == "") {
+                                                      noteBuffer = "";
+                                                    }
+                                                    noteBuffer ??= "";
+                                                    note = noteBuffer;
+                                                    noteBuffer = "";
+                                                    Navigator.pop(context);
+                                                    OdysseyDatabase.instance
+                                                        .updatePinsDB(
+                                                            id,
+                                                            caption,
+                                                            note,
+                                                            color);
+                                                    reenumerateState();
+                                                  },
+                                                )
+                                              ]);
+                                        },
+                                      );
+                                    }),
+                                SimpleDialogOption(
+                                    child: Text("Edit Color",
+                                        style: GoogleFonts.quicksand(
+                                            fontWeight: FontWeight.w600,
+                                            color:
+                                                color.computeLuminance() > 0.5
+                                                    ? Colors.black
+                                                    : Colors.white)),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                      showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return AlertDialog(
+                                                backgroundColor: MediaQuery.of(
+                                                                context)
+                                                            .platformBrightness ==
+                                                        Brightness.light
+                                                    ? lightMode.withOpacity(1)
+                                                    : darkMode.withOpacity(1),
+                                                titlePadding:
+                                                    const EdgeInsets.all(15.0),
+                                                contentPadding:
+                                                    const EdgeInsets.all(0.0),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          5.0),
+                                                ),
+                                                title: Text('Select Color',
+                                                    style: dialogHeader),
+                                                content: SingleChildScrollView(
+                                                  child: ColorPicker(
+                                                    pickerColor: pickerColor,
+                                                    onColorChanged: changeColor,
+                                                    pickerAreaHeightPercent:
+                                                        0.8,
+                                                    labelTypes: const [],
+                                                    displayThumbColor: true,
+                                                    enableAlpha: false,
+                                                  ),
+                                                ),
+                                                actions: <Widget>[
+                                                  TextButton(
+                                                    child: Text('Cancel',
+                                                        style: dialogBody),
+                                                    onPressed: () {
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                    },
+                                                  ),
+                                                  TextButton(
+                                                    child: Text('OK',
+                                                        style: dialogBody),
+                                                    onPressed: () {
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                      setState(() =>
+                                                          currentColor =
+                                                              pickerColor);
+                                                      setState(() => pincolor =
+                                                          currentColor);
+                                                      colorToHex(pincolor);
+                                                      OdysseyDatabase.instance
+                                                          .updatePinsDB(
+                                                              id,
+                                                              caption,
+                                                              note,
+                                                              pincolor);
+                                                      reenumerateState();
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                    },
+                                                  )
+                                                ]);
+                                          });
+                                    }),
+                                SimpleDialogOption(
+                                    child: Text("Delete Entry",
+                                        style: GoogleFonts.quicksand(
+                                            fontWeight: FontWeight.w600,
+                                            color:
+                                                color.computeLuminance() > 0.5
+                                                    ? Colors.red[800]
+                                                    : Colors.red[100])),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                              backgroundColor:
+                                                  Colors.orange[800],
+                                              title: Text("Delete Entry?",
+                                                  style: dialogHeader),
+                                              content: SingleChildScrollView(
+                                                child: ListBody(
+                                                  children: <Widget>[
+                                                    Text(
+                                                        "Are you sure you want to delete this entry?",
+                                                        style: dialogBody),
+                                                    Text(
+                                                        "(This will also delete corresponding Pin)",
+                                                        style: dialogBody),
+                                                  ],
+                                                ),
+                                              ),
+                                              actions: <Widget>[
+                                                TextButton(
+                                                  child: Text('Cancel',
+                                                      style: dialogBody),
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                ),
+                                                TextButton(
+                                                  child: Text('OK',
+                                                      style: dialogBody),
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                    pins.removeAt(id - 1);
+                                                    OdysseyDatabase.instance
+                                                        .initDBfromState();
+                                                    reenumerateState();
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                )
+                                              ]);
+                                        },
+                                      );
+                                    }),
+                              ],
+                            ),
+                          ),
+                          actions: <Widget>[
+                            TextButton(
+                              child: Text("Dismiss",
+                                  style: GoogleFonts.quicksand(
+                                      fontWeight: FontWeight.w600,
+                                      color: color.computeLuminance() > 0.5
+                                          ? Colors.black
+                                          : Colors.white)),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            )
+                          ]);
+                    },
+                  );
+                },
+              ),
+              TextButton(
+                child: Text("Dismiss",
+                    style: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w600,
+                        color: color.computeLuminance() > 0.5
+                            ? Colors.black
+                            : Colors.white)),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              )
+            ]);
+      },
+    );
   }
 
   List<Widget> makeJournalEntry() {
@@ -415,8 +882,24 @@ class MyAppState extends State<MyApp> {
           pins[index].pinlocation,
           pins[index].pincoor,
           pins[index].pindate,
-          pins[index].pinnote);
+          pins[index].pinnote,
+          (index + 1));
     });
+  }
+
+  void reenumerateState() {
+    caption = "";
+    captionBuffer = "";
+    noteBuffer = "";
+    note = "";
+    pinCounter = 0;
+    pins.clear();
+    setState(() {
+      statemarkers = {};
+      journal = [];
+    });
+    OdysseyDatabase.instance.initStatefromDB();
+    populateMapfromState();
   }
 
   Future<void> appendFromLocation() async {
@@ -500,27 +983,29 @@ class MyAppState extends State<MyApp> {
     );
   }
 
-  void clearMarkers() {
+  void clearStateMarkers() {
     caption = "";
     captionBuffer = "";
+    noteBuffer = "";
+    note = "";
     pinCounter = 0;
     pins.clear();
-    OdysseyDatabase.instance.updatePrefsDB(defaultMapZoom, defaultBearing,
-        LatLng(defaultCenterLat, defaultCenterLng), defaultMapType);
+    OdysseyDatabase.instance
+        .updatePrefsDB(defaultMapZoom, defaultBearing, defaultMapType);
     OdysseyDatabase.instance.clearPinsDB();
 
     setState(() {
-      _markers = {};
+      statemarkers = {};
       journal = [];
     });
   }
 
-  void deleteMarker() {
-    Marker lastmarker = _markers.firstWhere(
-        (marker) => marker.markerId.value == (_markers.length).toString());
+  void deleteLastMarker() {
+    Marker lastmarker = statemarkers.firstWhere(
+        (marker) => marker.markerId.value == (statemarkers.length).toString());
 
     setState(() {
-      _markers.remove(lastmarker);
+      statemarkers.remove(lastmarker);
     });
     pins.removeLast();
     journal.removeLast();
@@ -533,26 +1018,31 @@ class MyAppState extends State<MyApp> {
       case MapType.normal:
         setState(() {
           mapType = MapType.hybrid;
+          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
         });
         break;
       case MapType.hybrid:
         setState(() {
           mapType = MapType.normal;
+          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
         });
         break;
       case MapType.terrain:
         setState(() {
           mapType = MapType.hybrid;
+          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
         });
         break;
       case MapType.satellite:
         setState(() {
           mapType = MapType.normal;
+          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
         });
         break;
       default:
         setState(() {
           mapType = MapType.normal;
+          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
         });
     }
   }
@@ -562,26 +1052,31 @@ class MyAppState extends State<MyApp> {
       case MapType.normal:
         setState(() {
           mapType = MapType.terrain;
+          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
         });
         break;
       case MapType.satellite:
         setState(() {
           mapType = MapType.hybrid;
+          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
         });
         break;
       case MapType.terrain:
         setState(() {
           mapType = MapType.normal;
+          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
         });
         break;
       case MapType.hybrid:
         setState(() {
           mapType = MapType.satellite;
+          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
         });
         break;
       default:
         setState(() {
           mapType = MapType.normal;
+          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
         });
     }
   }
@@ -673,9 +1168,7 @@ class MyAppState extends State<MyApp> {
                     if (captionBuffer == "") {
                       captionBuffer = "";
                     }
-                    if (captionBuffer == null) {
-                      captionBuffer = "";
-                    }
+                    captionBuffer ??= "";
                     caption = captionBuffer;
                     captionBuffer = "";
                     Navigator.pop(context);
@@ -696,9 +1189,7 @@ class MyAppState extends State<MyApp> {
                     if (captionBuffer == "") {
                       captionBuffer = "";
                     }
-                    if (captionBuffer == null) {
-                      captionBuffer = "";
-                    }
+                    captionBuffer ??= "";
                     caption = captionBuffer;
                     captionBuffer = "";
                     Navigator.pop(context);
@@ -804,9 +1295,7 @@ class MyAppState extends State<MyApp> {
                     if (noteBuffer == "") {
                       noteBuffer = "";
                     }
-                    if (noteBuffer == null) {
-                      noteBuffer = "";
-                    }
+                    noteBuffer ??= "";
                     note = noteBuffer;
                     noteBuffer = "";
                     Navigator.pop(context);
@@ -878,8 +1367,8 @@ class MyAppState extends State<MyApp> {
                   setState(() {
                     if (addressBuffer == "") {
                       addressBuffer = " ";
-                    } else if (addressBuffer == null) {
-                      addressBuffer = " ";
+                    } else {
+                      addressBuffer ??= " ";
                     }
                     geocoder(addressBuffer);
                     addressBuffer = "";
@@ -926,10 +1415,36 @@ class MyAppState extends State<MyApp> {
                   ),
                   SimpleDialogOption(
                     onPressed: () {
+                      var clipBoard = "";
+                      for (var i = 0; i <= (pins.length - 1); i++) {
+                        clipBoard = "$clipBoard${pins[i].pincaption}\n";
+                        clipBoard = "$clipBoard${pins[i].pinlocation}\n";
+                        clipBoard = "$clipBoard${pins[i].pinnote}\n";
+                        clipBoard = "$clipBoard${pins[i].pindate}\n";
+                        clipBoard = "$clipBoard${pins[i].pincoor}\n";
+                        clipBoard =
+                            "$clipBoard${((pins[i].pinshape).toString()).toUpperCase()}\n";
+                        clipBoard = "$clipBoard\n";
+                        clipBoard = "$clipBoard\n";
+                      }
+                      print(clipBoard);
+                      Clipboard.setData(ClipboardData(text: clipBoard));
+                    },
+                    child: Text('Copy Journal Contents', style: dialogBody),
+                  ),
+                  SimpleDialogOption(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      reenumerateState();
+                    },
+                    child: Text('Refresh Data', style: dialogBody),
+                  ),
+                  SimpleDialogOption(
+                    onPressed: () {
                       Navigator.of(context).pop();
                       helpDialog(context);
                     },
-                    child: Text('Help', style: dialogBody),
+                    child: Text('Quick Start', style: dialogBody),
                   ),
                   SimpleDialogOption(
                     onPressed: () {
@@ -987,7 +1502,7 @@ class MyAppState extends State<MyApp> {
               TextButton(
                 child: Text('OK', style: dialogBody),
                 onPressed: () {
-                  clearMarkers();
+                  clearStateMarkers();
                   Navigator.of(context).pop();
                 },
               )
@@ -1011,6 +1526,26 @@ class MyAppState extends State<MyApp> {
           "Please check your device settings",
           "Some functionality may not be available at this time.",
           "error");
+    }
+  }
+
+  Future startOnboarding() async {
+    await Future.delayed(const Duration(
+        milliseconds:
+            1500)); //It apparently takes 1 second or so for DB to populate State
+
+    if (onboarding == 1) {
+      onboardDialog(
+          context,
+          "Welcome to Odyssey",
+          "Give a new emotional meaning to your places.",
+          "Keep track of the destinations you traveled with customizable pins on a beautiful map. With the Journal, you can get a glance of your overall pins and keep notes of where you went and where you want to go.",
+          "Tap anywhere on the map to set a Pin.",
+          "Open the Pin Menu to Customize the next set of Pins.");
+
+      print("Onboarding...");
+    } else {
+      print("No Onboarding...");
     }
   }
 
@@ -1057,7 +1592,7 @@ class MyAppState extends State<MyApp> {
             const PopupMenuDivider(height: 20),
             PopupMenuItem(
               value: 5,
-              onTap: deleteMarker,
+              onTap: deleteLastMarker,
               child: Text(
                 "Delete Last Pin",
                 style: GoogleFonts.quicksand(
@@ -1095,38 +1630,19 @@ class MyAppState extends State<MyApp> {
         child: const Icon(Icons.push_pin, color: Colors.white),
       ));
 
-  void _onMapCreated(GoogleMapController controller) {
+  void mapMade(GoogleMapController controller) {
     mapController = controller;
     populateMapfromState();
     checkConnection();
     startOnboarding();
     //This is only for Pre-Release Versions, This doesn't apply for release versions.
-    /*   simpleDialog(
-        context,
-        "Pre-Release Version",
-        "Confidential and Proprietary, Please Don't Share Information or Screenshots",
-        "Please Report any Bugs and Crashes, Take note of what you were doing when they occurred.",
-        "error"); */
-  }
-
-  Future startOnboarding() async {
-    await Future.delayed(Duration(
-        milliseconds:
-            1500)); //It apparently takes 1 second or so for DB to populate State
-
-    if (onboarding == 1) {
-      complexDialog(
+    if (release == "Pre-Release") {
+      simpleDialog(
           context,
-          "Welcome to Odyssey",
-          "Give a new emotional meaning to your places.",
-          "Keep track of the destinations you traveled with customizable pins on a beautiful map. With the Journal, you can get a glance of your overall pins and keep notes of where you went and where you want to go.",
-          "Tap anywhere on the map to set a Pin.",
-          "Open the Pin Menu to Customize the next set of Pins.",
-          "info");
-
-      print("Onboarding...");
-    } else {
-      print("No Onboarding...");
+          "Pre-Release Version",
+          "Confidential and Proprietary, Please Don't Share Information or Screenshots",
+          "Please Report any Bugs and Crashes, Take note of what you were doing when they occurred.",
+          "error");
     }
   }
 
@@ -1176,7 +1692,7 @@ class MyAppState extends State<MyApp> {
           body: Stack(children: <Widget>[
             GoogleMap(
               mapToolbarEnabled: false,
-              onMapCreated: _onMapCreated,
+              onMapCreated: mapMade,
               compassEnabled: false,
               zoomControlsEnabled: false,
               onCameraMove: (CameraPosition cp) {
@@ -1196,10 +1712,10 @@ class MyAppState extends State<MyApp> {
               },
               onLongPress: (LatLng latlng) async {
                 LatLng lastPin() {
-                  if (_markers.isEmpty == true) {
+                  if (statemarkers.isEmpty == true) {
                     return latlng;
                   } else {
-                    return _markers.last.position;
+                    return statemarkers.last.position;
                   }
                 }
 
@@ -1212,7 +1728,7 @@ class MyAppState extends State<MyApp> {
                   ),
                 );
               },
-              markers: _markers,
+              markers: statemarkers,
             ),
             Positioned(
                 child: Align(
@@ -1335,6 +1851,8 @@ class MyAppState extends State<MyApp> {
                                     );
                                     mapZoom =
                                         await mapController.getZoomLevel();
+                                    OdysseyDatabase.instance.updatePrefsDB(
+                                        mapZoom, bearing, mapType);
                                   }),
                             ),
                             Container(
@@ -1376,6 +1894,8 @@ class MyAppState extends State<MyApp> {
                                     ),
                                   );
                                   mapZoom = await mapController.getZoomLevel();
+                                  OdysseyDatabase.instance
+                                      .updatePrefsDB(mapZoom, bearing, mapType);
                                 },
                               ),
                             ),

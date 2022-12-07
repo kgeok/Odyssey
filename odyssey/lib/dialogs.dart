@@ -1,10 +1,9 @@
-// ignore_for_file: prefer_typing_uninitialized_variables, prefer_interpolation_to_compose_strings
+// ignore_for_file: prefer_interpolation_to_compose_strings, prefer_typing_uninitialized_variables
 
 import 'package:odyssey/main.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:odyssey/theme/custom_theme.dart';
-import 'package:flutter/services.dart';
 
 var buttonaction1 = "";
 var buttonaction2 = "";
@@ -15,93 +14,6 @@ var dialogHeader =
 
 var dialogBody =
     GoogleFonts.quicksand(fontWeight: FontWeight.w600, color: Colors.white);
-
-void journalDialog(BuildContext context, var caption, var location, var latlng,
-    var color, var date, var note) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-          backgroundColor: color,
-          title: Text(caption,
-              style: GoogleFonts.quicksand(
-                  fontWeight: FontWeight.w700,
-                  color: color.computeLuminance() > 0.5
-                      ? Colors.black
-                      : Colors.white)),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text(location,
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600,
-                        color: color.computeLuminance() > 0.5
-                            ? Colors.black
-                            : Colors.white)),
-                const Text(""),
-                Text(latlng.toString(),
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600,
-                        color: color.computeLuminance() > 0.5
-                            ? Colors.black
-                            : Colors.white)),
-                const Text(""),
-                Text(date.toString(),
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600,
-                        color: color.computeLuminance() > 0.5
-                            ? Colors.black
-                            : Colors.white)),
-                const Text(""),
-                Text(note.toString(),
-                    style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600,
-                        color: color.computeLuminance() > 0.5
-                            ? Colors.black
-                            : Colors.white)),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text("Full Map",
-                  style: GoogleFonts.quicksand(
-                      fontWeight: FontWeight.w600,
-                      color: color.computeLuminance() > 0.5
-                          ? Colors.black
-                          : Colors.white)),
-              onPressed: () {
-                redirectURL("https://www.google.com/maps/search/?api=1&query=" +
-                    latlng.replaceAll(", ", "%2C"));
-              },
-            ),
-            TextButton(
-              child: Text("Copy",
-                  style: GoogleFonts.quicksand(
-                      fontWeight: FontWeight.w600,
-                      color: color.computeLuminance() > 0.5
-                          ? Colors.black
-                          : Colors.white)),
-              onPressed: () {
-                Clipboard.setData(ClipboardData(
-                    text: caption + " " + location + ", " + date + " " + note));
-              },
-            ),
-            TextButton(
-              child: Text("Dismiss",
-                  style: GoogleFonts.quicksand(
-                      fontWeight: FontWeight.w600,
-                      color: color.computeLuminance() > 0.5
-                          ? Colors.black
-                          : Colors.white)),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            )
-          ]);
-    },
-  );
-}
 
 void simpleDialog(
     BuildContext context, var header, var body1, var body2, var type) {
@@ -238,6 +150,49 @@ void complexDialog(BuildContext context, var header, var body1, var body2,
   );
 }
 
+void onboardDialog(BuildContext context, var header, var body1, var body2,
+    var body3, var body4) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+          backgroundColor:
+              MediaQuery.of(context).platformBrightness == Brightness.light
+                  ? lightMode.withOpacity(0.8)
+                  : darkMode.withOpacity(0.8),
+          title: Text(header, style: dialogHeader),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(body1, style: dialogBody),
+                Text("", style: dialogBody),
+                Text(body2, style: dialogBody),
+                Text("", style: dialogBody),
+                Text(body3, style: dialogBody),
+                Text("", style: dialogBody),
+                Text(body4, style: dialogBody),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text("Quick Start", style: dialogBody),
+              onPressed: () {
+                Navigator.of(context).pop();
+                helpDialog(context);
+              },
+            ),
+            TextButton(
+              child: Text("OK", style: dialogBody),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            )
+          ]);
+    },
+  );
+}
+
 void aboutDialog(BuildContext context) {
   showDialog(
     context: context,
@@ -284,6 +239,10 @@ void helpDialog(BuildContext context) {
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
+          backgroundColor:
+              MediaQuery.of(context).platformBrightness == Brightness.light
+                  ? lightMode.withOpacity(1)
+                  : darkMode.withOpacity(1),
           title: Text("Quick Start", style: dialogHeader),
           content: SingleChildScrollView(
             child: ListBody(
