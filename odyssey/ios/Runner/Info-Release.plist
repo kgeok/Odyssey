@@ -28,6 +28,8 @@
 	<true/>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>Odyssey needs your Location because you selected &quot;Pin My Location&quot; or are using a Location-based feature of the Map</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Odyssey needs your Location because you selected &quot;Pin My Location&quot; or are using a Location-based feature of the Map</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Odyssey needs your Location because you selected &quot;Pin My Location&quot; or are using a Location-based feature of the Map</string>
 	<key>UIApplicationSceneManifest</key>

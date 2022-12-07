@@ -33,7 +33,7 @@ class MyApp extends StatefulWidget {
 GlobalKey<MyAppState> key = GlobalKey();
 //Variables that we will be using, will try to minimize in the future
 const version = "1.3";
-const release = "Pre-Release";
+const release = "Release";
 Color pincolor = Color(int.parse(defaultPinColor));
 var colorBuffer =
     "FF0000"; //Default Pin Color when Map settings are not initialized
@@ -104,8 +104,7 @@ String shapeHandler(shape) {
   pinshape = shape;
   switch (shape) {
     case "circle":
-      return svgString =
-          '''
+      return svgString = '''
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg height="100%" stroke-miterlimit="10" style="fill-rule:nonzero;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;" version="1.1" viewBox="0 0 76 180" width="100%" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -118,8 +117,7 @@ String shapeHandler(shape) {
 ''';
 
     case "square":
-      return svgString =
-          '''
+      return svgString = '''
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg height="100%" stroke-miterlimit="10" style="fill-rule:nonzero;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;" version="1.1" viewBox="0 0 76 180" width="100%" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:vectornator="http://vectornator.io" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -132,8 +130,7 @@ String shapeHandler(shape) {
 
 ''';
     case "diamond":
-      return svgString =
-          '''ß
+      return svgString = '''
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg height="100%" stroke-miterlimit="10" style="fill-rule:nonzero;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;" version="1.1" viewBox="0 0 76 180" width="100%" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -147,8 +144,7 @@ String shapeHandler(shape) {
 ''';
 
     case "star":
-      return svgString =
-          '''
+      return svgString = '''
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg height="100%" stroke-miterlimit="10" style="fill-rule:nonzero;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;" version="1.1" viewBox="0 0 76 180" width="100%" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -161,8 +157,7 @@ String shapeHandler(shape) {
 ''';
 
     case "heart":
-      return svgString =
-          '''
+      return svgString = '''
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg height="100%" stroke-miterlimit="10" style="fill-rule:nonzero;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;" version="1.1" viewBox="0 0 76 180" width="100%" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -175,8 +170,7 @@ String shapeHandler(shape) {
 ''';
 
     default:
-      return svgString =
-          '''
+      return svgString = '''
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg height="100%" stroke-miterlimit="10" style="fill-rule:nonzero;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;" version="1.1" viewBox="0 0 76 180" width="100%" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -791,13 +785,13 @@ class MyAppState extends State<MyApp> {
                                           });
                                     }),
                                 SimpleDialogOption(
-                                    child: Text("Delete Entry/Pin",
+                                    child: Text("Delete Entry",
                                         style: GoogleFonts.quicksand(
                                             fontWeight: FontWeight.w600,
                                             color:
                                                 color.computeLuminance() > 0.5
-                                                    ? Colors.black
-                                                    : Colors.white)),
+                                                    ? Colors.red[800]
+                                                    : Colors.red[100])),
                                     onPressed: () {
                                       Navigator.of(context).pop();
                                       showDialog(
@@ -1437,6 +1431,13 @@ class MyAppState extends State<MyApp> {
                       Clipboard.setData(ClipboardData(text: clipBoard));
                     },
                     child: Text('Copy Journal Contents', style: dialogBody),
+                  ),
+                  SimpleDialogOption(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      reenumerateState();
+                    },
+                    child: Text('Refresh Data', style: dialogBody),
                   ),
                   SimpleDialogOption(
                     onPressed: () {
