@@ -16,24 +16,24 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 void main() async {
-  runApp(const MaterialApp(home: MyApp()));
+  runApp(const MaterialApp(home: OdysseyMain()));
   OdysseyDatabase.instance.initStatefromDB();
 }
 
-class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+class OdysseyMain extends StatefulWidget {
+  const OdysseyMain({Key? key}) : super(key: key);
   @override
-  MyAppState createState() => MyAppState();
+  OdysseyMainState createState() => OdysseyMainState();
 
   //Debug
-  static const MyApp instance = MyApp._init();
-  const MyApp._init();
+  static const OdysseyMain instance = OdysseyMain._init();
+  const OdysseyMain._init();
 }
 
-GlobalKey<MyAppState> key = GlobalKey();
+GlobalKey<OdysseyMainState> key = GlobalKey();
 //Variables that we will be using, will try to minimize in the future
-const version = "1.3";
-const release = "Release";
+const version = "1.4";
+const release = "Pre-Release";
 Color pincolor = Color(int.parse(defaultPinColor));
 var colorBuffer =
     "FF0000"; //Default Pin Color when Map settings are not initialized
@@ -59,7 +59,7 @@ var addressBuffer; //Temp Buffer for Pin From Address before it goes into geocod
 var currentTheme; //Light or Dark theme
 String svgString =
     ""; //We're just leaving this blank to init it, shapeHandler will return the real value
-int onboarding = 0;
+int onboarding = 1;
 var pins =
     []; //Pins is a seperate list from statemarkers, independent from whats used by GMapsController
 List<int> journal = [];
@@ -197,7 +197,70 @@ Future<BitmapDescriptor> bitmapDescriptorFromSvg(
   return BitmapDescriptor.fromBytes(bytes!.buffer.asUint8List());
 }
 
-class MyAppState extends State<MyApp> {
+class SettingsPage extends StatefulWidget {
+  const SettingsPage({Key? key}) : super(key: key);
+  @override
+  State<SettingsPage> createState() => SettingsPageState();
+}
+
+class SettingsPageState extends State<SettingsPage> {
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+        child: Column(children: [
+      Card(
+        color: Colors.blue[50],
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            ListTile(
+              leading: Icon(Icons.info),
+              title: Text("Odyssey",
+                  style: GoogleFonts.quicksand(color: Colors.black)),
+              subtitle: Text("Version $version, ($release)",
+                  style: GoogleFonts.quicksand(color: Colors.grey)),
+            ),
+          ],
+        ),
+      ),
+      Card(
+          color: Colors.blue[50],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              ListTile(
+                leading: Icon(Icons.person),
+                title: Text("With 💖 by Kevin George",
+                    style: GoogleFonts.quicksand(color: Colors.black)),
+                subtitle: Text("http://kgeok.github.io/",
+                    style: GoogleFonts.quicksand(color: Colors.grey)),
+              ),
+            ],
+          )),
+      Card(
+          child: Column(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+            ListTile(
+              leading: Icon(Icons.group),
+              title: Text("Acknowledgements",
+                  style: GoogleFonts.quicksand(color: Colors.black)),
+              onTap: () => showLicensePage(
+                  context: context,
+                  useRootNavigator: false,
+                  applicationName: "Odyssey",
+                  applicationVersion: version,
+                  applicationLegalese: "Kevin George"),
+            ),
+          ])),
+    ]));
+  }
+}
+
+class OdysseyMainState extends State<OdysseyMain> {
   late GoogleMapController mapController;
   Set<Marker> statemarkers = {};
 
@@ -339,7 +402,7 @@ class MyAppState extends State<MyApp> {
   }
 
   Widget journalEntry(final caption, final color, final subtitle, var latlng,
-      var date, var note, var id) {
+      var date, var note, var shape, var id) {
     var target = latlng;
     latlng = latlng.toString();
     latlng = latlng.replaceAll("LatLng(", "");
@@ -353,8 +416,8 @@ class MyAppState extends State<MyApp> {
             splashColor: color,
             highlightColor: color,
             onTap: () {
-              journalDialog(
-                  context, caption, subtitle, latlng, color, date, note, id);
+              journalDialog(context, caption, subtitle, latlng, color, date,
+                  note, shape, id);
               mapController
                   .animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
                 target: target,
@@ -414,7 +477,7 @@ class MyAppState extends State<MyApp> {
 
   //Journal Dialog is long because each of these set of widgets are generated at once for each pin in real-time
   void journalDialog(BuildContext context, var caption, var location,
-      var latlng, var color, var date, var note, var id) {
+      var latlng, var color, var date, var note, var shape, var id) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -608,7 +671,8 @@ class MyAppState extends State<MyApp> {
                                                             id,
                                                             caption,
                                                             note,
-                                                            color);
+                                                            color,
+                                                            shape);
                                                     reenumerateState();
                                                   },
                                                 )
@@ -699,7 +763,8 @@ class MyAppState extends State<MyApp> {
                                                             id,
                                                             caption,
                                                             note,
-                                                            color);
+                                                            color,
+                                                            shape);
                                                     reenumerateState();
                                                   },
                                                 )
@@ -775,7 +840,8 @@ class MyAppState extends State<MyApp> {
                                                               id,
                                                               caption,
                                                               note,
-                                                              pincolor);
+                                                              pincolor,
+                                                              shape);
                                                       reenumerateState();
                                                       Navigator.of(context)
                                                           .pop();
@@ -883,6 +949,7 @@ class MyAppState extends State<MyApp> {
           pins[index].pincoor,
           pins[index].pindate,
           pins[index].pinnote,
+          pins[index].pinshape,
           (index + 1));
     });
   }
@@ -1549,87 +1616,6 @@ class MyAppState extends State<MyApp> {
     }
   }
 
-  Widget actionMenu() => PopupMenuButton<int>(
-      tooltip: "Show Pin Menu",
-      itemBuilder: (context) => [
-            PopupMenuItem(
-                value: 1,
-                child: Text(
-                  "Set Color/Shape",
-                  style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
-                ),
-                onTap: () {
-                  colorPicker(context);
-                }),
-            PopupMenuItem(
-              value: 2,
-              child: Text(
-                "Set Caption/Note",
-                style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
-              ),
-              onTap: () {
-                captionDialog(context);
-              },
-            ),
-            PopupMenuItem(
-                value: 3,
-                child: Text(
-                  "Pin From Address",
-                  style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
-                ),
-                onTap: () {
-                  addressDialog(context);
-                }),
-            PopupMenuItem(
-                value: 4,
-                child: Text(
-                  "Pin My Location",
-                  style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
-                ),
-                onTap: () {
-                  appendFromLocation();
-                }),
-            const PopupMenuDivider(height: 20),
-            PopupMenuItem(
-              value: 5,
-              onTap: deleteLastMarker,
-              child: Text(
-                "Delete Last Pin",
-                style: GoogleFonts.quicksand(
-                    fontWeight: FontWeight.w700, color: Colors.red),
-              ),
-            ),
-            const PopupMenuDivider(height: 20),
-            PopupMenuItem(
-              value: 6,
-              child: Text(
-                "Settings",
-                style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
-              ),
-              onTap: () {
-                settings(context);
-              },
-            ),
-          ],
-      icon: Container(
-        height: double.infinity,
-        width: double.infinity,
-        decoration: ShapeDecoration(
-            color: MediaQuery.of(context).platformBrightness == Brightness.light
-                ? lightMode.withOpacity(0.8)
-                : darkMode.withOpacity(0.8),
-            shadows: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                spreadRadius: 5,
-                blurRadius: 7,
-                offset: const Offset(0, 3), // changes position of shadow
-              ),
-            ],
-            shape: const StadiumBorder()),
-        child: const Icon(Icons.push_pin, color: Colors.white),
-      ));
-
   void mapMade(GoogleMapController controller) {
     mapController = controller;
     populateMapfromState();
@@ -1649,6 +1635,93 @@ class MyAppState extends State<MyApp> {
   //UI of the app
   @override
   Widget build(BuildContext context) {
+    Widget actionMenu() => PopupMenuButton<int>(
+        tooltip: "Show Pin Menu",
+        itemBuilder: (context) => [
+              PopupMenuItem(
+                  value: 1,
+                  child: Text(
+                    "Set Color/Shape",
+                    style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
+                  ),
+                  onTap: () {
+                    colorPicker(context);
+                  }),
+              PopupMenuItem(
+                value: 2,
+                child: Text(
+                  "Set Caption/Note",
+                  style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
+                ),
+                onTap: () {
+                  captionDialog(context);
+                },
+              ),
+              PopupMenuItem(
+                  value: 3,
+                  child: Text(
+                    "Pin From Address",
+                    style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
+                  ),
+                  onTap: () {
+                    addressDialog(context);
+                  }),
+              PopupMenuItem(
+                  value: 4,
+                  child: Text(
+                    "Pin My Location",
+                    style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
+                  ),
+                  onTap: () {
+                    appendFromLocation();
+                  }),
+              const PopupMenuDivider(height: 20),
+              PopupMenuItem(
+                value: 5,
+                onTap: deleteLastMarker,
+                child: Text(
+                  "Delete Last Pin",
+                  style: GoogleFonts.quicksand(
+                      fontWeight: FontWeight.w700, color: Colors.red),
+                ),
+              ),
+              const PopupMenuDivider(height: 20),
+              PopupMenuItem(
+                value: 6,
+                child: Text(
+                  "Settings",
+                  style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
+                ),
+                onTap: () {
+                  // settings(context);
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const SettingsPage()));
+                },
+              ),
+            ],
+        icon: Container(
+          height: double.infinity,
+          width: double.infinity,
+          decoration: ShapeDecoration(
+              color:
+                  MediaQuery.of(context).platformBrightness == Brightness.light
+                      ? lightMode.withOpacity(0.9)
+                      : darkMode.withOpacity(0.9),
+              shadows: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  spreadRadius: 2,
+                  blurRadius: 5,
+                  offset: const Offset(0, 3), // changes position of shadow
+                ),
+              ],
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(20)))),
+          child: const Icon(Icons.push_pin, color: Colors.white),
+        ));
+
     return MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: CustomTheme.lightTheme,
@@ -1663,7 +1736,6 @@ class MyAppState extends State<MyApp> {
                 onPressed: () {
                   Scaffold.of(context).openDrawer();
                 },
-                //tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
               );
             }),
             title: Text("Odyssey",
@@ -1676,7 +1748,6 @@ class MyAppState extends State<MyApp> {
                 SizedBox(
                     height: 120.0, //140.0 if header cuts off on Android
                     child: DrawerHeader(
-                      decoration: const BoxDecoration(),
                       child: Text(
                         'Journal',
                         style: GoogleFonts.quicksand(
@@ -1753,8 +1824,8 @@ class MyAppState extends State<MyApp> {
                                 color:
                                     MediaQuery.of(context).platformBrightness ==
                                             Brightness.light
-                                        ? lightMode.withOpacity(0.8)
-                                        : darkMode.withOpacity(0.8),
+                                        ? lightMode.withOpacity(0.9)
+                                        : darkMode.withOpacity(0.9),
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(4)),
                               ),
@@ -1779,8 +1850,8 @@ class MyAppState extends State<MyApp> {
                                 color:
                                     MediaQuery.of(context).platformBrightness ==
                                             Brightness.light
-                                        ? lightMode.withOpacity(0.8)
-                                        : darkMode.withOpacity(0.8),
+                                        ? lightMode.withOpacity(0.9)
+                                        : darkMode.withOpacity(0.9),
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(4)),
                               ),
@@ -1825,8 +1896,8 @@ class MyAppState extends State<MyApp> {
                                 color:
                                     MediaQuery.of(context).platformBrightness ==
                                             Brightness.light
-                                        ? lightMode.withOpacity(0.8)
-                                        : darkMode.withOpacity(0.8),
+                                        ? lightMode.withOpacity(0.9)
+                                        : darkMode.withOpacity(0.9),
                                 shape: const RoundedRectangleBorder(
                                     borderRadius: BorderRadius.vertical(
                                         top: Radius.circular(10),
@@ -1869,8 +1940,8 @@ class MyAppState extends State<MyApp> {
                                 color:
                                     MediaQuery.of(context).platformBrightness ==
                                             Brightness.light
-                                        ? lightMode.withOpacity(0.8)
-                                        : darkMode.withOpacity(0.8),
+                                        ? lightMode.withOpacity(0.9)
+                                        : darkMode.withOpacity(0.9),
                                 shape: const RoundedRectangleBorder(
                                     borderRadius: BorderRadius.vertical(
                                         top: Radius.circular(0),

@@ -158,8 +158,8 @@ void onboardDialog(BuildContext context, var header, var body1, var body2,
       return AlertDialog(
           backgroundColor:
               MediaQuery.of(context).platformBrightness == Brightness.light
-                  ? lightMode.withOpacity(0.8)
-                  : darkMode.withOpacity(0.8),
+                  ? lightMode.withOpacity(0.9)
+                  : darkMode.withOpacity(0.9),
           title: Text(header, style: dialogHeader),
           content: SingleChildScrollView(
             child: ListBody(

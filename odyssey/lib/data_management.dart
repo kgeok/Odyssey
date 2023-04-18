@@ -120,7 +120,7 @@ class OdysseyDatabase {
         [mapZoom, bearing, mt.toString(), '0xffff0000']);
   }
 
-  Future updatePinsDB(id, caption, note, color) async {
+  Future updatePinsDB(id, caption, note, color, shape) async {
     //This function will include other pin elements later
     final db = await instance.database;
 
@@ -129,8 +129,8 @@ class OdysseyDatabase {
     colorBuffer = colorBuffer.replaceAll(")", "");
 
     db.rawUpdate(
-        '''UPDATE Pins SET caption = ?, note = ?, color = ? WHERE id = ?''',
-        [caption, note, colorBuffer, id]);
+        '''UPDATE Pins SET caption = ?, note = ?, color = ?, shape = ? WHERE id = ?''',
+        [caption, note, colorBuffer, shape, id]);
   }
 
   Future initStatefromDB() async {
