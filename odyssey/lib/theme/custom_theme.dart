@@ -23,7 +23,7 @@ class CustomTheme {
       //2
       dialogTheme: DialogTheme(backgroundColor: lightMode),
       dividerColor: darkMode,
-      useMaterial3: true,
+      useMaterial3: false,
       splashColor: lightMode.withOpacity(0.4),
       primarySwatch: lightMode,
       primaryColor: lightMode,
@@ -31,6 +31,9 @@ class CustomTheme {
       dialogBackgroundColor: lightMode,
       drawerTheme: DrawerThemeData(backgroundColor: darkMode),
       canvasColor: darkMode,
+      snackBarTheme: SnackBarThemeData(actionTextColor: lightMode),
+      chipTheme:
+          ChipThemeData(backgroundColor: lightMode, selectedColor: darkMode),
       appBarTheme: AppBarTheme(
         backgroundColor: lightMode,
         titleTextStyle: const TextStyle(color: Colors.white, fontSize: 20),
@@ -48,7 +51,7 @@ class CustomTheme {
     return ThemeData(
       dialogTheme: DialogTheme(backgroundColor: darkMode),
       dividerColor: lightMode,
-      useMaterial3: true,
+      useMaterial3: false,
       splashColor: darkMode.withOpacity(0.4),
       primarySwatch: darkMode,
       primaryColor: darkMode,
@@ -56,6 +59,9 @@ class CustomTheme {
       dialogBackgroundColor: darkMode,
       drawerTheme: DrawerThemeData(backgroundColor: lightMode),
       canvasColor: lightMode,
+      snackBarTheme: SnackBarThemeData(actionTextColor: lightMode),
+      chipTheme:
+          ChipThemeData(backgroundColor: darkMode, selectedColor: lightMode),
       appBarTheme: AppBarTheme(
         backgroundColor: darkMode,
         titleTextStyle: const TextStyle(color: Colors.white, fontSize: 20),

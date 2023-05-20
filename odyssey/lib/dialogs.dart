@@ -245,30 +245,87 @@ void helpDialog(BuildContext context) {
                   : darkMode.withOpacity(1),
           title: Text("Quick Start", style: dialogHeader),
           content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('Tap the Map to set a Pin', style: dialogBody),
-                const Text(''),
-                Text(
-                    'Tapping the Pin Menu will show options for managing and customizing pins',
-                    style: dialogBody),
-                const Text(''),
-                Text(
-                    'Tap Caption before setting a Pin to set the Pin\'s Caption',
-                    style: dialogBody),
-                const Text(''),
-                Text('Tap Color before setting a Pin to set the Pin\'s Color',
-                    style: dialogBody),
-                const Text(''),
-                Text('Long Press the Map to see your last Pin',
-                    style: dialogBody),
-                const Text(''),
-                Text('Tap the Menu button to open the Journal',
-                    style: dialogBody),
-              ],
+              child: ListBody(children: [
+            Text('Tap anywhere on the map to set a Pin', style: dialogBody),
+            const Text(''),
+            RichText(
+              text: TextSpan(children: [
+                TextSpan(text: "Tap ", style: dialogBody),
+                const WidgetSpan(
+                    child: Icon(
+                  Icons.menu,
+                  color: Colors.white,
+                )),
+                TextSpan(
+                    text:
+                        " to open the Journal and see an overview of all your entries",
+                    style: dialogBody)
+              ]),
             ),
-          ),
-          actions: <Widget>[
+            const Text(''),
+            RichText(
+              text: TextSpan(children: [
+                TextSpan(text: "Tap ", style: dialogBody),
+                const WidgetSpan(
+                    child: Icon(
+                  Icons.push_pin,
+                  color: Colors.white,
+                )),
+                TextSpan(
+                    text: " to see customization and more options",
+                    style: dialogBody)
+              ]),
+            ),
+            const Text(''),
+            RichText(
+              text: TextSpan(children: [
+                TextSpan(text: "Tap ", style: dialogBody),
+                const WidgetSpan(
+                    child: Icon(
+                  Icons.my_location,
+                  color: Colors.white,
+                )),
+                TextSpan(
+                    text:
+                        " to move the map to your current location (Requires your current location)",
+                    style: dialogBody)
+              ]),
+            ),
+            const Text(''),
+            RichText(
+              text: TextSpan(children: [
+                TextSpan(text: "Tap ", style: dialogBody),
+                const WidgetSpan(
+                    child: Icon(
+                  Icons.radar,
+                  color: Colors.white,
+                )),
+                TextSpan(
+                    text:
+                        " to open Near By and see places near you (Requires your current location)",
+                    style: dialogBody)
+              ]),
+            ),
+            const Text(''),
+            RichText(
+              text: TextSpan(children: [
+                TextSpan(text: "Tap ", style: dialogBody),
+                const WidgetSpan(
+                    child: Icon(
+                  Icons.add,
+                  color: Colors.white,
+                )),
+                const WidgetSpan(
+                    child: Icon(
+                  Icons.remove,
+                  color: Colors.white,
+                )),
+                TextSpan(
+                    text: " to zoom in and out of the map", style: dialogBody)
+              ]),
+            ),
+          ])),
+          actions: [
             TextButton(
               child: Text('Dismiss', style: dialogBody),
               onPressed: () {

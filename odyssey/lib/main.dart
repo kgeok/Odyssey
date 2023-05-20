@@ -14,6 +14,7 @@ import 'package:location/location.dart' as prefix;
 import 'package:geocoding/geocoding.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:google_maps_webservice/places.dart' as places;
 
 void main() async {
   runApp(const MaterialApp(home: OdysseyMain()));
@@ -33,7 +34,8 @@ class OdysseyMain extends StatefulWidget {
 GlobalKey<OdysseyMainState> key = GlobalKey();
 //Variables that we will be using, will try to minimize in the future
 const version = "1.4";
-const release = "Pre-Release";
+const release = "Release";
+const apikey = "AIzaSyD8TrymPJaJVDXvXja2O6woa7B_-R-fi9w"; //Google Maps API Key
 Color pincolor = Color(int.parse(defaultPinColor));
 var colorBuffer =
     "FF0000"; //Default Pin Color when Map settings are not initialized
@@ -43,6 +45,7 @@ Color currentColor = Color(
     0xffff0000); //Value is not constant because it is changed with the picker
 LatLng center =
     LatLng(defaultCenterLat, defaultCenterLng); //Default center of Map
+LatLng currentLocation = center; //Using center as a buffer
 MapType mapType = defaultMapType; //Default Map Type
 var pinshape = defaultPinShape; //Default Pin shape
 double bearing = defaultBearing; //Rotation of Map
@@ -57,25 +60,16 @@ var noteBuffer; //Temp Buffer for the Note before it goes into PinData
 var locationBuffer; //Temp Buffer for the results for reverseGeocoder before it goes into PinData
 var addressBuffer; //Temp Buffer for Pin From Address before it goes into geocoder
 var currentTheme; //Light or Dark theme
+int? catselection;
 String svgString =
     ""; //We're just leaving this blank to init it, shapeHandler will return the real value
-int onboarding = 1;
+int onboarding = 0;
 var pins =
     []; //Pins is a seperate list from statemarkers, independent from whats used by GMapsController
 List<int> journal = [];
-
-Future<void> redirectURL(String url) async {
-  if (!await launchUrl(Uri.parse(url))) {
-    throw "Error launching link";
-  }
-}
-
-void colorToHex(Color color) {
-  //Color for Flutter is parsed differently from HTML and CSS HEX Color codes which apparently SVG uses
-  colorBuffer = color.toString(); //We have to assign a new variable
-  colorBuffer = colorBuffer.replaceAll("Color(0xff", "");
-  colorBuffer = colorBuffer.replaceAll(")", "");
-}
+var nearbyresults = [];
+final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
+    GlobalKey<ScaffoldMessengerState>();
 
 class PinData {
   var pinid;
@@ -98,6 +92,27 @@ class PinData {
       required this.pincolor,
       required this.pincoor,
       required this.pinlocation});
+}
+
+class NearByData {
+  var id;
+  late var name;
+  late var rating;
+  late LatLng coor;
+  late var location;
+  late var category;
+  late var note;
+  late bool state;
+
+  NearByData(
+      {required this.name,
+      required this.coor,
+      required this.location,
+      this.note,
+      this.category,
+      this.id,
+      this.rating,
+      required this.state});
 }
 
 String shapeHandler(shape) {
@@ -197,67 +212,17 @@ Future<BitmapDescriptor> bitmapDescriptorFromSvg(
   return BitmapDescriptor.fromBytes(bytes!.buffer.asUint8List());
 }
 
-class SettingsPage extends StatefulWidget {
-  const SettingsPage({Key? key}) : super(key: key);
-  @override
-  State<SettingsPage> createState() => SettingsPageState();
+Future<void> redirectURL(String url) async {
+  if (!await launchUrl(Uri.parse(url))) {
+    throw "Error launching link";
+  }
 }
 
-class SettingsPageState extends State<SettingsPage> {
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-        child: Column(children: [
-      Card(
-        color: Colors.blue[50],
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            ListTile(
-              leading: Icon(Icons.info),
-              title: Text("Odyssey",
-                  style: GoogleFonts.quicksand(color: Colors.black)),
-              subtitle: Text("Version $version, ($release)",
-                  style: GoogleFonts.quicksand(color: Colors.grey)),
-            ),
-          ],
-        ),
-      ),
-      Card(
-          color: Colors.blue[50],
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              ListTile(
-                leading: Icon(Icons.person),
-                title: Text("With 💖 by Kevin George",
-                    style: GoogleFonts.quicksand(color: Colors.black)),
-                subtitle: Text("http://kgeok.github.io/",
-                    style: GoogleFonts.quicksand(color: Colors.grey)),
-              ),
-            ],
-          )),
-      Card(
-          child: Column(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-            ListTile(
-              leading: Icon(Icons.group),
-              title: Text("Acknowledgements",
-                  style: GoogleFonts.quicksand(color: Colors.black)),
-              onTap: () => showLicensePage(
-                  context: context,
-                  useRootNavigator: false,
-                  applicationName: "Odyssey",
-                  applicationVersion: version,
-                  applicationLegalese: "Kevin George"),
-            ),
-          ])),
-    ]));
-  }
+void colorToHex(Color color) {
+  //Color for Flutter is parsed differently from HTML and CSS HEX Color codes which apparently SVG uses
+  colorBuffer = color.toString(); //We have to assign a new variable
+  colorBuffer = colorBuffer.replaceAll("Color(0xff", "");
+  colorBuffer = colorBuffer.replaceAll(")", "");
 }
 
 class OdysseyMainState extends State<OdysseyMain> {
@@ -349,6 +314,7 @@ class OdysseyMainState extends State<OdysseyMain> {
       locationBuffer = pinlocation;
     }
 
+    //Adding Entry here...
     DateTime currentDate = DateTime.now();
     String date = currentDate.toString().substring(0, 10);
     date.toString();
@@ -544,66 +510,96 @@ class OdysseyMainState extends State<OdysseyMain> {
                             ? Colors.black
                             : Colors.white)),
                 onPressed: () {
-                  showDialog(
+                  showModalBottomSheet(
                     context: context,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    constraints: BoxConstraints(maxWidth: 500),
                     builder: (BuildContext context) {
-                      return AlertDialog(
-                          backgroundColor: color,
-                          title: Text("Options",
-                              style: GoogleFonts.quicksand(
-                                  fontWeight: FontWeight.w700,
-                                  color: color.computeLuminance() > 0.5
-                                      ? Colors.black
-                                      : Colors.white)),
-                          content: SingleChildScrollView(
-                            child: ListBody(
-                              children: <Widget>[
-                                SimpleDialogOption(
-                                    child: Text("Copy Entry",
-                                        style: GoogleFonts.quicksand(
-                                            fontWeight: FontWeight.w600,
-                                            color:
-                                                color.computeLuminance() > 0.5
-                                                    ? Colors.black
-                                                    : Colors.white)),
-                                    onPressed: () {
-                                      Clipboard.setData(ClipboardData(
-                                          text: caption +
-                                              " " +
-                                              location +
-                                              ", " +
-                                              date +
-                                              " " +
-                                              note));
-                                    }),
-                                SimpleDialogOption(
-                                    child: Text("Copy Address",
-                                        style: GoogleFonts.quicksand(
-                                            fontWeight: FontWeight.w600,
-                                            color:
-                                                color.computeLuminance() > 0.5
-                                                    ? Colors.black
-                                                    : Colors.white)),
-                                    onPressed: () {
-                                      Clipboard.setData(
-                                          ClipboardData(text: location));
-                                    }),
-                                SimpleDialogOption(
-                                    child: Text("Edit Caption",
-                                        style: GoogleFonts.quicksand(
-                                            fontWeight: FontWeight.w600,
-                                            color:
-                                                color.computeLuminance() > 0.5
-                                                    ? Colors.black
-                                                    : Colors.white)),
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                      showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return AlertDialog(
-                                              backgroundColor: color,
-                                              title: Text('Enter New Caption',
+                      return Container(
+                        constraints: BoxConstraints(maxWidth: 500),
+                        color: Colors.white,
+                        child: SingleChildScrollView(
+                          child: ListBody(
+                            children: <Widget>[
+                              ListTile(
+                                title: Text("Copy Entry",
+                                    style: GoogleFonts.quicksand(
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black)),
+                                onTap: () {
+                                  Navigator.of(context).pop();
+                                  Clipboard.setData(ClipboardData(
+                                      text: caption +
+                                          " " +
+                                          location +
+                                          ", " +
+                                          date +
+                                          " " +
+                                          note));
+                                  scaffoldMessengerKey.currentState
+                                      ?.showSnackBar(SnackBar(
+                                    content: const Text('Copied to Clipboard'),
+                                  ));
+                                },
+                              ),
+                              ListTile(
+                                title: Text("Copy Address",
+                                    style: GoogleFonts.quicksand(
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black)),
+                                onTap: () {
+                                  Navigator.of(context).pop();
+                                  Clipboard.setData(
+                                      ClipboardData(text: location));
+                                  scaffoldMessengerKey.currentState
+                                      ?.showSnackBar(SnackBar(
+                                    content: const Text('Copied to Clipboard'),
+                                  ));
+                                },
+                              ),
+                              ListTile(
+                                title: Text("Edit Caption",
+                                    style: GoogleFonts.quicksand(
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black)),
+                                onTap: () {
+                                  Navigator.of(context).pop();
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                          backgroundColor: color,
+                                          title: Text('Enter New Caption',
+                                              style: GoogleFonts.quicksand(
+                                                  fontWeight: FontWeight.w700,
+                                                  color:
+                                                      color.computeLuminance() >
+                                                              0.5
+                                                          ? Colors.black
+                                                          : Colors.white)),
+                                          content: SingleChildScrollView(
+                                            child: ListBody(
+                                              children: <Widget>[
+                                                TextField(
+                                                    autofocus: true,
+                                                    decoration: InputDecoration(
+                                                        fillColor:
+                                                            Colors.grey[300],
+                                                        filled: true,
+                                                        border:
+                                                            const OutlineInputBorder(),
+                                                        hintText: caption),
+                                                    onChanged: (value) {
+                                                      captionBuffer = value;
+                                                    }),
+                                              ],
+                                            ),
+                                          ),
+                                          actions: <Widget>[
+                                            TextButton(
+                                              child: Text('Cancel',
                                                   style: GoogleFonts.quicksand(
                                                       fontWeight:
                                                           FontWeight.w700,
@@ -612,90 +608,12 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                                   0.5
                                                               ? Colors.black
                                                               : Colors.white)),
-                                              content: SingleChildScrollView(
-                                                child: ListBody(
-                                                  children: <Widget>[
-                                                    TextField(
-                                                        autofocus: true,
-                                                        decoration: InputDecoration(
-                                                            fillColor: Colors
-                                                                .grey[300],
-                                                            filled: true,
-                                                            border:
-                                                                const OutlineInputBorder(),
-                                                            hintText: caption),
-                                                        onChanged: (value) {
-                                                          captionBuffer = value;
-                                                        }),
-                                                  ],
-                                                ),
-                                              ),
-                                              actions: <Widget>[
-                                                TextButton(
-                                                  child: Text('Cancel',
-                                                      style: GoogleFonts.quicksand(
-                                                          fontWeight: FontWeight
-                                                              .w700,
-                                                          color:
-                                                              color.computeLuminance() >
-                                                                      0.5
-                                                                  ? Colors.black
-                                                                  : Colors
-                                                                      .white)),
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                ),
-                                                TextButton(
-                                                  child: Text('OK',
-                                                      style: GoogleFonts.quicksand(
-                                                          fontWeight: FontWeight
-                                                              .w700,
-                                                          color:
-                                                              color.computeLuminance() >
-                                                                      0.5
-                                                                  ? Colors.black
-                                                                  : Colors
-                                                                      .white)),
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                    if (captionBuffer == "") {
-                                                      captionBuffer = "";
-                                                    }
-                                                    captionBuffer ??= "";
-                                                    caption = captionBuffer;
-                                                    captionBuffer = "";
-                                                    Navigator.pop(context);
-                                                    OdysseyDatabase.instance
-                                                        .updatePinsDB(
-                                                            id,
-                                                            caption,
-                                                            note,
-                                                            color,
-                                                            shape);
-                                                    reenumerateState();
-                                                  },
-                                                )
-                                              ]);
-                                        },
-                                      );
-                                    }),
-                                SimpleDialogOption(
-                                    child: Text("Edit Note",
-                                        style: GoogleFonts.quicksand(
-                                            fontWeight: FontWeight.w600,
-                                            color:
-                                                color.computeLuminance() > 0.5
-                                                    ? Colors.black
-                                                    : Colors.white)),
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                      showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return AlertDialog(
-                                              backgroundColor: color,
-                                              title: Text('Enter New Note',
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                            ),
+                                            TextButton(
+                                              child: Text('OK',
                                                   style: GoogleFonts.quicksand(
                                                       fontWeight:
                                                           FontWeight.w700,
@@ -704,222 +622,241 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                                   0.5
                                                               ? Colors.black
                                                               : Colors.white)),
-                                              content: SingleChildScrollView(
-                                                child: ListBody(
-                                                  children: <Widget>[
-                                                    TextField(
-                                                        autofocus: true,
-                                                        decoration: InputDecoration(
-                                                            fillColor: Colors
-                                                                .grey[300],
-                                                            filled: true,
-                                                            border:
-                                                                const OutlineInputBorder(),
-                                                            hintText: note),
-                                                        onChanged: (value) {
-                                                          noteBuffer = value;
-                                                        }),
-                                                  ],
-                                                ),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                                if (captionBuffer == "") {
+                                                  captionBuffer = "";
+                                                }
+                                                captionBuffer ??= "";
+                                                caption = captionBuffer;
+                                                captionBuffer = "";
+                                                Navigator.pop(context);
+                                                OdysseyDatabase.instance
+                                                    .updatePinsDB(id, caption,
+                                                        note, color, shape);
+                                                reenumerateState();
+                                              },
+                                            )
+                                          ]);
+                                    },
+                                  );
+                                },
+                              ),
+                              ListTile(
+                                title: Text("Edit Note",
+                                    style: GoogleFonts.quicksand(
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black)),
+                                onTap: () {
+                                  Navigator.of(context).pop();
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                          backgroundColor: color,
+                                          title: Text('Enter New Note',
+                                              style: GoogleFonts.quicksand(
+                                                  fontWeight: FontWeight.w700,
+                                                  color:
+                                                      color.computeLuminance() >
+                                                              0.5
+                                                          ? Colors.black
+                                                          : Colors.white)),
+                                          content: SingleChildScrollView(
+                                            child: ListBody(
+                                              children: <Widget>[
+                                                TextField(
+                                                    autofocus: true,
+                                                    decoration: InputDecoration(
+                                                        fillColor:
+                                                            Colors.grey[300],
+                                                        filled: true,
+                                                        border:
+                                                            const OutlineInputBorder(),
+                                                        hintText: note),
+                                                    onChanged: (value) {
+                                                      noteBuffer = value;
+                                                    }),
+                                              ],
+                                            ),
+                                          ),
+                                          actions: <Widget>[
+                                            TextButton(
+                                              child: Text('Cancel',
+                                                  style: GoogleFonts.quicksand(
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color:
+                                                          color.computeLuminance() >
+                                                                  0.5
+                                                              ? Colors.black
+                                                              : Colors.white)),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                            ),
+                                            TextButton(
+                                              child: Text('OK',
+                                                  style: GoogleFonts.quicksand(
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color:
+                                                          color.computeLuminance() >
+                                                                  0.5
+                                                              ? Colors.black
+                                                              : Colors.white)),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                                if (noteBuffer == "") {
+                                                  noteBuffer = "";
+                                                }
+                                                noteBuffer ??= "";
+                                                note = noteBuffer;
+                                                noteBuffer = "";
+                                                Navigator.pop(context);
+                                                OdysseyDatabase.instance
+                                                    .updatePinsDB(id, caption,
+                                                        note, color, shape);
+                                                reenumerateState();
+                                              },
+                                            )
+                                          ]);
+                                    },
+                                  );
+                                },
+                              ),
+                              ListTile(
+                                title: Text("Edit Color",
+                                    style: GoogleFonts.quicksand(
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black)),
+                                onTap: () {
+                                  Navigator.of(context).pop();
+                                  showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                            backgroundColor: MediaQuery.of(
+                                                            context)
+                                                        .platformBrightness ==
+                                                    Brightness.light
+                                                ? lightMode.withOpacity(1)
+                                                : darkMode.withOpacity(1),
+                                            titlePadding:
+                                                const EdgeInsets.all(15.0),
+                                            contentPadding:
+                                                const EdgeInsets.all(0.0),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(5.0),
+                                            ),
+                                            title: Text('Select Color',
+                                                style: dialogHeader),
+                                            content: SingleChildScrollView(
+                                              child: ColorPicker(
+                                                pickerColor: pickerColor,
+                                                onColorChanged: changeColor,
+                                                pickerAreaHeightPercent: 0.8,
+                                                labelTypes: const [],
+                                                displayThumbColor: true,
+                                                enableAlpha: false,
                                               ),
-                                              actions: <Widget>[
-                                                TextButton(
-                                                  child: Text('Cancel',
-                                                      style: GoogleFonts.quicksand(
-                                                          fontWeight: FontWeight
-                                                              .w700,
-                                                          color:
-                                                              color.computeLuminance() >
-                                                                      0.5
-                                                                  ? Colors.black
-                                                                  : Colors
-                                                                      .white)),
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                ),
-                                                TextButton(
-                                                  child: Text('OK',
-                                                      style: GoogleFonts.quicksand(
-                                                          fontWeight: FontWeight
-                                                              .w700,
-                                                          color:
-                                                              color.computeLuminance() >
-                                                                      0.5
-                                                                  ? Colors.black
-                                                                  : Colors
-                                                                      .white)),
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                    if (noteBuffer == "") {
-                                                      noteBuffer = "";
-                                                    }
-                                                    noteBuffer ??= "";
-                                                    note = noteBuffer;
-                                                    noteBuffer = "";
-                                                    Navigator.pop(context);
-                                                    OdysseyDatabase.instance
-                                                        .updatePinsDB(
-                                                            id,
-                                                            caption,
-                                                            note,
-                                                            color,
-                                                            shape);
-                                                    reenumerateState();
-                                                  },
-                                                )
-                                              ]);
-                                        },
-                                      );
-                                    }),
-                                SimpleDialogOption(
-                                    child: Text("Edit Color",
-                                        style: GoogleFonts.quicksand(
-                                            fontWeight: FontWeight.w600,
-                                            color:
-                                                color.computeLuminance() > 0.5
-                                                    ? Colors.black
-                                                    : Colors.white)),
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                      showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return AlertDialog(
-                                                backgroundColor: MediaQuery.of(
-                                                                context)
-                                                            .platformBrightness ==
-                                                        Brightness.light
-                                                    ? lightMode.withOpacity(1)
-                                                    : darkMode.withOpacity(1),
-                                                titlePadding:
-                                                    const EdgeInsets.all(15.0),
-                                                contentPadding:
-                                                    const EdgeInsets.all(0.0),
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          5.0),
-                                                ),
-                                                title: Text('Select Color',
-                                                    style: dialogHeader),
-                                                content: SingleChildScrollView(
-                                                  child: ColorPicker(
-                                                    pickerColor: pickerColor,
-                                                    onColorChanged: changeColor,
-                                                    pickerAreaHeightPercent:
-                                                        0.8,
-                                                    labelTypes: const [],
-                                                    displayThumbColor: true,
-                                                    enableAlpha: false,
-                                                  ),
-                                                ),
-                                                actions: <Widget>[
-                                                  TextButton(
-                                                    child: Text('Cancel',
-                                                        style: dialogBody),
-                                                    onPressed: () {
-                                                      Navigator.of(context)
-                                                          .pop();
-                                                    },
-                                                  ),
-                                                  TextButton(
-                                                    child: Text('OK',
-                                                        style: dialogBody),
-                                                    onPressed: () {
-                                                      Navigator.of(context)
-                                                          .pop();
-                                                      setState(() =>
-                                                          currentColor =
-                                                              pickerColor);
-                                                      setState(() => pincolor =
-                                                          currentColor);
-                                                      colorToHex(pincolor);
-                                                      OdysseyDatabase.instance
-                                                          .updatePinsDB(
-                                                              id,
-                                                              caption,
-                                                              note,
-                                                              pincolor,
-                                                              shape);
-                                                      reenumerateState();
-                                                      Navigator.of(context)
-                                                          .pop();
-                                                    },
-                                                  )
-                                                ]);
-                                          });
-                                    }),
-                                SimpleDialogOption(
-                                    child: Text("Delete Entry",
-                                        style: GoogleFonts.quicksand(
-                                            fontWeight: FontWeight.w600,
-                                            color:
-                                                color.computeLuminance() > 0.5
-                                                    ? Colors.red[800]
-                                                    : Colors.red[100])),
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                      showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return AlertDialog(
-                                              backgroundColor:
-                                                  Colors.orange[800],
-                                              title: Text("Delete Entry?",
-                                                  style: dialogHeader),
-                                              content: SingleChildScrollView(
-                                                child: ListBody(
-                                                  children: <Widget>[
-                                                    Text(
-                                                        "Are you sure you want to delete this entry?",
-                                                        style: dialogBody),
-                                                    Text(
-                                                        "(This will also delete corresponding Pin)",
-                                                        style: dialogBody),
-                                                  ],
-                                                ),
+                                            ),
+                                            actions: <Widget>[
+                                              TextButton(
+                                                child: Text('Cancel',
+                                                    style: dialogBody),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
                                               ),
-                                              actions: <Widget>[
-                                                TextButton(
-                                                  child: Text('Cancel',
-                                                      style: dialogBody),
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                ),
-                                                TextButton(
-                                                  child: Text('OK',
-                                                      style: dialogBody),
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                    pins.removeAt(id - 1);
-                                                    OdysseyDatabase.instance
-                                                        .initDBfromState();
-                                                    reenumerateState();
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                )
-                                              ]);
-                                        },
-                                      );
-                                    }),
-                              ],
-                            ),
+                                              TextButton(
+                                                child: Text('OK',
+                                                    style: dialogBody),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                  setState(() => currentColor =
+                                                      pickerColor);
+                                                  setState(() =>
+                                                      pincolor = currentColor);
+                                                  colorToHex(pincolor);
+                                                  OdysseyDatabase.instance
+                                                      .updatePinsDB(
+                                                          id,
+                                                          caption,
+                                                          note,
+                                                          pincolor,
+                                                          shape);
+                                                  reenumerateState();
+                                                  Navigator.of(context).pop();
+                                                },
+                                              )
+                                            ]);
+                                      });
+                                },
+                              ),
+                              ListTile(
+                                title: Text("Delete Entry",
+                                    style: GoogleFonts.quicksand(
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.red[800])),
+                                onTap: () {
+                                  Navigator.of(context).pop();
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                          backgroundColor: Colors.orange[800],
+                                          title: Text("Delete Entry?",
+                                              style: dialogHeader),
+                                          content: SingleChildScrollView(
+                                            child: ListBody(
+                                              children: <Widget>[
+                                                Text(
+                                                    "Are you sure you want to delete this entry?",
+                                                    style: dialogBody),
+                                                Text(
+                                                    "(This will also delete corresponding Pin)",
+                                                    style: dialogBody),
+                                              ],
+                                            ),
+                                          ),
+                                          actions: <Widget>[
+                                            TextButton(
+                                              child: Text('Cancel',
+                                                  style: dialogBody),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                            ),
+                                            TextButton(
+                                              child:
+                                                  Text('OK', style: dialogBody),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                                pins.removeAt(id - 1);
+                                                OdysseyDatabase.instance
+                                                    .initDBfromState();
+                                                reenumerateState();
+                                                Navigator.of(context).pop();
+                                              },
+                                            )
+                                          ]);
+                                    },
+                                  );
+                                },
+                              ),
+                              ListTile(
+                                title: Text("",
+                                    style: GoogleFonts.quicksand(
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black)),
+                                onTap: () {},
+                              ),
+                            ],
                           ),
-                          actions: <Widget>[
-                            TextButton(
-                              child: Text("Dismiss",
-                                  style: GoogleFonts.quicksand(
-                                      fontWeight: FontWeight.w600,
-                                      color: color.computeLuminance() > 0.5
-                                          ? Colors.black
-                                          : Colors.white)),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                            )
-                          ]);
+                        ),
+                      );
                     },
                   );
                 },
@@ -1005,7 +942,7 @@ class OdysseyMainState extends State<OdysseyMain> {
         currentPosition.longitude!.toDouble()));
   }
 
-  Future<void> cameraLocation() async {
+  Future<void> getCurrentLocation() async {
     bool serviceEnabled;
     prefix.PermissionStatus permissionGranted;
     prefix.Location location = prefix.Location();
@@ -1036,13 +973,22 @@ class OdysseyMainState extends State<OdysseyMain> {
         }
       }
     }
+
+    scaffoldMessengerKey.currentState
+        ?.showSnackBar(SnackBar(content: const Text('Getting Location...')));
+
     currentPosition = await location.getLocation();
 
+    currentLocation = LatLng(currentPosition.latitude!.toDouble(),
+        currentPosition.longitude!.toDouble());
+  }
+
+  void cameraToLocation() {
+    getCurrentLocation();
     mapController.animateCamera(
       CameraUpdate.newCameraPosition(
         CameraPosition(
-          target: LatLng(currentPosition.latitude!.toDouble(),
-              currentPosition.longitude!.toDouble()),
+          target: currentLocation,
           bearing: 0,
           zoom: 12,
         ),
@@ -1070,7 +1016,6 @@ class OdysseyMainState extends State<OdysseyMain> {
   void deleteLastMarker() {
     Marker lastmarker = statemarkers.firstWhere(
         (marker) => marker.markerId.value == (statemarkers.length).toString());
-
     setState(() {
       statemarkers.remove(lastmarker);
     });
@@ -1496,6 +1441,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                       }
                       print(clipBoard);
                       Clipboard.setData(ClipboardData(text: clipBoard));
+                      scaffoldMessengerKey.currentState?.showSnackBar(
+                          SnackBar(content: const Text('Copied to Clipboard')));
                     },
                     child: Text('Copy Journal Contents', style: dialogBody),
                   ),
@@ -1543,6 +1490,16 @@ class OdysseyMainState extends State<OdysseyMain> {
     );
   }
 
+  void importExport(String type) {
+    switch (type) {
+      case "import":
+        break;
+
+      case "export":
+        break;
+    }
+  }
+
   void clearWarning(BuildContext context) {
     showDialog(
       context: context,
@@ -1587,12 +1544,19 @@ class OdysseyMainState extends State<OdysseyMain> {
       }
     } on SocketException catch (_) {
       print('Not Connected to Google Maps');
-      simpleDialog(
-          context,
-          "No Internet Connection",
-          "Please check your device settings",
-          "Some functionality may not be available at this time.",
-          "error");
+      scaffoldMessengerKey.currentState?.showSnackBar(SnackBar(
+          duration: Duration(milliseconds: 2000),
+          content: const Text('No Internet Connection'),
+          action: SnackBarAction(
+              label: 'More Info',
+              onPressed: () {
+                simpleDialog(
+                    context,
+                    "No Internet Connection",
+                    "Please check your device settings",
+                    "Some functionality may not be available at this time.",
+                    "error");
+              })));
     }
   }
 
@@ -1623,16 +1587,280 @@ class OdysseyMainState extends State<OdysseyMain> {
     startOnboarding();
     //This is only for Pre-Release Versions, This doesn't apply for release versions.
     if (release == "Pre-Release") {
-      simpleDialog(
-          context,
-          "Pre-Release Version",
-          "Confidential and Proprietary, Please Don't Share Information or Screenshots",
-          "Please Report any Bugs and Crashes, Take note of what you were doing when they occurred.",
-          "error");
+      scaffoldMessengerKey.currentState?.showSnackBar(SnackBar(
+          content: const Text('Pre-Release Version'),
+          duration: Duration(milliseconds: 3000),
+          backgroundColor: Colors.red[800],
+          action: SnackBarAction(
+              label: 'More Info',
+              textColor: Colors.white,
+              onPressed: () {
+                simpleDialog(
+                    context,
+                    "Pre-Release Version",
+                    "Confidential and Proprietary, Please Don't Share Information or Screenshots",
+                    "Please Report any Bugs and Crashes, Take note of what you were doing when they occurred.",
+                    "error");
+              })));
     }
   }
 
+  Future presentNearBy() async {
+    await getCurrentLocation();
+    final placeskey = places.GoogleMapsPlaces(apiKey: apikey);
+    places.PlacesSearchResponse response;
+
+    final categories = [
+      "Accounting",
+      "Airport",
+      "Amusement Park",
+      "Aquarium",
+      "Art Gallery",
+      "ATM",
+      "Bakery",
+      "Bank",
+      "Bar",
+      "Beauty Salon",
+      "Bicycle Store",
+      "Book Store",
+      "Bowling Alley",
+      "Bus Station",
+      "Cafe",
+      "Campground",
+      "Car Dealer",
+      "Car Rental",
+      "Car Repair",
+      "Car Wash",
+      "Casino",
+      "Cemetery",
+      "Church",
+      "City Hall",
+      "Clothing Store",
+      "Convenience Store",
+      "Courthouse",
+      "Dentist",
+      "Department Store",
+      "Doctor",
+      "Drugstore",
+      "Electrician",
+      "Electronics Store",
+      "Embassy",
+      "Fire Station",
+      "Florist",
+      "Funeral Home",
+      "Furniture Store",
+      "Gas Station",
+      "Gym",
+      "Hair Care",
+      "Hardware Store",
+      "Hindu Temple",
+      "Home Goods Store",
+      "Hospital",
+      "Insurance Agency",
+      "Jewelry Store",
+      "Laundry",
+      "Lawyer",
+      "Library",
+      "Light Rail Station",
+      "Liquor Store",
+      "Local Government Office",
+      "Locksmith",
+      "Lodging",
+      "Meal Delivery",
+      "Meal Takeaway",
+      "Mosque",
+      "Movie Rental",
+      "Movie Theater",
+      "Moving Company",
+      "Museum",
+      "Night Club",
+      "Painter",
+      "Park",
+      "Parking",
+      "Pet Store",
+      "Pharmacy",
+      "Physiotherapist",
+      "Plumber",
+      "Police",
+      "Post Office",
+      "Primary School",
+      "Real Estate Agency",
+      "Restaurant",
+      "Roofing Contractor",
+      "RV Park",
+      "School",
+      "Secondary School",
+      "Shoe Store",
+      "Shopping Mall",
+      "Spa",
+      "Stadium",
+      "Storage",
+      "Store",
+      "Subway Station",
+      "Supermarket",
+      "Synagogue",
+      "Taxi Stand",
+      "Tourist Attraction",
+      "Train Station",
+      "Transit Station",
+      "Travel Agency",
+      "University",
+      "Veterinary Care",
+      "Zoo",
+    ];
+
+    showModalBottomSheet(
+        context: context,
+        constraints: BoxConstraints(maxWidth: 750),
+        builder: (BuildContext context) {
+          return StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+            return Center(
+                child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxHeight: 50),
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    padding: EdgeInsets.all(8.0),
+                    shrinkWrap: true,
+                    children:
+                        List<Widget>.generate(categories.length, (int index) {
+                      return Padding(
+                          padding: EdgeInsets.all(1.5),
+                          child: ChoiceChip(
+                              label: Text(categories[index],
+                                  style: GoogleFonts.quicksand(
+                                      fontWeight: FontWeight.w700)),
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 5, horizontal: 10),
+                              backgroundColor: Colors.grey[500],
+                              labelStyle:
+                                  TextStyle(fontSize: 16, color: Colors.white),
+                              selectedColor:
+                                  MediaQuery.of(context).platformBrightness ==
+                                          Brightness.light
+                                      ? lightMode.withOpacity(0.9)
+                                      : darkMode.withOpacity(0.9),
+                              selected: catselection == index,
+                              onSelected: (bool selected) async {
+                                setState(() {
+                                  catselection = selected ? index : null;
+                                  nearbyresults.clear();
+                                });
+                                print(categories[index]);
+                                response =
+                                    await placeskey.searchNearbyWithRadius(
+                                        places.Location(
+                                            lat: currentLocation.latitude,
+                                            lng: currentLocation.longitude),
+                                        10000,
+                                        type:
+                                            ((categories[index]).toLowerCase())
+                                                .replaceAll(" ", "_"));
+                                setState(() {
+                                  if (response.results.isNotEmpty) {
+                                    for (var i = 0;
+                                        i < response.results.length;
+                                        i++) {
+                                      nearbyresults.add(NearByData(
+                                          name: response.results[i].name,
+                                          location: response.results[i]
+                                                  .formattedAddress ??
+                                              "N/A",
+                                          rating: response.results[i].rating ??
+                                              "N/A",
+                                          coor: LatLng(
+                                              response.results[i].geometry
+                                                      ?.location.lat ??
+                                                  0,
+                                              response.results[i].geometry
+                                                      ?.location.lng ??
+                                                  0),
+                                          id: i,
+                                          state: true));
+                                    }
+                                  } else {
+                                    nearbyresults.add(NearByData(
+                                        name: "No Results",
+                                        location: "",
+                                        rating: "0",
+                                        coor: center,
+                                        id: 0,
+                                        state: false));
+                                  }
+                                });
+                              }));
+                    }).toList(),
+                  ),
+                ),
+                SizedBox(height: 1),
+                Expanded(
+                    child: ListView(
+                        scrollDirection: Axis.vertical,
+                        padding: EdgeInsets.all(2.0),
+                        shrinkWrap: true,
+                        children: List<Widget>.generate(nearbyresults.length,
+                            (int index) {
+                          return ListTile(
+                            title: Text(nearbyresults[index].name,
+                                style: GoogleFonts.quicksand(
+                                    fontWeight: FontWeight.w700)),
+                            subtitle: Text(
+                                "Rating: " +
+                                    ((nearbyresults[index].rating.toString() +
+                                        " out of 5")),
+                                style: GoogleFonts.quicksand(
+                                    fontWeight: FontWeight.w700)),
+                            onTap: () {
+                              mapController.animateCamera(
+                                CameraUpdate.newCameraPosition(
+                                  CameraPosition(
+                                    target: nearbyresults[index].coor,
+                                    zoom: 14,
+                                  ),
+                                ),
+                              );
+                            },
+                            trailing: nearbyresults[index].state
+                                ? IconButton(
+                                    icon: Icon(Icons.add),
+                                    onPressed: () {
+                                      caption = nearbyresults[index].name;
+                                      note = "Rating: " +
+                                          ((nearbyresults[index]
+                                                  .rating
+                                                  .toString() +
+                                              " out of 5"));
+                                      appendMarker(nearbyresults[index].coor);
+                                      setState(() =>
+                                          nearbyresults[index].state = false);
+                                      nearbyresults[index].state = false;
+                                      scaffoldMessengerKey.currentState
+                                          ?.showSnackBar(SnackBar(
+                                              content: const Text(
+                                                  'Added Journal Entry')));
+                                    })
+                                : IconButton(
+                                    icon: Icon(Icons.check),
+                                    onPressed: () {},
+                                  ),
+                          );
+                        })))
+              ],
+            ));
+          });
+        });
+  }
+
   //UI of the app
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget actionMenu() => PopupMenuButton<int>(
@@ -1693,11 +1921,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                   style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
                 ),
                 onTap: () {
-                  // settings(context);
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const SettingsPage()));
+                  settings(context);
                 },
               ),
             ],
@@ -1717,8 +1941,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                   offset: const Offset(0, 3), // changes position of shadow
                 ),
               ],
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(20)))),
+              shape: CircleBorder()),
           child: const Icon(Icons.push_pin, color: Colors.white),
         ));
 
@@ -1726,259 +1949,255 @@ class OdysseyMainState extends State<OdysseyMain> {
         debugShowCheckedModeBanner: false,
         theme: CustomTheme.lightTheme,
         darkTheme: CustomTheme.darkTheme,
-        home: Scaffold(
-          appBar: AppBar(
-            leading: Builder(builder: (BuildContext context) {
-              return IconButton(
-                icon: const Icon(Icons.menu),
-                enableFeedback: true,
-                tooltip: "Open Journal",
-                onPressed: () {
-                  Scaffold.of(context).openDrawer();
-                },
-              );
-            }),
-            title: Text("Odyssey",
-                style: GoogleFonts.quicksand(fontWeight: FontWeight.w700)),
-          ),
-          drawer: Drawer(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                SizedBox(
-                    height: 120.0, //140.0 if header cuts off on Android
-                    child: DrawerHeader(
-                      child: Text(
-                        'Journal',
-                        style: GoogleFonts.quicksand(
-                            fontWeight: FontWeight.w700, fontSize: 22),
-                      ),
-                    )),
-                Column(
-                  children: makeJournalEntry(),
-                )
-              ],
-            ),
-          ),
-          body: Stack(children: <Widget>[
-            GoogleMap(
-              mapToolbarEnabled: false,
-              onMapCreated: mapMade,
-              compassEnabled: false,
-              zoomControlsEnabled: false,
-              onCameraMove: (CameraPosition cp) {
-                center = cp.target;
-                bearing = cp.bearing;
-              },
-              myLocationButtonEnabled: false,
-              padding:
-                  const EdgeInsets.only(bottom: 0, top: 0, right: 0, left: 0),
-              mapType: mapType,
-              initialCameraPosition: CameraPosition(
-                target: center,
-                zoom: mapZoom,
+        home: ScaffoldMessenger(
+            key: scaffoldMessengerKey,
+            child: Scaffold(
+              appBar: AppBar(
+                leading: Builder(builder: (BuildContext context) {
+                  return IconButton(
+                    icon: const Icon(Icons.menu),
+                    enableFeedback: true,
+                    tooltip: "Open Journal",
+                    onPressed: () {
+                      Scaffold.of(context).openDrawer();
+                    },
+                  );
+                }),
+                title: Text("Odyssey",
+                    style: GoogleFonts.quicksand(fontWeight: FontWeight.w700)),
               ),
-              onTap: (LatLng latLng) {
-                appendMarker(latLng);
-              },
-              onLongPress: (LatLng latlng) async {
-                LatLng lastPin() {
-                  if (statemarkers.isEmpty == true) {
-                    return latlng;
-                  } else {
-                    return statemarkers.last.position;
-                  }
-                }
-
-                mapController.animateCamera(
-                  CameraUpdate.newCameraPosition(
-                    CameraPosition(
-                      target: lastPin(),
-                      zoom: await mapController.getZoomLevel(),
-                    ),
+              drawer: Drawer(
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  children: [
+                    SizedBox(
+                        height: 120.0, //140.0 if header cuts off on Android
+                        child: DrawerHeader(
+                          child: Text(
+                            'Journal',
+                            style: GoogleFonts.quicksand(
+                                fontWeight: FontWeight.w700, fontSize: 22),
+                          ),
+                        )),
+                    Column(
+                      children: makeJournalEntry(),
+                    )
+                  ],
+                ),
+              ),
+              body: Stack(children: <Widget>[
+                GoogleMap(
+                  mapToolbarEnabled: false,
+                  onMapCreated: mapMade,
+                  compassEnabled: false,
+                  zoomControlsEnabled: false,
+                  onCameraMove: (CameraPosition cp) {
+                    center = cp.target;
+                    bearing = cp.bearing;
+                  },
+                  myLocationButtonEnabled: false,
+                  padding: const EdgeInsets.only(
+                      bottom: 0, top: 0, right: 0, left: 0),
+                  mapType: mapType,
+                  initialCameraPosition: CameraPosition(
+                    target: center,
+                    zoom: mapZoom,
                   ),
-                );
-              },
-              markers: statemarkers,
-            ),
-            Positioned(
-                child: Align(
-                    alignment: Alignment.topLeft,
+                  onTap: (LatLng latLng) {
+                    appendMarker(latLng);
+                  },
+                  onLongPress: (LatLng latlng) async {
+                    LatLng lastPin() {
+                      if (statemarkers.isEmpty == true) {
+                        return latlng;
+                      } else {
+                        return statemarkers.last.position;
+                      }
+                    }
+
+                    mapController.animateCamera(
+                      CameraUpdate.newCameraPosition(
+                        CameraPosition(
+                          target: lastPin(),
+                          zoom: await mapController.getZoomLevel(),
+                        ),
+                      ),
+                    );
+                  },
+                  markers: statemarkers,
+                ),
+                Positioned(
+                    child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Wrap(
+                              direction: Axis.vertical,
+                              spacing: 6,
+                              children: [
+                                Container(
+                                  decoration: ShapeDecoration(
+                                    shadows: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.2),
+                                        spreadRadius: 5,
+                                        blurRadius: 7,
+                                        offset: const Offset(
+                                            0, 3), // changes position of shadow
+                                      ),
+                                    ],
+                                    color: MediaQuery.of(context)
+                                                .platformBrightness ==
+                                            Brightness.light
+                                        ? lightMode.withOpacity(0.9)
+                                        : darkMode.withOpacity(0.9),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(4)),
+                                  ),
+                                  child: IconButton(
+                                    icon:
+                                        const Icon(Icons.my_location_outlined),
+                                    color: Colors.white,
+                                    enableFeedback: true,
+                                    onPressed: cameraToLocation,
+                                  ),
+                                ),
+                                Container(
+                                  decoration: ShapeDecoration(
+                                    shadows: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.2),
+                                        spreadRadius: 5,
+                                        blurRadius: 7,
+                                        offset: const Offset(
+                                            0, 3), // changes position of shadow
+                                      ),
+                                    ],
+                                    color: MediaQuery.of(context)
+                                                .platformBrightness ==
+                                            Brightness.light
+                                        ? lightMode.withOpacity(0.9)
+                                        : darkMode.withOpacity(0.9),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(4)),
+                                  ),
+                                  child: IconButton(
+                                      icon: const Icon(Icons.radar),
+                                      color: Colors.white,
+                                      enableFeedback: true,
+                                      onPressed: () async {
+                                        presentNearBy();
+                                      }),
+                                ),
+                              ],
+                            )))),
+                Positioned(
                     child: Padding(
                         padding: const EdgeInsets.all(16.0),
-                        child: Wrap(
-                          direction: Axis.vertical,
-                          spacing: 6,
-                          children: [
-                            Container(
-                              decoration: ShapeDecoration(
-                                shadows: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    spreadRadius: 5,
-                                    blurRadius: 7,
-                                    offset: const Offset(
-                                        0, 3), // changes position of shadow
-                                  ),
-                                ],
-                                color:
-                                    MediaQuery.of(context).platformBrightness ==
+                        child: Align(
+                            alignment: Alignment.topRight,
+                            child: Wrap(
+                              direction: Axis.vertical,
+                              spacing: 1,
+                              children: [
+                                Container(
+                                  decoration: ShapeDecoration(
+                                    shadows: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.2),
+                                        spreadRadius: 5,
+                                        blurRadius: 7,
+                                        offset: const Offset(
+                                            0, 3), // changes position of shadow
+                                      ),
+                                    ],
+                                    color: MediaQuery.of(context)
+                                                .platformBrightness ==
                                             Brightness.light
                                         ? lightMode.withOpacity(0.9)
                                         : darkMode.withOpacity(0.9),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(4)),
-                              ),
-                              child: IconButton(
-                                icon: const Icon(Icons.my_location_outlined),
-                                color: Colors.white,
-                                enableFeedback: true,
-                                onPressed: cameraLocation,
-                              ),
-                            ),
-                            Container(
-                              decoration: ShapeDecoration(
-                                shadows: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    spreadRadius: 5,
-                                    blurRadius: 7,
-                                    offset: const Offset(
-                                        0, 3), // changes position of shadow
+                                    shape: const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.vertical(
+                                            top: Radius.circular(10),
+                                            bottom: Radius.circular(0))),
                                   ),
-                                ],
-                                color:
-                                    MediaQuery.of(context).platformBrightness ==
+                                  child: IconButton(
+                                      icon: const Icon(Icons.add),
+                                      color: Colors.white,
+                                      enableFeedback: true,
+                                      onPressed: () async {
+                                        var currentZoomLevel =
+                                            await mapController.getZoomLevel();
+                                        currentZoomLevel = currentZoomLevel + 2;
+                                        mapController.animateCamera(
+                                          CameraUpdate.newCameraPosition(
+                                            CameraPosition(
+                                              target: center,
+                                              bearing: bearing,
+                                              zoom: currentZoomLevel,
+                                            ),
+                                          ),
+                                        );
+                                        mapZoom =
+                                            await mapController.getZoomLevel();
+                                        OdysseyDatabase.instance.updatePrefsDB(
+                                            mapZoom, bearing, mapType);
+                                      }),
+                                ),
+                                Container(
+                                  decoration: ShapeDecoration(
+                                    shadows: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.2),
+                                        spreadRadius: 5,
+                                        blurRadius: 7,
+                                        offset: const Offset(
+                                            0, 3), // changes position of shadow
+                                      ),
+                                    ],
+                                    color: MediaQuery.of(context)
+                                                .platformBrightness ==
                                             Brightness.light
                                         ? lightMode.withOpacity(0.9)
                                         : darkMode.withOpacity(0.9),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(4)),
-                              ),
-                              child: IconButton(
-                                  icon: const Icon(Icons.layers_outlined),
-                                  color: Colors.white,
-                                  enableFeedback: true,
-                                  onPressed: () async {
-                                    mapController.animateCamera(
-                                      CameraUpdate.newCameraPosition(
-                                        CameraPosition(
-                                          target: center,
-                                          bearing: 0,
-                                          zoom: 6,
+                                    shape: const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.vertical(
+                                            top: Radius.circular(0),
+                                            bottom: Radius.circular(10))),
+                                  ),
+                                  child: IconButton(
+                                    icon: const Icon(Icons.remove),
+                                    color: Colors.white,
+                                    enableFeedback: true,
+                                    onPressed: () async {
+                                      var currentZoomLevel =
+                                          await mapController.getZoomLevel();
+                                      currentZoomLevel = currentZoomLevel - 2;
+                                      mapController.animateCamera(
+                                        CameraUpdate.newCameraPosition(
+                                          CameraPosition(
+                                            target: center,
+                                            bearing: bearing,
+                                            zoom: currentZoomLevel,
+                                          ),
                                         ),
-                                      ),
-                                    );
-                                  }),
-                            ),
-                          ],
-                        )))),
-            Positioned(
-                child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Align(
-                        alignment: Alignment.topRight,
-                        child: Wrap(
-                          direction: Axis.vertical,
-                          spacing: 1,
-                          children: [
-                            Container(
-                              decoration: ShapeDecoration(
-                                shadows: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    spreadRadius: 5,
-                                    blurRadius: 7,
-                                    offset: const Offset(
-                                        0, 3), // changes position of shadow
+                                      );
+                                      mapZoom =
+                                          await mapController.getZoomLevel();
+                                      OdysseyDatabase.instance.updatePrefsDB(
+                                          mapZoom, bearing, mapType);
+                                    },
                                   ),
-                                ],
-                                color:
-                                    MediaQuery.of(context).platformBrightness ==
-                                            Brightness.light
-                                        ? lightMode.withOpacity(0.9)
-                                        : darkMode.withOpacity(0.9),
-                                shape: const RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.vertical(
-                                        top: Radius.circular(10),
-                                        bottom: Radius.circular(0))),
-                              ),
-                              child: IconButton(
-                                  icon: const Icon(Icons.add),
-                                  color: Colors.white,
-                                  enableFeedback: true,
-                                  onPressed: () async {
-                                    var currentZoomLevel =
-                                        await mapController.getZoomLevel();
-                                    currentZoomLevel = currentZoomLevel + 2;
-                                    mapController.animateCamera(
-                                      CameraUpdate.newCameraPosition(
-                                        CameraPosition(
-                                          target: center,
-                                          bearing: bearing,
-                                          zoom: currentZoomLevel,
-                                        ),
-                                      ),
-                                    );
-                                    mapZoom =
-                                        await mapController.getZoomLevel();
-                                    OdysseyDatabase.instance.updatePrefsDB(
-                                        mapZoom, bearing, mapType);
-                                  }),
-                            ),
-                            Container(
-                              decoration: ShapeDecoration(
-                                shadows: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    spreadRadius: 5,
-                                    blurRadius: 7,
-                                    offset: const Offset(
-                                        0, 3), // changes position of shadow
-                                  ),
-                                ],
-                                color:
-                                    MediaQuery.of(context).platformBrightness ==
-                                            Brightness.light
-                                        ? lightMode.withOpacity(0.9)
-                                        : darkMode.withOpacity(0.9),
-                                shape: const RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.vertical(
-                                        top: Radius.circular(0),
-                                        bottom: Radius.circular(10))),
-                              ),
-                              child: IconButton(
-                                icon: const Icon(Icons.remove),
-                                color: Colors.white,
-                                enableFeedback: true,
-                                onPressed: () async {
-                                  var currentZoomLevel =
-                                      await mapController.getZoomLevel();
-                                  currentZoomLevel = currentZoomLevel - 2;
-                                  mapController.animateCamera(
-                                    CameraUpdate.newCameraPosition(
-                                      CameraPosition(
-                                        target: center,
-                                        bearing: bearing,
-                                        zoom: currentZoomLevel,
-                                      ),
-                                    ),
-                                  );
-                                  mapZoom = await mapController.getZoomLevel();
-                                  OdysseyDatabase.instance
-                                      .updatePrefsDB(mapZoom, bearing, mapType);
-                                },
-                              ),
-                            ),
-                          ],
-                        )))),
-          ]),
-          floatingActionButton: Stack(children: <Widget>[
-            Align(
-                alignment: Alignment.bottomRight,
-                child:
-                    SizedBox(height: 85.0, width: 85.0, child: actionMenu())),
-          ]),
-        ));
+                                ),
+                              ],
+                            )))),
+              ]),
+              floatingActionButton: Stack(children: <Widget>[
+                Align(
+                    alignment: Alignment.bottomRight,
+                    child: SizedBox(
+                        height: 85.0, width: 85.0, child: actionMenu())),
+              ]),
+            )));
   }
 }
