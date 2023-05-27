@@ -981,6 +981,7 @@ class OdysseyMainState extends State<OdysseyMain> {
 
     currentLocation = LatLng(currentPosition.latitude!.toDouble(),
         currentPosition.longitude!.toDouble());
+    await Future.delayed(const Duration(milliseconds: 1000));
   }
 
   void cameraToLocation() {
