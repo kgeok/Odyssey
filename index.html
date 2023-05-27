@@ -82,7 +82,15 @@
             </div>
             <br />
             <div id="settings-item">
+                <div id="settingsEntry" onclick="copyJournalEntries()">Copy Journal Content</div>
+            </div>
+            <br />
+            <div id="settings-item">
                 <div id="settingsEntry" onclick="exportJSONFile()">Export Data</div>
+            </div>
+            <br />
+            <div id="settings-item">
+                <div id="settingsEntry" onclick="helpDialog()">Quick Start</div>
             </div>
             <br />
             <div id="settings-item">
@@ -96,7 +104,7 @@
     <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
     <script type="text/javascript">
         let product = "Odyssey";
-        let version = "1.2";
+        let version = "1.4";
         let release = "Release";
         let map;
         let markers = [];
@@ -433,13 +441,30 @@
             prompt("Odyssey, Version " + version + " (" + release + "), With <3 by Kevin George.\n" + "Powered by Google Maps.\n", "http://kgeok.github.io");
         }
 
+        function helpDialog() {
+            alert("Tap anywhere on the map to set a Pin\n\n" + "Tap the Menu button to open the Journal and see an overview of all your entries\n\n" + "Tap the Radar button to to move the map to your current location (Requires your current location)\n\n" + "Tap the Layer button to pan the camera out\n\n" + "Tap the + - to zoom in and out of the map");
+        }
+
+        function copyJournalEntries() {
+            var tocopy = "";
+            for (i = 0; i <= parseInt(localStorage.getItem("Counter")); i++) {
+                tocopy = tocopy + localStorage.getItem("PinCapt_" + i) + "\n";
+                tocopy = tocopy + localStorage.getItem("PinCoor_" + i) + "\n\n";
+                console.log(tocopy);
+                navigator.clipboard.writeText(tocopy);
+            }
+
+            alert("Copied to Clipboard.");
+
+        }
+
         function appendJournal(caption, location, color) {
             var date = new Date();
             var dateNow = "Added - " + date.toDateString();
             let journalEntry = document.createElement("div");
             journalEntry.id = "journalEntry";
             journalEntry.style.backgroundColor = color;
-            journalEntry.innerHTML = caption + "<br/>" + location + "<br/>";
+            journalEntry.innerHTML = caption + "<br/><br/>" + location + "<br/>";
             let lineBreak = document.createElement("br");
             lineBreak.id = "br";
             document.getElementById("journal-item").insertAdjacentElement("afterend", journalEntry);
@@ -510,7 +535,7 @@
     </script>
     <div id="map"></div>
     <script
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSHRuDqzWL6x42T7WYs9KybTz6BMYY_0g&callback=initMap&libraries=&v=weekly"
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD0KUvgW3e3ts3WkIob9RBzjGP6RvU7FeQ&callback=initMap&libraries=&v=weekly"
         async></script>
 </body>
 

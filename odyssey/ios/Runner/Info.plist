@@ -27,11 +27,11 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Odyssey needs your Location because you selected &quot;Pin My Location&quot; or are using a Location-based feature of the Map</string>
+	<string>Odyssey needs your Location because you selected &quot;Pin My Location&quot;, &quot;Near By&quot; or are using a Location-based feature of the Map</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Odyssey needs your Location because you selected &quot;Pin My Location&quot; or are using a Location-based feature of the Map</string>
+	<string>Odyssey needs your Location because you selected &quot;Pin My Location&quot;, &quot;Near By&quot; or are using a Location-based feature of the Map</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Odyssey needs your Location because you selected &quot;Pin My Location&quot; or are using a Location-based feature of the Map</string>
+	<string>Odyssey needs your Location because you selected &quot;Pin My Location&quot;, &quot;Near By&quot; or are using a Location-based feature of the Map</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -55,6 +55,12 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<false/>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.travel</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 </dict>
 </plist>
