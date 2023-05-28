@@ -3,22 +3,27 @@
     "short_name": "Odyssey",
     "orientation": "any",
     "description": "Pin your Destinations",
-    "categories": ["utilities"],
+    "categories": [
+        "utilities"
+    ],
     "icons": [
         {
             "src": "https://raw.githubusercontent.com/kgeok/Odyssey/main/icons/icon-192-maskable.png",
             "sizes": "192x192",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any"
         },
         {
             "src": "https://raw.githubusercontent.com/kgeok/Odyssey/main/icons/icon-512-maskable.png",
             "sizes": "512x512",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any"
         }
     ],
     "theme_color": "#00084A",
     "background_color": "#00084A",
     "start_url": "https://kgeok.github.io/Odyssey/",
     "display": "standalone",
-    "lang": "en-US"
+    "lang": "en-US",
+    "dir": "auto"
 }
