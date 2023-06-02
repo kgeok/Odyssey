@@ -101,7 +101,41 @@
             <br />
         </div>
     </nav>
-
+    <nav id="customize">
+        <header>
+            <div id="journal-btn">
+                <h3>
+                    <span style="font-size: 35px;" onclick="ToggleCustomize()"
+                        class="material-icons md-36">arrow_back</span>
+                </h3>
+            </div>
+        </header>
+        <div id="settings-content">
+            <div id="settings-item">
+                <div id="tagline">
+                    <h2></h2>
+                </div>
+            </div>
+            <br />
+            <div id="settings-item">
+                <div id="settingsEntry" onclick="makeCaption()">Set Caption</div>
+            </div>
+            <br />
+            <div id="settings-item">
+                <div id="settingsEntry" onclick="appendFromLocation()">Pin My Location</div>
+            </div>
+            <br />
+            <div id="settings-item">
+                <div id="settingsEntry" onclick="removeLastMarker()">Delete Last Pin</div>
+            </div>
+            <br />
+            <div id="settings-item">
+                <div id="settingsEntry" onclick="ToggleSettings()">Settings</div>
+            </div>
+            <br />
+            <br />
+        </div>
+    </nav>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
     <script type="text/javascript">
         let product = "Odyssey";
@@ -145,6 +179,13 @@
         settings_btn.setAttribute("onclick", "ToggleSettings()");
         settings_btn.setAttribute("class", "circlebtn");
         settings_btn.setAttribute("alt", "Settings");
+
+        let customize_btn = document.createElement("div");
+        customize_btn.id = "customize_btn";
+        customize_btn.innerHTML = "<span aria-label = 'Settings' class='material-icons md-36'>push_pin</span>";
+        customize_btn.setAttribute("onclick", "ToggleCustomize()");
+        customize_btn.setAttribute("class", "circlebtn");
+        customize_btn.setAttribute("alt", "Customize");
 
         let deletelp_btn = document.createElement("div");
         deletelp_btn.id = "deletelp_btn";
@@ -260,11 +301,7 @@
 
             map.controls[google.maps.ControlPosition.LEFT_TOP].push(zoomlocation_btn);
             map.controls[google.maps.ControlPosition.LEFT_TOP].push(bigpicture_btn);
-            map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(settings_btn);
-            map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(deletelp_btn);
-            map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(get_location);
-            map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(caption_btn);
-            map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(color_picker);
+            map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(customize_btn);
             map.controls[google.maps.ControlPosition.RIGHT_TOP].push(zoom_control_in);
             map.controls[google.maps.ControlPosition.RIGHT_TOP].push(zoom_control_out);
 
@@ -435,6 +472,13 @@
                 document.getElementById("settings").style.display = "block";
             } else {
                 document.getElementById("settings").style.display = "none";
+            }
+        }
+        function ToggleCustomize() {
+            if (document.getElementById("customize").style.display == "none") {
+                document.getElementById("customize").style.display = "block";
+            } else {
+                document.getElementById("customize").style.display = "none";
             }
         }
 

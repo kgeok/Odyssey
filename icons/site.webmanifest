@@ -28,7 +28,7 @@
   "lang": "en-US",
   "dir": "auto",
   "display_override": [
-    "standalone"
+    "window-controls-overlay"
   ],
-  "iarc_rating_id": "E"
+  "iarc_rating_id": "d611f5d9-50ae-4068-bbb0-a44ced7a50d7"
 }
