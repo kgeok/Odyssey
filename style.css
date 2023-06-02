@@ -105,6 +105,29 @@ header {
         animation: fadeinout 4s linear forwards;
     }
 
+    #customize {
+        width: 40vw;
+        height: 100%;
+        background-color: #00084a;
+        z-index: 100000;
+        display: none;
+        justify-content: center;
+        line-height: 20px;
+        font-weight: bold;
+        font-size: 30px;
+        text-align: left;
+        color: #ffffff;
+        position: fixed;
+        font-size: 14px;
+        opacity: 0.98;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        top: 0;
+        left: 0;
+        border-radius: 0px 5px 5px 0px;
+        overflow: hidden;
+        animation: fadeinout 4s linear forwards;
+    }
+
     #settingsEntry {
         padding: 14px 20px;
         width: 90%;
@@ -179,6 +202,31 @@ header {
             -webkit-animation: fadeinout 4s linear forwards;
             overflow: hidden;
         }
+
+        #customize {
+            width: 75vw;
+            height: 100%;
+            background-color: #00084a;
+            z-index: 100000;
+            display: none;
+            justify-content: center;
+            line-height: 20px;
+            font-weight: bold;
+            font-size: 30px;
+            text-align: left;
+            color: #ffffff;
+            position: fixed;
+            font-size: 14px;
+            opacity: 0.98;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            top: 0;
+            left: 0;
+            border-radius: 0px 5px 5px 0px;
+            animation: fadeinout 4s linear forwards;
+            -webkit-animation: fadeinout 4s linear forwards;
+            overflow: hidden;
+        }
+
     }
 
     .circlebtn {
@@ -375,6 +423,31 @@ header {
         animation: fadeinout 4s linear forwards;
         -webkit-animation: fadeinout 4s linear forwards;
     }
+    #customize {
+            width: 40vw;
+            height: 100%;
+            background-color: #006994;
+            z-index: 100000;
+            display: none;
+            overflow-y: scroll;
+            overflow-x: hidden;
+            justify-content: center;
+            line-height: 20px;
+            font-weight: bold;
+            font-size: 30px;
+            text-align: left;
+            color: #ffffff;
+            position: fixed;
+            font-size: 14px;
+            opacity: 0.98;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            top: 0;
+            left: 0;
+            border-radius: 0px 5px 5px 0px;
+            animation: fadeinout 4s linear forwards;
+            -webkit-animation: fadeinout 4s linear forwards;
+    }
+    
 
     @media (max-width: 600px) {
         #journal {
@@ -401,6 +474,29 @@ header {
         }
 
         #settings {
+            width: 75vw;
+            height: 100%;
+            background-color: #006994;
+            z-index: 100000;
+            display: none;
+            justify-content: center;
+            line-height: 20px;
+            font-weight: bold;
+            font-size: 30px;
+            text-align: left;
+            color: #ffffff;
+            position: fixed;
+            font-size: 14px;
+            opacity: 0.98;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            top: 0;
+            left: 0;
+            border-radius: 0px 5px 5px 0px;
+            animation: fadeinout 4s linear forwards;
+            -webkit-animation: fadeinout 4s linear forwards;
+        }
+
+        #customize {
             width: 75vw;
             height: 100%;
             background-color: #006994;
