@@ -21,8 +21,8 @@
       "purpose": "any"
     }
   ],
-  "theme_color": "#00084A",
-  "background_color": "#00084A",
+  "theme_color": "#006994",
+  "background_color": "#006994",
   "start_url": "https://kgeok.github.io/Odyssey/",
   "display": "standalone",
   "lang": "en-US",
