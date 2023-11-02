@@ -14,6 +14,7 @@ import 'package:location/location.dart' as prefix;
 import 'package:geocoding/geocoding.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:google_maps_webservice/places.dart' as places;
 
 void main() async {
@@ -33,8 +34,8 @@ class OdysseyMain extends StatefulWidget {
 
 GlobalKey<OdysseyMainState> key = GlobalKey();
 //Variables that we will be using, will try to minimize in the future
-const version = "1.4";
-const release = "Release";
+const version = "1.5";
+const release = "Pre-Release";
 const apikey = "AIzaSyD8TrymPJaJVDXvXja2O6woa7B_-R-fi9w"; //Google Maps API Key
 Color pincolor = Color(int.parse(defaultPinColor));
 var colorBuffer =
@@ -60,7 +61,7 @@ var noteBuffer; //Temp Buffer for the Note before it goes into PinData
 var locationBuffer; //Temp Buffer for the results for reverseGeocoder before it goes into PinData
 var addressBuffer; //Temp Buffer for Pin From Address before it goes into geocoder
 var currentTheme; //Light or Dark theme
-int? catselection;
+int? catselection; //Catagory Selection for NearBy
 String svgString =
     ""; //We're just leaving this blank to init it, shapeHandler will return the real value
 int onboarding = 0;
@@ -68,25 +69,26 @@ var pins =
     []; //Pins is a seperate list from statemarkers, independent from whats used by GMapsController
 List<int> journal = [];
 var nearbyresults = [];
+final photo = ImagePicker();
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
 class PinData {
   var pinid;
-  late var pincaption;
+  late String pincaption = "";
   late var pindate;
   late Color pincolor;
   late LatLng pincoor;
   late var pinlocation;
-  late var pinnote;
+  late var pinnote = "";
   late var pinshape;
   late var pinphoto;
 
   PinData(
       {this.pinid,
-      this.pincaption,
+      required this.pincaption,
       this.pindate,
-      this.pinnote,
+      required this.pinnote,
       this.pinphoto,
       this.pinshape,
       required this.pincolor,
@@ -212,9 +214,9 @@ Future<BitmapDescriptor> bitmapDescriptorFromSvg(
   return BitmapDescriptor.fromBytes(bytes!.buffer.asUint8List());
 }
 
-Future<void> redirectURL(String url) async {
+Future redirectURL(String url) async {
   if (!await launchUrl(Uri.parse(url))) {
-    throw "Error launching link";
+    print("Error launching link");
   }
 }
 
@@ -368,7 +370,7 @@ class OdysseyMainState extends State<OdysseyMain> {
   }
 
   Widget journalEntry(final caption, final color, final subtitle, var latlng,
-      var date, var note, var shape, var id) {
+      var date, String note, var shape, var id) {
     var target = latlng;
     latlng = latlng.toString();
     latlng = latlng.replaceAll("LatLng(", "");
@@ -442,8 +444,8 @@ class OdysseyMainState extends State<OdysseyMain> {
   }
 
   //Journal Dialog is long because each of these set of widgets are generated at once for each pin in real-time
-  void journalDialog(BuildContext context, var caption, var location,
-      var latlng, var color, var date, var note, var shape, var id) {
+  void journalDialog(BuildContext context, String caption, var location,
+      var latlng, var color, var date, String note, var shape, var id) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -632,8 +634,13 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                 captionBuffer = "";
                                                 Navigator.pop(context);
                                                 OdysseyDatabase.instance
-                                                    .updatePinsDB(id, caption,
-                                                        note, color, shape);
+                                                    .updatePinsDB(
+                                                        id,
+                                                        caption,
+                                                        note,
+                                                        color,
+                                                        shape,
+                                                        photo);
                                                 reenumerateState();
                                               },
                                             )
@@ -715,8 +722,13 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                 noteBuffer = "";
                                                 Navigator.pop(context);
                                                 OdysseyDatabase.instance
-                                                    .updatePinsDB(id, caption,
-                                                        note, color, shape);
+                                                    .updatePinsDB(
+                                                        id,
+                                                        caption,
+                                                        note,
+                                                        color,
+                                                        shape,
+                                                        photo);
                                                 reenumerateState();
                                               },
                                             )
@@ -786,7 +798,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                           caption,
                                                           note,
                                                           pincolor,
-                                                          shape);
+                                                          shape,
+                                                          photo);
                                                   reenumerateState();
                                                   Navigator.of(context).pop();
                                                 },
@@ -1854,6 +1867,20 @@ class OdysseyMainState extends State<OdysseyMain> {
             ));
           });
         });
+  }
+
+  Future photoOnboarding(
+      BuildContext context, id, caption, note, color, shape) async {
+    //Passing the arguments along
+    final selectedPhotoToData;
+    final XFile? selectedPhoto =
+        await photo.pickImage(source: ImageSource.gallery);
+    print(selectedPhoto.toString());
+    if (selectedPhoto != null) {
+      selectedPhotoToData = await selectedPhoto.readAsBytes();
+      OdysseyDatabase.instance
+          .updatePinsDB(id, caption, note, color, shape, selectedPhotoToData);
+    }
   }
 
   //UI of the app
