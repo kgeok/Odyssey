@@ -15,11 +15,11 @@ import 'package:geocoding/geocoding.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:google_maps_webservice/places.dart' as places;
 
 void main() async {
   runApp(const MaterialApp(home: OdysseyMain()));
-  OdysseyDatabase.instance.initStatefromDB();
 }
 
 class OdysseyMain extends StatefulWidget {
@@ -232,9 +232,7 @@ class OdysseyMainState extends State<OdysseyMain> {
   Set<Marker> statemarkers = {};
 
   void populateMapfromState() async {
-    await Future.delayed(const Duration(
-        milliseconds:
-            1500)); //It apparently takes 1 second or so for DB to populate State
+    await OdysseyDatabase.instance.initStatefromDB();
 
     var pinCounterBuffer =
         pinCounter; //I need to freeze the state of the counter so that it doesn't keep iterating on append
@@ -267,6 +265,8 @@ class OdysseyMainState extends State<OdysseyMain> {
     }
     captionBuffer = "";
     caption = "";
+    noteBuffer = "";
+    note = "";
 
     print("Center: $center, Bearing: $bearing, Zoom: $mapZoom");
 
@@ -332,7 +332,7 @@ class OdysseyMainState extends State<OdysseyMain> {
         pinlocation: locationBuffer.toString()));
 
     OdysseyDatabase.instance.addPinDB(pinCounter, caption, date, pincolor,
-        shape, latLng, locationBuffer, note);
+        shape, latLng, locationBuffer, note, null);
 
     setState(() {
       journal.add(pinCounter - 1);
@@ -369,8 +369,22 @@ class OdysseyMainState extends State<OdysseyMain> {
     }
   }
 
+  Widget photoDisplay(var bytes) {
+    if (bytes == null) {
+      return Text("");
+    } else {
+      return Padding(
+          padding: EdgeInsets.fromLTRB(0, 0, 0, 5),
+          child: Container(
+              height: 200,
+              decoration: BoxDecoration(
+                  image: DecorationImage(
+                      image: MemoryImage(bytes), fit: BoxFit.contain))));
+    }
+  }
+
   Widget journalEntry(final caption, final color, final subtitle, var latlng,
-      var date, String note, var shape, var id) {
+      var date, String note, var shape, var photo, var id) {
     var target = latlng;
     latlng = latlng.toString();
     latlng = latlng.replaceAll("LatLng(", "");
@@ -385,7 +399,7 @@ class OdysseyMainState extends State<OdysseyMain> {
             highlightColor: color,
             onTap: () {
               journalDialog(context, caption, subtitle, latlng, color, date,
-                  note, shape, id);
+                  note, shape, photo, id);
               mapController
                   .animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
                 target: target,
@@ -444,8 +458,17 @@ class OdysseyMainState extends State<OdysseyMain> {
   }
 
   //Journal Dialog is long because each of these set of widgets are generated at once for each pin in real-time
-  void journalDialog(BuildContext context, String caption, var location,
-      var latlng, var color, var date, String note, var shape, var id) {
+  void journalDialog(
+      BuildContext context,
+      String caption,
+      var location,
+      var latlng,
+      var color,
+      var date,
+      String note,
+      var shape,
+      var photo,
+      var id) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -460,6 +483,7 @@ class OdysseyMainState extends State<OdysseyMain> {
             content: SingleChildScrollView(
               child: ListBody(
                 children: <Widget>[
+                  photoDisplay(photo),
                   Text(location,
                       style: GoogleFonts.quicksand(
                           fontWeight: FontWeight.w600,
@@ -526,39 +550,158 @@ class OdysseyMainState extends State<OdysseyMain> {
                           child: ListBody(
                             children: <Widget>[
                               ListTile(
-                                title: Text("Copy Entry",
+                                title: Text("Share",
                                     style: GoogleFonts.quicksand(
                                         fontWeight: FontWeight.w600,
                                         color: Colors.black)),
-                                onTap: () {
+                                onTap: () async {
                                   Navigator.of(context).pop();
-                                  Clipboard.setData(ClipboardData(
-                                      text: caption +
-                                          " " +
-                                          location +
-                                          ", " +
-                                          date +
-                                          " " +
-                                          note));
-                                  scaffoldMessengerKey.currentState
-                                      ?.showSnackBar(SnackBar(
-                                    content: const Text('Copied to Clipboard'),
-                                  ));
+                                  showModalBottomSheet(
+                                      context: context,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
+                                      ),
+                                      constraints:
+                                          BoxConstraints(maxWidth: 500),
+                                      builder: (BuildContext context) {
+                                        return Container(
+                                            constraints:
+                                                BoxConstraints(maxWidth: 500),
+                                            color: Colors.white,
+                                            child: SingleChildScrollView(
+                                                child:
+                                                    ListBody(children: <Widget>[
+                                              ListTile(
+                                                title: Text("Copy Entry",
+                                                    style:
+                                                        GoogleFonts.quicksand(
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                            color:
+                                                                Colors.black)),
+                                                onTap: () {
+                                                  Navigator.of(context).pop();
+                                                  Clipboard.setData(
+                                                      ClipboardData(
+                                                          text: caption +
+                                                              " " +
+                                                              location +
+                                                              ", " +
+                                                              date +
+                                                              " " +
+                                                              note));
+                                                  scaffoldMessengerKey
+                                                      .currentState
+                                                      ?.showSnackBar(SnackBar(
+                                                    content: const Text(
+                                                        'Copied to Clipboard'),
+                                                  ));
+                                                },
+                                              ),
+                                              ListTile(
+                                                title: Text("Copy Address",
+                                                    style:
+                                                        GoogleFonts.quicksand(
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                            color:
+                                                                Colors.black)),
+                                                onTap: () {
+                                                  Navigator.of(context).pop();
+                                                  Clipboard.setData(
+                                                      ClipboardData(
+                                                          text: location));
+                                                  scaffoldMessengerKey
+                                                      .currentState
+                                                      ?.showSnackBar(SnackBar(
+                                                    content: const Text(
+                                                        'Copied to Clipboard'),
+                                                  ));
+                                                },
+                                              ),
+                                              ListTile(
+                                                title: Text("Show QR Code",
+                                                    style:
+                                                        GoogleFonts.quicksand(
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                            color:
+                                                                Colors.black)),
+                                                onTap: () {
+                                                  showDialog(
+                                                    context: context,
+                                                    builder:
+                                                        (BuildContext context) {
+                                                      return AlertDialog(
+                                                          backgroundColor:
+                                                              color,
+                                                          title: Text('QR Code',
+                                                              style: GoogleFonts.quicksand(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w700,
+                                                                  color: color
+                                                                              .computeLuminance() >
+                                                                          0.5
+                                                                      ? Colors
+                                                                          .black
+                                                                      : Colors
+                                                                          .white)),
+                                                          content:
+                                                              SingleChildScrollView(
+                                                            child: ListBody(
+                                                              children: <Widget>[],
+                                                            ),
+                                                          ),
+                                                          actions: <Widget>[
+                                                            TextButton(
+                                                              child: Text(
+                                                                  'Dismiss',
+                                                                  style: GoogleFonts.quicksand(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w700,
+                                                                      color: color.computeLuminance() >
+                                                                              0.5
+                                                                          ? Colors
+                                                                              .black
+                                                                          : Colors
+                                                                              .white)),
+                                                              onPressed: () {
+                                                                Navigator.of(
+                                                                        context)
+                                                                    .pop();
+                                                              },
+                                                            )
+                                                          ]);
+                                                    },
+                                                  );
+                                                },
+                                              ),
+                                              ListTile(
+                                                title: Text("",
+                                                    style:
+                                                        GoogleFonts.quicksand(
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                            color:
+                                                                Colors.black)),
+                                                onTap: () {},
+                                              ),
+                                            ])));
+                                      });
                                 },
                               ),
                               ListTile(
-                                title: Text("Copy Address",
+                                title: Text("Edit Photo",
                                     style: GoogleFonts.quicksand(
                                         fontWeight: FontWeight.w600,
                                         color: Colors.black)),
-                                onTap: () {
+                                onTap: () async {
                                   Navigator.of(context).pop();
-                                  Clipboard.setData(
-                                      ClipboardData(text: location));
-                                  scaffoldMessengerKey.currentState
-                                      ?.showSnackBar(SnackBar(
-                                    content: const Text('Copied to Clipboard'),
-                                  ));
+                                  photoOnboarding(context, id);
+                                  Navigator.of(context).pop();
                                 },
                               ),
                               ListTile(
@@ -635,12 +778,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                 Navigator.pop(context);
                                                 OdysseyDatabase.instance
                                                     .updatePinsDB(
-                                                        id,
-                                                        caption,
-                                                        note,
-                                                        color,
-                                                        shape,
-                                                        photo);
+                                                        id, caption, "caption");
                                                 reenumerateState();
                                               },
                                             )
@@ -723,12 +861,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                 Navigator.pop(context);
                                                 OdysseyDatabase.instance
                                                     .updatePinsDB(
-                                                        id,
-                                                        caption,
-                                                        note,
-                                                        color,
-                                                        shape,
-                                                        photo);
+                                                        id, note, "note");
                                                 reenumerateState();
                                               },
                                             )
@@ -793,13 +926,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                       pincolor = currentColor);
                                                   colorToHex(pincolor);
                                                   OdysseyDatabase.instance
-                                                      .updatePinsDB(
-                                                          id,
-                                                          caption,
-                                                          note,
-                                                          pincolor,
-                                                          shape,
-                                                          photo);
+                                                      .updatePinsDB(id,
+                                                          pincolor, "color");
                                                   reenumerateState();
                                                   Navigator.of(context).pop();
                                                 },
@@ -808,6 +936,165 @@ class OdysseyMainState extends State<OdysseyMain> {
                                       });
                                 },
                               ),
+                              ListTile(
+                                  title: Text("Edit Shape",
+                                      style: GoogleFonts.quicksand(
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.black)),
+                                  onTap: () {
+                                    Navigator.of(context).pop();
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                            backgroundColor: color,
+                                            title: Text("Pin Shape",
+                                                style: GoogleFonts.quicksand(
+                                                    fontWeight: FontWeight.w700,
+                                                    color:
+                                                        color.computeLuminance() >
+                                                                0.5
+                                                            ? Colors.black
+                                                            : Colors.white)),
+                                            content: SingleChildScrollView(
+                                              child: ListBody(
+                                                children: <Widget>[
+                                                  SimpleDialogOption(
+                                                    onPressed: () {
+                                                      Navigator.pop(context);
+                                                      OdysseyDatabase.instance
+                                                          .updatePinsDB(id,
+                                                              "cicle", "shape");
+                                                      reenumerateState();
+                                                      Navigator.pop(context);
+                                                    },
+                                                    child: Text('Circle',
+                                                        style: GoogleFonts.quicksand(
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            color:
+                                                                color.computeLuminance() >
+                                                                        0.5
+                                                                    ? Colors
+                                                                        .black
+                                                                    : Colors
+                                                                        .white)),
+                                                  ),
+                                                  SimpleDialogOption(
+                                                    onPressed: () {
+                                                      Navigator.pop(context);
+                                                      OdysseyDatabase.instance
+                                                          .updatePinsDB(
+                                                              id,
+                                                              "square",
+                                                              "shape");
+                                                      reenumerateState();
+
+                                                      Navigator.pop(context);
+                                                    },
+                                                    child: Text('Square',
+                                                        style: GoogleFonts.quicksand(
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            color:
+                                                                color.computeLuminance() >
+                                                                        0.5
+                                                                    ? Colors
+                                                                        .black
+                                                                    : Colors
+                                                                        .white)),
+                                                  ),
+                                                  SimpleDialogOption(
+                                                    onPressed: () {
+                                                      Navigator.pop(context);
+                                                      OdysseyDatabase.instance
+                                                          .updatePinsDB(
+                                                              id,
+                                                              "diamond",
+                                                              "shape");
+                                                      reenumerateState();
+
+                                                      Navigator.pop(context);
+                                                    },
+                                                    child: Text('Diamond',
+                                                        style: GoogleFonts.quicksand(
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            color:
+                                                                color.computeLuminance() >
+                                                                        0.5
+                                                                    ? Colors
+                                                                        .black
+                                                                    : Colors
+                                                                        .white)),
+                                                  ),
+                                                  SimpleDialogOption(
+                                                    onPressed: () {
+                                                      Navigator.pop(context);
+                                                      OdysseyDatabase.instance
+                                                          .updatePinsDB(id,
+                                                              "star", "shape");
+                                                      reenumerateState();
+
+                                                      Navigator.pop(context);
+                                                    },
+                                                    child: Text('Star',
+                                                        style: GoogleFonts.quicksand(
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            color:
+                                                                color.computeLuminance() >
+                                                                        0.5
+                                                                    ? Colors
+                                                                        .black
+                                                                    : Colors
+                                                                        .white)),
+                                                  ),
+                                                  SimpleDialogOption(
+                                                    onPressed: () {
+                                                      Navigator.pop(context);
+                                                      OdysseyDatabase.instance
+                                                          .updatePinsDB(id,
+                                                              "heart", "shape");
+                                                      reenumerateState();
+
+                                                      Navigator.pop(context);
+                                                    },
+                                                    child: Text('Heart',
+                                                        style: GoogleFonts.quicksand(
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            color:
+                                                                color.computeLuminance() >
+                                                                        0.5
+                                                                    ? Colors
+                                                                        .black
+                                                                    : Colors
+                                                                        .white)),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            actions: <Widget>[
+                                              TextButton(
+                                                child: Text('Dismiss',
+                                                    style: GoogleFonts.quicksand(
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                        color:
+                                                            color.computeLuminance() >
+                                                                    0.5
+                                                                ? Colors.black
+                                                                : Colors
+                                                                    .white)),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                              )
+                                            ]);
+                                      },
+                                    );
+                                  }),
                               ListTile(
                                 title: Text("Delete Entry",
                                     style: GoogleFonts.quicksand(
@@ -900,6 +1187,7 @@ class OdysseyMainState extends State<OdysseyMain> {
           pins[index].pindate,
           pins[index].pinnote,
           pins[index].pinshape,
+          pins[index].pinphoto,
           (index + 1));
     });
   }
@@ -915,7 +1203,7 @@ class OdysseyMainState extends State<OdysseyMain> {
       statemarkers = {};
       journal = [];
     });
-    OdysseyDatabase.instance.initStatefromDB();
+
     populateMapfromState();
   }
 
@@ -994,11 +1282,10 @@ class OdysseyMainState extends State<OdysseyMain> {
 
     currentLocation = LatLng(currentPosition.latitude!.toDouble(),
         currentPosition.longitude!.toDouble());
-    await Future.delayed(const Duration(milliseconds: 1000));
   }
 
-  void cameraToLocation() {
-    getCurrentLocation();
+  void cameraToLocation() async {
+    await getCurrentLocation();
     mapController.animateCamera(
       CameraUpdate.newCameraPosition(
         CameraPosition(
@@ -1008,6 +1295,10 @@ class OdysseyMainState extends State<OdysseyMain> {
         ),
       ),
     );
+  }
+
+  Widget generateQRcode(caption, latlng, color, shape) {
+    return QrImageView(data: 'data', version: QrVersions.auto);
   }
 
   void clearStateMarkers() {
@@ -1575,15 +1866,12 @@ class OdysseyMainState extends State<OdysseyMain> {
   }
 
   Future startOnboarding() async {
-    await Future.delayed(const Duration(
-        milliseconds:
-            1500)); //It apparently takes 1 second or so for DB to populate State
-
+    await OdysseyDatabase.instance.initStatefromDB();
     if (onboarding == 1) {
       onboardDialog(
           context,
           "Welcome to Odyssey",
-          "Give a new emotional meaning to your places.",
+          "Give a new meaning to your places.",
           "Keep track of the destinations you traveled with customizable pins on a beautiful map. With the Journal, you can get a glance of your overall pins and keep notes of where you went and where you want to go.",
           "Tap anywhere on the map to set a Pin.",
           "Open the Pin Menu to Customize the next set of Pins.");
@@ -1869,17 +2157,16 @@ class OdysseyMainState extends State<OdysseyMain> {
         });
   }
 
-  Future photoOnboarding(
-      BuildContext context, id, caption, note, color, shape) async {
+  Future photoOnboarding(BuildContext context, id) async {
+    //Function borrowed from Vibrance
     //Passing the arguments along
     final selectedPhotoToData;
     final XFile? selectedPhoto =
         await photo.pickImage(source: ImageSource.gallery);
-    print(selectedPhoto.toString());
     if (selectedPhoto != null) {
       selectedPhotoToData = await selectedPhoto.readAsBytes();
-      OdysseyDatabase.instance
-          .updatePinsDB(id, caption, note, color, shape, selectedPhotoToData);
+      OdysseyDatabase.instance.updatePinsDB(id, selectedPhotoToData, "photo");
+      reenumerateState();
     }
   }
 

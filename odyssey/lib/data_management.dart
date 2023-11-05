@@ -65,14 +65,19 @@ class OdysseyDatabase {
     onboarding = 1;
   }
 
-  Future addPinDB(
-      id, caption, date, color, shape, latLng, location, note) async {
-    final db = await instance.database;
-
-    caption = caption.toString();
+  String colorToString(Color color) {
     var colorBuffer = color.toString();
     colorBuffer = colorBuffer.replaceAll("Color(", "");
     colorBuffer = colorBuffer.replaceAll(")", "");
+
+    return colorBuffer;
+  }
+
+  Future addPinDB(
+      id, caption, date, color, shape, latLng, location, note, photo) async {
+    final db = await instance.database;
+
+    caption = caption.toString();
 
     //Split latlng and make it a two parter float
 
@@ -86,17 +91,18 @@ class OdysseyDatabase {
     location.toString();
 
     db.rawInsert(
-        'INSERT INTO Pins (id, caption, color, lat, lng, date, location, shape, note) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO Pins (id, caption, color, lat, lng, date, location, shape, note, photo) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           '$id',
           '$caption',
-          colorBuffer,
+          colorToString(color),
           '$lat',
           '$lng',
           date,
           '$location',
           '$shape',
-          '$note'
+          '$note',
+          photo
         ]);
   }
 
@@ -120,17 +126,36 @@ class OdysseyDatabase {
         [mapZoom, bearing, mt.toString(), '0xffff0000']);
   }
 
-  Future updatePinsDB(id, caption, note, color, shape, photo) async {
-    //This function will include other pin elements later
+  Future updatePinsDB(id, content, type) async {
+    //What are we updating, it's new contents and what kind it is
     final db = await instance.database;
 
-    var colorBuffer = color.toString();
-    colorBuffer = colorBuffer.replaceAll("Color(", "");
-    colorBuffer = colorBuffer.replaceAll(")", "");
+    switch (type) {
+      case "caption":
+        db.rawUpdate(
+            '''UPDATE Pins SET caption = ? WHERE id = ?''', [content, id]);
+        break;
 
-    db.rawUpdate(
-        '''UPDATE Pins SET caption = ?, note = ?, color = ?, shape = ?, photo = ? WHERE id = ?''',
-        [caption, note, colorBuffer, shape, photo, id]);
+      case "note":
+        db.rawUpdate(
+            '''UPDATE Pins SET note = ? WHERE id = ?''', [content, id]);
+        break;
+
+      case "color":
+        db.rawUpdate('''UPDATE Pins SET color = ? WHERE id = ?''',
+            [colorToString(content), id]);
+        break;
+
+      case "shape":
+        db.rawUpdate(
+            '''UPDATE Pins SET shape = ? WHERE id = ?''', [content, id]);
+        break;
+
+      case "photo":
+        db.rawUpdate(
+            '''UPDATE Pins SET photo = ? WHERE id = ?''', [content, id]);
+        break;
+    }
   }
 
   Future initStatefromDB() async {
@@ -157,6 +182,15 @@ class OdysseyDatabase {
       var counter = int.tryParse(counterBuffer[0]['MAX(id)'].toString());
       var colorBuffer = await db.query("Pins", columns: ["color"]);
 
+      captionBuffer = await db.query("Pins", columns: ["caption"]);
+      var locationBuffer = await db.query("Pins", columns: ["location"]);
+      var dateBuffer = await db.query("Pins", columns: ["date"]);
+      var noteBuffer = await db.query("Pins", columns: ["note"]);
+      var shapeBuffer = await db.query("Pins", columns: ["shape"]);
+      var photoBuffer = await db.query("Pins", columns: ["photo"]);
+      var locationBufferlat = await db.query("Pins", columns: ["lat"]);
+      var locationBufferlng = await db.query("Pins", columns: ["lng"]);
+
       counter ??= 0;
 
       pinCounter = counter;
@@ -168,30 +202,26 @@ class OdysseyDatabase {
         pincolor = Color(int.parse(colorBuffer2));
 
         //Parse the Caption
-        captionBuffer = await db.query("Pins", columns: ["caption"]);
         caption = captionBuffer[i]["caption"].toString();
 
         //Parse the Location
 
         //We can't reuse locationBuffer because we can't assign it an array
-        var locationBuffer2 = await db.query("Pins", columns: ["location"]);
-        var location = locationBuffer2[i]["location"].toString();
+        var location = locationBuffer[i]["location"].toString();
 
         //Parse the Pin's date
-        var dateBuffer = await db.query("Pins", columns: ["date"]);
         var date = dateBuffer[i]["date"].toString();
 
         //Parse the Pin's note
-        var noteBuffer = await db.query("Pins", columns: ["note"]);
         var note = noteBuffer[i]["note"].toString();
 
         //Parse the Pin's shape
-        var shapeBuffer = await db.query("Pins", columns: ["shape"]);
         var shape = shapeBuffer[i]["shape"].toString();
 
+        //Parse the Pin's photo
+        var photo = photoBuffer[i]["photo"];
+
         //Parse the Pin's Lat and Lng
-        var locationBufferlat = await db.query("Pins", columns: ["lat"]);
-        var locationBufferlng = await db.query("Pins", columns: ["lng"]);
         LatLng latLng = LatLng(
             double.parse(locationBufferlat[i]["lat"].toString()),
             double.parse(locationBufferlng[i]["lng"].toString()));
@@ -204,7 +234,14 @@ class OdysseyDatabase {
             pinnote: note,
             pincaption: caption,
             pinshape: shape,
-            pinlocation: location));
+            pinlocation: location,
+            pinphoto: photo));
+
+        caption = "";
+        captionBuffer = "";
+        note = "";
+        photo = null;
+        shape = "";
       }
     } else {
       print("Empty/No DB, Skipping...");
@@ -215,14 +252,16 @@ class OdysseyDatabase {
     clearPinsDB(); //We need to clean out the existing DB and reappend it
     for (var i = 0; i < pins.length; i++) {
       addPinDB(
-          i + 1,
-          pins[i].pincaption,
-          pins[i].pindate,
-          pins[i].pincolor,
-          pins[i].pinshape,
-          pins[i].pincoor,
-          pins[i].pinlocation,
-          pins[i].pinnote);
+        i + 1,
+        pins[i].pincaption,
+        pins[i].pindate,
+        pins[i].pincolor,
+        pins[i].pinshape,
+        pins[i].pincoor,
+        pins[i].pinlocation,
+        pins[i].pinnote,
+        pins[i].pinphoto,
+      );
     }
   }
 

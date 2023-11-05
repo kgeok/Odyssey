@@ -42,6 +42,8 @@
 	<string>Odyssey needs your Location because you selected "Pin My Location", "Near By" or are using a Location-based feature of the Map</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Odyssey needs your Location because you selected "Pin My Location", "Near By" or are using a Location-based feature of the Map</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Odyssey needs to access your Photos because you selected “Edit Photo” to add or edit a photo to your Journal Entry</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
