@@ -26,6 +26,8 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Odyssey needs your Camera because you selected &quot;Scan QR Code&quot; to scan a QR Code</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>Odyssey needs your Location because you selected &quot;Pin My Location&quot;, &quot;Near By&quot; or are using a Location-based feature of the Map</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>

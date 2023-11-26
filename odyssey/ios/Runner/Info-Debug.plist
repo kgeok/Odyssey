@@ -34,6 +34,8 @@
 	<array>
 		<string>_dartobservatory._tcp</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Odyssey needs your Camera because you selected "Scan QR Code" to scan a QR Code</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Odyssey needs Network access to connect to debugging services. You should only be seeing this on Pre-Release versions of Odyssey</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>

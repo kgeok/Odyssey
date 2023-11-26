@@ -1,4 +1,5 @@
-// ignore_for_file: avoid_print, use_build_context_synchronously, prefer_typing_uninitialized_variables, prefer_interpolation_to_compose_strings, prefer_const_constructors
+// ignore_for_file: prefer_const_constructors, prefer_typing_uninitialized_variables, avoid_print, use_build_context_synchronously, prefer_interpolation_to_compose_strings
+
 import 'dart:ui' as ui;
 import 'dart:io';
 import 'dart:async';
@@ -17,13 +18,15 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:google_maps_webservice/places.dart' as places;
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MaterialApp(home: OdysseyMain()));
 }
 
 class OdysseyMain extends StatefulWidget {
-  const OdysseyMain({Key? key}) : super(key: key);
+  const OdysseyMain({super.key});
   @override
   OdysseyMainState createState() => OdysseyMainState();
 
@@ -200,14 +203,11 @@ String shapeHandler(shape) {
   }
 }
 
-Future<BitmapDescriptor> bitmapDescriptorFromSvg(
-    BuildContext context, String shape) async {
+Future bitmapDescriptorFromSvg(BuildContext context, String shape) async {
   DrawableRoot svgDrawableRoot =
       await svg.fromSvgString(shapeHandler(shape), null.toString());
-  MediaQueryData queryData = MediaQuery.of(context);
-  double devicePixelRatio = queryData.devicePixelRatio;
-  double width = 50 * devicePixelRatio;
-  double height = 50 * devicePixelRatio;
+  double width = 50 * MediaQuery.of(context).devicePixelRatio + 25;
+  double height = 50 * MediaQuery.of(context).devicePixelRatio + 25;
   ui.Picture picture = svgDrawableRoot.toPicture(size: Size(width, height));
   ui.Image image = await picture.toImage(width.toInt(), height.toInt());
   ByteData? bytes = await image.toByteData(format: ui.ImageByteFormat.png);
@@ -231,9 +231,9 @@ class OdysseyMainState extends State<OdysseyMain> {
   late GoogleMapController mapController;
   Set<Marker> statemarkers = {};
 
-  void populateMapfromState() async {
+  populateMapfromState(bool startup) async {
+    //await Future.delayed(const Duration(milliseconds: 1500));
     await OdysseyDatabase.instance.initStatefromDB();
-
     var pinCounterBuffer =
         pinCounter; //I need to freeze the state of the counter so that it doesn't keep iterating on append
     for (var i = 0; i < pinCounterBuffer; i++) {
@@ -245,12 +245,26 @@ class OdysseyMainState extends State<OdysseyMain> {
           await bitmapDescriptorFromSvg(context, shape);
       caption = pins[i].pincaption;
       note = pins[i].pinnote;
+      if (pins[i].pinlocation == "Location N/A") {
+        print("Correcting Missing Location if Possible...");
+        //Correction for if we didn't fine a location before due to connection issues, etc.
+        pins[i].pinlocation = await reverseGeocoder(pins[i].pincoor);
+        OdysseyDatabase.instance
+            .updatePinsDB(i + 1, pins[i].pinlocation, "location");
+      }
 
       setState(() {
         statemarkers.add(
           Marker(
               markerId: MarkerId((i + 1).toString()),
               position: pins[i].pincoor,
+              draggable: true,
+              onDragEnd: (newPos) async {
+                OdysseyDatabase.instance.updatePinsDB(i + 1, newPos, "latlng");
+                OdysseyDatabase.instance.updatePinsDB(
+                    i + 1, await reverseGeocoder(newPos), "location");
+                reenumerateState();
+              },
               infoWindow: InfoWindow(
                 title: caption,
                 //  snippet: locationBuffer,
@@ -263,59 +277,27 @@ class OdysseyMainState extends State<OdysseyMain> {
           .pincoor; //For whatever reason this was the only way that Center sticks after every cycle
       print("Restored Pin: ${i + 1}");
     }
-    captionBuffer = "";
-    caption = "";
-    noteBuffer = "";
-    note = "";
+    cleanBuffers();
 
-    print("Center: $center, Bearing: $bearing, Zoom: $mapZoom");
-
-    mapController.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(
-          target: center,
-          bearing: bearing,
-          zoom: mapZoom,
+    if (startup == true) {
+      //We only want to move the camera when the app is started up otherwise it causes too much movement
+      print("Center: $center, Bearing: $bearing, Zoom: $mapZoom");
+      mapController.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: center,
+            bearing: bearing,
+            zoom: mapZoom,
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
 
   void appendMarker(LatLng latLng) async {
     pinCounter++;
     BitmapDescriptor bitmapDescriptor =
         await bitmapDescriptorFromSvg(context, shape);
-    reverseGeocoder(latLng);
-    setState(() {
-      statemarkers.add(
-        Marker(
-            markerId: MarkerId(pinCounter.toString()),
-            position: latLng,
-            infoWindow: InfoWindow(
-              title: caption,
-              //  snippet: locationBuffer,
-            ),
-            icon: bitmapDescriptor),
-      );
-    });
-  }
-
-  void reverseGeocoder(LatLng latLng) async {
-    var pinlocation;
-    try {
-      List<Placemark> placeMarks =
-          await placemarkFromCoordinates(latLng.latitude, latLng.longitude);
-
-      pinlocation = placeMarks;
-
-      locationBuffer =
-          "${pinlocation[0].name}: ${pinlocation[0].locality} ${pinlocation[0].administrativeArea} ${pinlocation[0].isoCountryCode}";
-    } catch (e) {
-      //In case, for whatever reason theres no Internet or the platform can't get a location
-      pinlocation = "Location N/A";
-      locationBuffer = pinlocation;
-    }
-
     //Adding Entry here...
     DateTime currentDate = DateTime.now();
     String date = currentDate.toString().substring(0, 10);
@@ -329,7 +311,7 @@ class OdysseyMainState extends State<OdysseyMain> {
         pinnote: note,
         pincaption: caption,
         pinshape: shape,
-        pinlocation: locationBuffer.toString()));
+        pinlocation: await reverseGeocoder(latLng)));
 
     OdysseyDatabase.instance.addPinDB(pinCounter, caption, date, pincolor,
         shape, latLng, locationBuffer, note, null);
@@ -341,14 +323,47 @@ class OdysseyMainState extends State<OdysseyMain> {
     mapZoom = await mapController.getZoomLevel();
     OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
 
-    caption = "";
-    captionBuffer = "";
-    note = "";
-    noteBuffer = "";
-    pinlocation = [];
+    setState(() {
+      statemarkers.add(
+        Marker(
+            markerId: MarkerId(pinCounter.toString()),
+            position: latLng,
+            draggable: true,
+            onDragEnd: (newPos) async {
+              OdysseyDatabase.instance
+                  .updatePinsDB(pinCounter, newPos, "latlng");
+              OdysseyDatabase.instance.updatePinsDB(
+                  pinCounter, await reverseGeocoder(newPos), "location");
+              reenumerateState();
+            },
+            infoWindow: InfoWindow(
+              title: caption,
+              //  snippet: locationBuffer,
+            ),
+            icon: bitmapDescriptor),
+      );
+    });
+    cleanBuffers();
   }
 
-  void geocoder(String address) async {
+  Future reverseGeocoder(LatLng latLng) async {
+    var pinlocation;
+    try {
+      List<Placemark> placeMarks =
+          await placemarkFromCoordinates(latLng.latitude, latLng.longitude);
+      pinlocation = placeMarks;
+      locationBuffer =
+          "${pinlocation[0].name}: ${pinlocation[0].locality} ${pinlocation[0].administrativeArea} ${pinlocation[0].isoCountryCode}";
+    } catch (e) {
+      //In case, for whatever reason theres no Internet or the platform can't get a location
+      pinlocation = "Location N/A";
+      locationBuffer = pinlocation;
+    }
+    pinlocation = [];
+    return locationBuffer.toString();
+  }
+
+  Future geocoder(String address) async {
     try {
       List<Location> location = await locationFromAddress(address);
       appendMarker(LatLng(location[0].latitude, location[0].longitude));
@@ -374,7 +389,7 @@ class OdysseyMainState extends State<OdysseyMain> {
       return Text("");
     } else {
       return Padding(
-          padding: EdgeInsets.fromLTRB(0, 0, 0, 5),
+          padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
           child: Container(
               height: 200,
               decoration: BoxDecoration(
@@ -386,9 +401,7 @@ class OdysseyMainState extends State<OdysseyMain> {
   Widget journalEntry(final caption, final color, final subtitle, var latlng,
       var date, String note, var shape, var photo, var id) {
     var target = latlng;
-    latlng = latlng.toString();
-    latlng = latlng.replaceAll("LatLng(", "");
-    latlng = latlng.replaceAll(")", "");
+    latlng = locationToString(latlng);
     return Center(
         child: Wrap(
       direction: Axis.vertical,
@@ -523,9 +536,148 @@ class OdysseyMainState extends State<OdysseyMain> {
                             ? Colors.black
                             : Colors.white)),
                 onPressed: () {
-                  redirectURL(
-                      "https://www.google.com/maps/search/?api=1&query=" +
-                          latlng.replaceAll(", ", "%2C"));
+                  if (Platform.isIOS) {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                            backgroundColor: color,
+                            title: Text("Open",
+                                style: GoogleFonts.quicksand(
+                                    fontWeight: FontWeight.w700,
+                                    color: color.computeLuminance() > 0.5
+                                        ? Colors.black
+                                        : Colors.white)),
+                            content: SingleChildScrollView(
+                              child: ListBody(
+                                children: <Widget>[
+                                  SimpleDialogOption(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      launchUrl(
+                                          Uri.parse(
+                                              "https://maps.apple.com/?q=$latlng"),
+                                          mode: LaunchMode.externalApplication);
+                                    },
+                                    child: Text('Apple Maps (App)',
+                                        style: GoogleFonts.quicksand(
+                                            fontWeight: FontWeight.w700,
+                                            color:
+                                                color.computeLuminance() > 0.5
+                                                    ? Colors.black
+                                                    : Colors.white)),
+                                  ),
+                                  SimpleDialogOption(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      launchUrl(
+                                          Uri.parse(
+                                              "comgooglemaps://?center=$latlng"),
+                                          mode: LaunchMode.externalApplication);
+                                    },
+                                    child: Text('Google Maps (App)',
+                                        style: GoogleFonts.quicksand(
+                                            fontWeight: FontWeight.w700,
+                                            color:
+                                                color.computeLuminance() > 0.5
+                                                    ? Colors.black
+                                                    : Colors.white)),
+                                  ),
+                                  SimpleDialogOption(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      redirectURL(
+                                          "https://www.google.com/maps/search/?api=1&query=" +
+                                              latlng.replaceAll(", ", "%2C"));
+                                    },
+                                    child: Text('Google Maps (Web)',
+                                        style: GoogleFonts.quicksand(
+                                            fontWeight: FontWeight.w700,
+                                            color:
+                                                color.computeLuminance() > 0.5
+                                                    ? Colors.black
+                                                    : Colors.white)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            actions: <Widget>[
+                              TextButton(
+                                child: Text('Dismiss',
+                                    style: GoogleFonts.quicksand(
+                                        fontWeight: FontWeight.w700,
+                                        color: color.computeLuminance() > 0.5
+                                            ? Colors.black
+                                            : Colors.white)),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                              )
+                            ]);
+                      },
+                    );
+                  } else if (Platform.isAndroid) {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                            backgroundColor: color,
+                            title: Text("Open",
+                                style: GoogleFonts.quicksand(
+                                    fontWeight: FontWeight.w700,
+                                    color: color.computeLuminance() > 0.5
+                                        ? Colors.black
+                                        : Colors.white)),
+                            content: SingleChildScrollView(
+                              child: ListBody(
+                                children: <Widget>[
+                                  SimpleDialogOption(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      redirectURL("geo:$latlng");
+                                    },
+                                    child: Text('Google Maps (App)',
+                                        style: GoogleFonts.quicksand(
+                                            fontWeight: FontWeight.w700,
+                                            color:
+                                                color.computeLuminance() > 0.5
+                                                    ? Colors.black
+                                                    : Colors.white)),
+                                  ),
+                                  SimpleDialogOption(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      redirectURL(
+                                          "https://www.google.com/maps/search/?api=1&query=" +
+                                              latlng.replaceAll(", ", "%2C"));
+                                    },
+                                    child: Text('Google Maps (Web)',
+                                        style: GoogleFonts.quicksand(
+                                            fontWeight: FontWeight.w700,
+                                            color:
+                                                color.computeLuminance() > 0.5
+                                                    ? Colors.black
+                                                    : Colors.white)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            actions: <Widget>[
+                              TextButton(
+                                child: Text('Dismiss',
+                                    style: GoogleFonts.quicksand(
+                                        fontWeight: FontWeight.w700,
+                                        color: color.computeLuminance() > 0.5
+                                            ? Colors.black
+                                            : Colors.white)),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                              )
+                            ]);
+                      },
+                    );
+                  }
                 },
               ),
               TextButton(
@@ -582,19 +734,14 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                                 Colors.black)),
                                                 onTap: () {
                                                   Navigator.of(context).pop();
-                                                  Clipboard.setData(
-                                                      ClipboardData(
-                                                          text: caption +
-                                                              " " +
-                                                              location +
-                                                              ", " +
-                                                              date +
-                                                              " " +
-                                                              note));
+                                                  Clipboard.setData(ClipboardData(
+                                                      text:
+                                                          "${"${caption + " " + location}, " + date} $note"));
                                                   scaffoldMessengerKey
                                                       .currentState
-                                                      ?.showSnackBar(SnackBar(
-                                                    content: const Text(
+                                                      ?.showSnackBar(
+                                                          const SnackBar(
+                                                    content: Text(
                                                         'Copied to Clipboard'),
                                                   ));
                                                 },
@@ -614,8 +761,9 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                           text: location));
                                                   scaffoldMessengerKey
                                                       .currentState
-                                                      ?.showSnackBar(SnackBar(
-                                                    content: const Text(
+                                                      ?.showSnackBar(
+                                                          const SnackBar(
+                                                    content: Text(
                                                         'Copied to Clipboard'),
                                                   ));
                                                 },
@@ -629,6 +777,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                             color:
                                                                 Colors.black)),
                                                 onTap: () {
+                                                  Navigator.pop(context);
                                                   showDialog(
                                                     context: context,
                                                     builder:
@@ -651,7 +800,28 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                           content:
                                                               SingleChildScrollView(
                                                             child: ListBody(
-                                                              children: <Widget>[],
+                                                              children: <Widget>[
+                                                                Text(
+                                                                  "Open Odyssey on another device and scan QR Code",
+                                                                  style: GoogleFonts.quicksand(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                      color: color.computeLuminance() >
+                                                                              0.5
+                                                                          ? Colors
+                                                                              .black
+                                                                          : Colors
+                                                                              .white),
+                                                                ),
+                                                                Text(""),
+                                                                generateQRcode(
+                                                                    caption,
+                                                                    note,
+                                                                    latlng,
+                                                                    color,
+                                                                    shape)
+                                                              ],
                                                             ),
                                                           ),
                                                           actions: <Widget>[
@@ -1192,22 +1362,28 @@ class OdysseyMainState extends State<OdysseyMain> {
     });
   }
 
-  void reenumerateState() {
+  void cleanBuffers() {
     caption = "";
     captionBuffer = "";
     noteBuffer = "";
     note = "";
+    addressBuffer = "";
+    locationBuffer = "";
+  }
+
+  void reenumerateState() async {
+    cleanBuffers();
     pinCounter = 0;
     pins.clear();
     setState(() {
       statemarkers = {};
       journal = [];
     });
-
-    populateMapfromState();
+    //await OdysseyDatabase.instance.initStatefromDB();
+    populateMapfromState(false);
   }
 
-  Future<void> appendFromLocation() async {
+  Future appendFromLocation() async {
     bool serviceEnabled;
     prefix.PermissionStatus permissionGranted;
     prefix.Location location = prefix.Location();
@@ -1276,7 +1452,7 @@ class OdysseyMainState extends State<OdysseyMain> {
     }
 
     scaffoldMessengerKey.currentState
-        ?.showSnackBar(SnackBar(content: const Text('Getting Location...')));
+        ?.showSnackBar(const SnackBar(content: Text('Getting Location...')));
 
     currentPosition = await location.getLocation();
 
@@ -1297,15 +1473,246 @@ class OdysseyMainState extends State<OdysseyMain> {
     );
   }
 
-  Widget generateQRcode(caption, latlng, color, shape) {
-    return QrImageView(data: 'data', version: QrVersions.auto);
+  Widget generateQRcode(caption, note, latlng, color, shape) {
+    return Container(
+      alignment: Alignment.center,
+      width: 200.0,
+      height: 200.0,
+      child: QrImageView(
+        //Update with possible URI Scheme later
+        data:
+            'odyssey://&latlng:$latlng&caption:$caption&note:$note&color:${colorToString(color)}&shape:$shape',
+        backgroundColor: Colors.white,
+        version: QrVersions.auto,
+        gapless: false,
+        eyeStyle:
+            const QrEyeStyle(color: Colors.black, eyeShape: QrEyeShape.square),
+        dataModuleStyle: QrDataModuleStyle(
+            color: Colors.black, dataModuleShape: QrDataModuleShape.square),
+      ),
+    );
+  }
+
+  void scanQRcode(context) async {
+    showModalBottomSheet(
+        context: context,
+        enableDrag: true,
+        isScrollControlled: true,
+        useRootNavigator: true,
+        builder: (BuildContext context) {
+          return FractionallySizedBox(
+              heightFactor: 0.5,
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(0, 15, 0, 0),
+                      child: Text("Scan QR Code",
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.quicksand(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 20,
+                              color: Colors.black)),
+                    ),
+                    Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+                        child: Text(
+                            "Open Odyssey on another device, open a Journal Entry and show QR Code",
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.quicksand(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                color: Colors.black))),
+                    SizedBox(
+                        height: 250,
+                        width: 250,
+                        child: ClipRRect(
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(32.0),
+                              topRight: Radius.circular(32.0),
+                              bottomRight: Radius.circular(32.0),
+                              bottomLeft: Radius.circular(32.0),
+                            ),
+                            child: AspectRatio(
+                                aspectRatio: 1,
+                                child: MobileScanner(
+                                    controller: MobileScannerController(
+                                      detectionSpeed:
+                                          DetectionSpeed.noDuplicates,
+                                    ),
+                                    fit: BoxFit.fill,
+                                    onDetect: (capture) async {
+                                      final List barcodes = capture.barcodes;
+                                      //final Uint8List? image = capture.image;
+                                      for (final barcode in barcodes) {
+                                        if ((barcode.rawValue)
+                                            .toString()
+                                            .startsWith("odyssey://")) {
+                                          var capturedValue =
+                                              (barcode.rawValue.toString())
+                                                  .split(RegExp(r'[&:]'));
+                                          Navigator.pop(context);
+                                          var location = await reverseGeocoder(
+                                              stringToLocation(capturedValue[
+                                                  capturedValue.indexWhere(
+                                                          (element) =>
+                                                              element ==
+                                                              "latlng") +
+                                                      1]));
+                                          showDialog(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return AlertDialog(
+                                                  title: Text(
+                                                      'Add this Journal Entry?',
+                                                      style:
+                                                          GoogleFonts.quicksand(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w700,
+                                                              color: Colors
+                                                                  .white)),
+                                                  content:
+                                                      SingleChildScrollView(
+                                                    child: ListBody(
+                                                      children: <Widget>[
+                                                        SingleChildScrollView(
+                                                          child: ListBody(
+                                                            children: <Widget>[
+                                                              Text(
+                                                                  capturedValue[
+                                                                          capturedValue.indexWhere((element) => element == "caption") +
+                                                                              1]
+                                                                      .toString(),
+                                                                  style: GoogleFonts.quicksand(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                      color: Colors
+                                                                          .white)),
+                                                              const Text(""),
+                                                              Text(location,
+                                                                  style: GoogleFonts.quicksand(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                      color: Colors
+                                                                          .white)),
+                                                              const Text(""),
+                                                              Text(
+                                                                  capturedValue[
+                                                                          capturedValue.indexWhere((element) => element == "latlng") +
+                                                                              1]
+                                                                      .toString(),
+                                                                  style: GoogleFonts.quicksand(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                      color: Colors
+                                                                          .white)),
+                                                              const Text(""),
+                                                              Text(
+                                                                  capturedValue[
+                                                                          capturedValue.indexWhere((element) => element == "note") +
+                                                                              1]
+                                                                      .toString(),
+                                                                  style: GoogleFonts.quicksand(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                      color: Colors
+                                                                          .white)),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  actions: <Widget>[
+                                                    TextButton(
+                                                      child: Text('Cancel',
+                                                          style: GoogleFonts
+                                                              .quicksand(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w700,
+                                                                  color: Colors
+                                                                      .white)),
+                                                      onPressed: () {
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                        scanQRcode(context);
+                                                      },
+                                                    ),
+                                                    TextButton(
+                                                      child: Text('OK',
+                                                          style: GoogleFonts
+                                                              .quicksand(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w700,
+                                                                  color: Colors
+                                                                      .white)),
+                                                      onPressed: () {
+                                                        Navigator.pop(context);
+                                                        caption = capturedValue[
+                                                                capturedValue.indexWhere((element) =>
+                                                                        element ==
+                                                                        "caption") +
+                                                                    1]
+                                                            .toString();
+                                                        note = capturedValue[
+                                                                capturedValue.indexWhere((element) =>
+                                                                        element ==
+                                                                        "note") +
+                                                                    1]
+                                                            .toString();
+                                                        shape = capturedValue[
+                                                                capturedValue.indexWhere((element) =>
+                                                                        element ==
+                                                                        "shape") +
+                                                                    1]
+                                                            .toString();
+                                                        pincolor = Color(int.parse(
+                                                            capturedValue[(capturedValue.indexWhere((element) =>
+                                                                        element ==
+                                                                        "color")) +
+                                                                    1]
+                                                                .toString()));
+                                                        colorToHex(Color(int.parse(capturedValue[
+                                                            (capturedValue.indexWhere(
+                                                                    (element) =>
+                                                                        element ==
+                                                                        "color")) +
+                                                                1])));
+                                                        appendMarker(stringToLocation(capturedValue[
+                                                            capturedValue.indexWhere(
+                                                                    (element) =>
+                                                                        element ==
+                                                                        "latlng") +
+                                                                1]));
+                                                        scaffoldMessengerKey
+                                                            .currentState
+                                                            ?.showSnackBar(
+                                                                const SnackBar(
+                                                                    content: Text(
+                                                                        'Added Journal Entry')));
+                                                      },
+                                                    )
+                                                  ]);
+                                            },
+                                          );
+                                        }
+                                      }
+                                    })))),
+                    const Expanded(child: Text("")),
+                  ]));
+        });
   }
 
   void clearStateMarkers() {
-    caption = "";
-    captionBuffer = "";
-    noteBuffer = "";
-    note = "";
+    cleanBuffers();
     pinCounter = 0;
     pins.clear();
     OdysseyDatabase.instance
@@ -1744,10 +2151,10 @@ class OdysseyMainState extends State<OdysseyMain> {
                         clipBoard = "$clipBoard\n";
                         clipBoard = "$clipBoard\n";
                       }
-                      print(clipBoard);
+                      //print(clipBoard);
                       Clipboard.setData(ClipboardData(text: clipBoard));
                       scaffoldMessengerKey.currentState?.showSnackBar(
-                          SnackBar(content: const Text('Copied to Clipboard')));
+                          const SnackBar(content: Text('Copied to Clipboard')));
                     },
                     child: Text('Copy Journal Contents', style: dialogBody),
                   ),
@@ -1850,7 +2257,7 @@ class OdysseyMainState extends State<OdysseyMain> {
     } on SocketException catch (_) {
       print('Not Connected to Google Maps');
       scaffoldMessengerKey.currentState?.showSnackBar(SnackBar(
-          duration: Duration(milliseconds: 2000),
+          duration: const Duration(milliseconds: 2000),
           content: const Text('No Internet Connection'),
           action: SnackBarAction(
               label: 'More Info',
@@ -1866,7 +2273,6 @@ class OdysseyMainState extends State<OdysseyMain> {
   }
 
   Future startOnboarding() async {
-    await OdysseyDatabase.instance.initStatefromDB();
     if (onboarding == 1) {
       onboardDialog(
           context,
@@ -1882,16 +2288,16 @@ class OdysseyMainState extends State<OdysseyMain> {
     }
   }
 
-  void mapMade(GoogleMapController controller) {
-    mapController = controller;
-    populateMapfromState();
+  void mapMade(GoogleMapController controller) async {
     checkConnection();
+    mapController = controller;
+    await populateMapfromState(true);
     startOnboarding();
     //This is only for Pre-Release Versions, This doesn't apply for release versions.
     if (release == "Pre-Release") {
       scaffoldMessengerKey.currentState?.showSnackBar(SnackBar(
           content: const Text('Pre-Release Version'),
-          duration: Duration(milliseconds: 3000),
+          duration: const Duration(milliseconds: 3000),
           backgroundColor: Colors.red[800],
           action: SnackBarAction(
               label: 'More Info',
@@ -2013,7 +2419,7 @@ class OdysseyMainState extends State<OdysseyMain> {
 
     showModalBottomSheet(
         context: context,
-        constraints: BoxConstraints(maxWidth: 750),
+        constraints: const BoxConstraints(maxWidth: 750),
         builder: (BuildContext context) {
           return StatefulBuilder(
               builder: (BuildContext context, StateSetter setState) {
@@ -2022,87 +2428,87 @@ class OdysseyMainState extends State<OdysseyMain> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                const SizedBox(height: 15, child: Text("")),
                 ConstrainedBox(
-                  constraints: BoxConstraints(maxHeight: 50),
+                  constraints: const BoxConstraints(maxHeight: 50),
                   child: ListView(
                     scrollDirection: Axis.horizontal,
-                    padding: EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.all(5.0),
                     shrinkWrap: true,
                     children:
                         List<Widget>.generate(categories.length, (int index) {
-                      return Padding(
-                          padding: EdgeInsets.all(1.5),
-                          child: ChoiceChip(
-                              label: Text(categories[index],
-                                  style: GoogleFonts.quicksand(
-                                      fontWeight: FontWeight.w700)),
-                              padding: EdgeInsets.symmetric(
-                                  vertical: 5, horizontal: 10),
-                              backgroundColor: Colors.grey[500],
-                              labelStyle:
-                                  TextStyle(fontSize: 16, color: Colors.white),
-                              selectedColor:
-                                  MediaQuery.of(context).platformBrightness ==
-                                          Brightness.light
-                                      ? lightMode.withOpacity(0.9)
-                                      : darkMode.withOpacity(0.9),
-                              selected: catselection == index,
-                              onSelected: (bool selected) async {
-                                setState(() {
-                                  catselection = selected ? index : null;
-                                  nearbyresults.clear();
-                                });
-                                print(categories[index]);
-                                response =
-                                    await placeskey.searchNearbyWithRadius(
-                                        places.Location(
-                                            lat: currentLocation.latitude,
-                                            lng: currentLocation.longitude),
-                                        10000,
-                                        type:
-                                            ((categories[index]).toLowerCase())
-                                                .replaceAll(" ", "_"));
-                                setState(() {
-                                  if (response.results.isNotEmpty) {
-                                    for (var i = 0;
-                                        i < response.results.length;
-                                        i++) {
-                                      nearbyresults.add(NearByData(
-                                          name: response.results[i].name,
-                                          location: response.results[i]
-                                                  .formattedAddress ??
-                                              "N/A",
-                                          rating: response.results[i].rating ??
-                                              "N/A",
-                                          coor: LatLng(
-                                              response.results[i].geometry
-                                                      ?.location.lat ??
-                                                  0,
-                                              response.results[i].geometry
-                                                      ?.location.lng ??
-                                                  0),
-                                          id: i,
-                                          state: true));
-                                    }
-                                  } else {
+                      return Wrap(children: [
+                        const SizedBox(width: 3.5, child: Text("")),
+                        ChoiceChip(
+                            label: Text(categories[index],
+                                style: GoogleFonts.quicksand(
+                                    fontWeight: FontWeight.w700)),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 5, horizontal: 10),
+                            backgroundColor: Colors.grey[500],
+                            labelStyle: const TextStyle(
+                                fontSize: 16, color: Colors.white),
+                            selectedColor:
+                                MediaQuery.of(context).platformBrightness ==
+                                        Brightness.light
+                                    ? lightMode.withOpacity(1)
+                                    : darkMode.withOpacity(1),
+                            selected: catselection == index,
+                            onSelected: (bool selected) async {
+                              setState(() {
+                                catselection = selected ? index : null;
+                                nearbyresults.clear();
+                              });
+                              print(categories[index]);
+                              response = await placeskey.searchNearbyWithRadius(
+                                  places.Location(
+                                      lat: currentLocation.latitude,
+                                      lng: currentLocation.longitude),
+                                  10000,
+                                  type: ((categories[index]).toLowerCase())
+                                      .replaceAll(" ", "_"));
+                              setState(() {
+                                if (response.results.isNotEmpty) {
+                                  for (var i = 0;
+                                      i < response.results.length;
+                                      i++) {
                                     nearbyresults.add(NearByData(
-                                        name: "No Results",
-                                        location: "",
-                                        rating: "0",
-                                        coor: center,
-                                        id: 0,
-                                        state: false));
+                                        name: response.results[i].name,
+                                        location: response
+                                                .results[i].formattedAddress ??
+                                            "N/A",
+                                        rating:
+                                            response.results[i].rating ?? "N/A",
+                                        coor: LatLng(
+                                            response.results[i].geometry
+                                                    ?.location.lat ??
+                                                0,
+                                            response.results[i].geometry
+                                                    ?.location.lng ??
+                                                0),
+                                        id: i,
+                                        state: true));
                                   }
-                                });
-                              }));
+                                } else {
+                                  nearbyresults.add(NearByData(
+                                      name: "No Results",
+                                      location: "",
+                                      rating: "0",
+                                      coor: center,
+                                      id: 0,
+                                      state: false));
+                                }
+                              });
+                            })
+                      ]);
                     }).toList(),
                   ),
                 ),
-                SizedBox(height: 1),
+                const SizedBox(height: 1),
                 Expanded(
                     child: ListView(
                         scrollDirection: Axis.vertical,
-                        padding: EdgeInsets.all(2.0),
+                        padding: const EdgeInsets.all(2.0),
                         shrinkWrap: true,
                         children: List<Widget>.generate(nearbyresults.length,
                             (int index) {
@@ -2111,9 +2517,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                                 style: GoogleFonts.quicksand(
                                     fontWeight: FontWeight.w700)),
                             subtitle: Text(
-                                "Rating: " +
-                                    ((nearbyresults[index].rating.toString() +
-                                        " out of 5")),
+                                "Rating: ${nearbyresults[index].rating} out of 5",
                                 style: GoogleFonts.quicksand(
                                     fontWeight: FontWeight.w700)),
                             onTap: () {
@@ -2128,25 +2532,22 @@ class OdysseyMainState extends State<OdysseyMain> {
                             },
                             trailing: nearbyresults[index].state
                                 ? IconButton(
-                                    icon: Icon(Icons.add),
+                                    icon: const Icon(Icons.add),
                                     onPressed: () {
                                       caption = nearbyresults[index].name;
-                                      note = "Rating: " +
-                                          ((nearbyresults[index]
-                                                  .rating
-                                                  .toString() +
-                                              " out of 5"));
+                                      note =
+                                          "Rating: ${nearbyresults[index].rating} out of 5";
                                       appendMarker(nearbyresults[index].coor);
                                       setState(() =>
                                           nearbyresults[index].state = false);
                                       nearbyresults[index].state = false;
                                       scaffoldMessengerKey.currentState
-                                          ?.showSnackBar(SnackBar(
-                                              content: const Text(
-                                                  'Added Journal Entry')));
+                                          ?.showSnackBar(const SnackBar(
+                                              content:
+                                                  Text('Added Journal Entry')));
                                     })
                                 : IconButton(
-                                    icon: Icon(Icons.check),
+                                    icon: const Icon(Icons.check),
                                     onPressed: () {},
                                   ),
                           );
@@ -2200,6 +2601,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                   captionDialog(context);
                 },
               ),
+              const PopupMenuDivider(height: 20),
               PopupMenuItem(
                   value: 3,
                   child: Text(
@@ -2218,9 +2620,18 @@ class OdysseyMainState extends State<OdysseyMain> {
                   onTap: () {
                     appendFromLocation();
                   }),
+              PopupMenuItem(
+                  value: 5,
+                  child: Text(
+                    "Scan QR Code",
+                    style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
+                  ),
+                  onTap: () {
+                    scanQRcode(context);
+                  }),
               const PopupMenuDivider(height: 20),
               PopupMenuItem(
-                value: 5,
+                value: 6,
                 onTap: deleteLastMarker,
                 child: Text(
                   "Delete Last Pin",
@@ -2230,7 +2641,7 @@ class OdysseyMainState extends State<OdysseyMain> {
               ),
               const PopupMenuDivider(height: 20),
               PopupMenuItem(
-                value: 6,
+                value: 7,
                 child: Text(
                   "Settings",
                   style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
@@ -2246,17 +2657,18 @@ class OdysseyMainState extends State<OdysseyMain> {
           decoration: ShapeDecoration(
               color:
                   MediaQuery.of(context).platformBrightness == Brightness.light
-                      ? lightMode.withOpacity(0.9)
-                      : darkMode.withOpacity(0.9),
+                      ? lightMode.withOpacity(1)
+                      : darkMode.withOpacity(1),
               shadows: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.3),
-                  spreadRadius: 2,
+                  spreadRadius: 1,
                   blurRadius: 5,
                   offset: const Offset(0, 3), // changes position of shadow
                 ),
               ],
-              shape: CircleBorder()),
+              shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(20)))),
           child: const Icon(Icons.push_pin, color: Colors.white),
         ));
 
@@ -2286,12 +2698,15 @@ class OdysseyMainState extends State<OdysseyMain> {
                   padding: EdgeInsets.zero,
                   children: [
                     SizedBox(
-                        height: 120.0, //140.0 if header cuts off on Android
-                        child: DrawerHeader(
+                        height: 100.0, //140.0 if header cuts off on Android
+                        child: Container(
+                          padding: const EdgeInsets.only(top: 52.5, left: 15),
                           child: Text(
                             'Journal',
                             style: GoogleFonts.quicksand(
-                                fontWeight: FontWeight.w700, fontSize: 22),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 22,
+                                color: Colors.white),
                           ),
                         )),
                     Column(
@@ -2364,10 +2779,10 @@ class OdysseyMainState extends State<OdysseyMain> {
                                     color: MediaQuery.of(context)
                                                 .platformBrightness ==
                                             Brightness.light
-                                        ? lightMode.withOpacity(0.9)
-                                        : darkMode.withOpacity(0.9),
+                                        ? lightMode.withOpacity(1)
+                                        : darkMode.withOpacity(1),
                                     shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(4)),
+                                        borderRadius: BorderRadius.circular(6)),
                                   ),
                                   child: IconButton(
                                     icon:
@@ -2391,10 +2806,10 @@ class OdysseyMainState extends State<OdysseyMain> {
                                     color: MediaQuery.of(context)
                                                 .platformBrightness ==
                                             Brightness.light
-                                        ? lightMode.withOpacity(0.9)
-                                        : darkMode.withOpacity(0.9),
+                                        ? lightMode.withOpacity(1)
+                                        : darkMode.withOpacity(1),
                                     shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(4)),
+                                        borderRadius: BorderRadius.circular(6)),
                                   ),
                                   child: IconButton(
                                       icon: const Icon(Icons.radar),
@@ -2429,8 +2844,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                                     color: MediaQuery.of(context)
                                                 .platformBrightness ==
                                             Brightness.light
-                                        ? lightMode.withOpacity(0.9)
-                                        : darkMode.withOpacity(0.9),
+                                        ? lightMode.withOpacity(1)
+                                        : darkMode.withOpacity(1),
                                     shape: const RoundedRectangleBorder(
                                         borderRadius: BorderRadius.vertical(
                                             top: Radius.circular(10),
@@ -2473,8 +2888,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                                     color: MediaQuery.of(context)
                                                 .platformBrightness ==
                                             Brightness.light
-                                        ? lightMode.withOpacity(0.9)
-                                        : darkMode.withOpacity(0.9),
+                                        ? lightMode.withOpacity(1)
+                                        : darkMode.withOpacity(1),
                                     shape: const RoundedRectangleBorder(
                                         borderRadius: BorderRadius.vertical(
                                             top: Radius.circular(0),

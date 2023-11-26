@@ -139,7 +139,7 @@
     <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
     <script type="text/javascript">
         let product = "Odyssey";
-        let version = "1.4";
+        let version = "1.5";
         let release = "Release";
         let map;
         let markers = [];
@@ -163,7 +163,7 @@
         download_btn.id = "download_btn";
         download_btn.innerHTML = "<span aria-label = 'Download Pin Data Button' class='material-icons md-light'>download</span>";
         download_btn.setAttribute("onclick", "exportJSONFile()");
-        download_btn.setAttribute("class", "circlebtn");
+        download_btn.setAttribute("class", "cirsqubtn");
         download_btn.setAttribute("alt", "Download Pin Data");
 
         let color_picker = document.createElement("input");
@@ -177,58 +177,44 @@
         settings_btn.id = "settings_btn";
         settings_btn.innerHTML = "<span aria-label = 'Settings' class='material-icons md-36'>settings</span>";
         settings_btn.setAttribute("onclick", "ToggleSettings()");
-        settings_btn.setAttribute("class", "circlebtn");
+        settings_btn.setAttribute("class", "cirsqubtn");
         settings_btn.setAttribute("alt", "Settings");
 
         let customize_btn = document.createElement("div");
         customize_btn.id = "customize_btn";
         customize_btn.innerHTML = "<span aria-label = 'Settings' class='material-icons md-36'>push_pin</span>";
         customize_btn.setAttribute("onclick", "ToggleCustomize()");
-        customize_btn.setAttribute("class", "circlebtn");
+        customize_btn.setAttribute("class", "cirsqubtn");
         customize_btn.setAttribute("alt", "Customize");
 
         let deletelp_btn = document.createElement("div");
         deletelp_btn.id = "deletelp_btn";
         deletelp_btn.innerHTML = "<span aria-label = 'Delete Last Pin' class='material-icons md-36'>delete_outline</span>";
         deletelp_btn.setAttribute("onclick", "removeLastMarker()");
-        deletelp_btn.setAttribute("class", "circlebtn");
+        deletelp_btn.setAttribute("class", "cirsqubtn");
         deletelp_btn.setAttribute("alt", "Remove Last Pin");
 
         let caption_btn = document.createElement("div");
         caption_btn.id = "caption_btn";
         caption_btn.innerHTML = "<span aria-label = 'Pin Caption' class='material-icons md-light md-36'>subtitles</span>";
         caption_btn.setAttribute("onclick", "makeCaption()");
-        caption_btn.setAttribute("class", "circlebtn");
+        caption_btn.setAttribute("class", "cirsqubtn");
         caption_btn.setAttribute("alt", "Caption Pin");
 
         let get_location = document.createElement("div");
-        get_location.id = "caption_btn";
+        get_location.id = "get_location_btn";
         get_location.innerHTML = "<span aria-label = 'Pin Location' class='material-icons md-light md-36'>person_pin</span>";
         get_location.setAttribute("onclick", "appendFromLocation()");
-        get_location.setAttribute("class", "circlebtn");
+        get_location.className = "sqbtn";
+        get_location.style.borderRadius = "7.5px";
         get_location.setAttribute("alt", "Pin Location");
-
-        let zoom_control_in = document.createElement("div");
-        zoom_control_in.id = "zoom_control_in";
-        zoom_control_in.innerHTML = "<span aria-label = 'Zoom In' class='material-icons-outlined'>add</span>";
-        zoom_control_in.className = "sqbtn";
-        zoom_control_in.style.borderRadius = "8px 8px 0px 0px";
-        zoom_control_in.style.marginTop = "10px";
-        zoom_control_in.setAttribute("onclick", "map.setZoom(map.getZoom() + 1);");
-
-        let zoom_control_out = document.createElement("div");
-        zoom_control_out.id = "zoom_control_out";
-        zoom_control_out.innerHTML = "<span aria-label = 'Zoom In' class='material-icons-outlined'>remove</span>";
-        zoom_control_out.className = "sqbtn";
-        zoom_control_out.style.borderRadius = "0px 0px 7.5px 7.5px";
-        zoom_control_out.setAttribute("onclick", "map.setZoom(map.getZoom() - 1);");
 
         let zoomlocation_btn = document.createElement("div");
         zoomlocation_btn.id = "mts";
         zoomlocation_btn.innerHTML = '<span class="material-icons-outlined">gps_fixed</span>';
         zoomlocation_btn.setAttribute("onclick", "zoomIntoLocation();");
         zoomlocation_btn.className = "sqbtn";
-        zoomlocation_btn.style.borderRadius = "5px";
+        zoomlocation_btn.style.borderRadius = "7.5px";
         zoomlocation_btn.style.marginTop = "10px";
         zoomlocation_btn.style.marginLeft = "10px";
 
@@ -237,9 +223,27 @@
         bigpicture_btn.innerHTML = '<span class="material-icons-outlined">layers</span>';
         bigpicture_btn.setAttribute("onclick", "map.setZoom(3);");
         bigpicture_btn.className = "sqbtn";
-        bigpicture_btn.style.borderRadius = "5px";
+        bigpicture_btn.style.borderRadius = "7.5px";
         bigpicture_btn.style.marginTop = "10px";
         bigpicture_btn.style.marginLeft = "10px";
+
+        let zoom_control_in = document.createElement("div");
+        zoom_control_in.id = "zoom_control_in";
+        zoom_control_in.innerHTML = "<span aria-label = 'Zoom In' class='material-icons-outlined'>add</span>";
+        zoom_control_in.className = "sqbtn";
+        zoom_control_in.style.borderRadius = "12px 12px 0px 0px";
+        zoom_control_in.style.marginTop = "10px";
+        zoom_control_in.setAttribute("alt", "Zoom In");
+        zoom_control_in.setAttribute("onclick", "map.setZoom(map.getZoom() + 1);");
+
+        let zoom_control_out = document.createElement("div");
+        zoom_control_out.id = "zoom_control_out";
+        zoom_control_out.innerHTML = "<span aria-label = 'Zoom In' class='material-icons-outlined'>remove</span>";
+        zoom_control_out.className = "sqbtn";
+        zoom_control_out.style.borderRadius = "0px 0px 12px 12px";
+        zoom_control_out.style.marginTop = "1px";
+        zoom_control_out.setAttribute("alt", "Zoom Out");
+        zoom_control_out.setAttribute("onclick", "map.setZoom(map.getZoom() - 1);");
 
         //Parsing localStorage, cleaning it up into LoadState and placing markers on start
         window.onload = function () {
@@ -387,7 +391,7 @@
             if (MarkerCounter == 0) {
                 removeMarker();
             }
-            console.log(document.cookie);
+
             console.log(MarkerCounter);
             console.log(markers);
 
@@ -429,7 +433,7 @@
                     .geocode({ location: coor })
                     .then((response) => {
                         if (response.results[0]) {
-                            console.log(response.results[0].formatted_address);
+                            //console.log(response.results[0].formatted_address);
                             GeocoderBuffer = response.results[0].formatted_address;
                             appendJournal(caption, GeocoderBuffer, color);
                         } else {
@@ -468,6 +472,16 @@
             }
         }
 
+        function ToggleJournalEntry(color) {
+            if (document.getElementById("journalentry").style.display == "none") {
+                document.getElementById("journalentry").style.backgroundColor = color;
+                document.getElementById("journalentry").style.display = "block";
+
+            } else {
+                document.getElementById("journalentry").style.display = "none";
+            }
+        }
+
         function ToggleSettings() {
             if (document.getElementById("settings").style.display == "none") {
                 document.getElementById("customize").style.display = "none";
@@ -484,6 +498,8 @@
                 document.getElementById("customize").style.display = "none";
             }
         }
+
+
 
         function About() {
             prompt("Odyssey, Version " + version + " (" + release + "), With 💖 by Kevin George.\n" + "Powered by Google Maps.\n", "http://kgeok.github.io");
@@ -583,7 +599,7 @@
     </script>
     <div id="map"></div>
     <script
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSHRuDqzWL6x42T7WYs9KybTz6BMYY_0g&callback=initMap&libraries=&v=weekly"
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD0KUvgW3e3ts3WkIob9RBzjGP6RvU7FeQ&callback=initMap&libraries=&v=weekly"
         async></script>
 </body>
 

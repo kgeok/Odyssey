@@ -20,58 +20,62 @@ class CustomTheme {
   static ThemeData get lightTheme {
     //1
     return ThemeData(
-      //2
-      dialogTheme: DialogTheme(backgroundColor: lightMode),
-      dividerColor: darkMode,
-      useMaterial3: false,
-      splashColor: lightMode.withOpacity(0.4),
-      primarySwatch: lightMode,
-      primaryColor: lightMode,
-      fontFamily: 'Quicksand',
-      dialogBackgroundColor: lightMode,
-      drawerTheme: DrawerThemeData(backgroundColor: darkMode),
-      canvasColor: darkMode,
-      snackBarTheme: SnackBarThemeData(actionTextColor: lightMode),
-      chipTheme:
-          ChipThemeData(backgroundColor: lightMode, selectedColor: darkMode),
-      appBarTheme: AppBarTheme(
-        backgroundColor: lightMode,
-        titleTextStyle: const TextStyle(color: Colors.white, fontSize: 20),
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      textTheme: const TextTheme(
-          bodyLarge: TextStyle(color: Colors.white),
-          bodyMedium: TextStyle(color: Colors.white),
-          displayLarge: TextStyle(color: Colors.white),
-          displayMedium: TextStyle(color: Colors.white)),
-    );
+        //2
+        dialogTheme: DialogTheme(backgroundColor: lightMode),
+        dividerColor: darkMode,
+        useMaterial3: true,
+        splashColor: lightMode.withOpacity(0.4),
+        primarySwatch: lightMode,
+        primaryColor: lightMode,
+        fontFamily: 'Quicksand',
+        dialogBackgroundColor: lightMode,
+        drawerTheme: DrawerThemeData(backgroundColor: darkMode),
+        canvasColor: darkMode,
+        snackBarTheme: SnackBarThemeData(actionTextColor: lightMode),
+        chipTheme:
+            ChipThemeData(backgroundColor: lightMode, selectedColor: darkMode),
+        appBarTheme: AppBarTheme(
+          backgroundColor: lightMode,
+          titleTextStyle: const TextStyle(color: Colors.white, fontSize: 20),
+          iconTheme: const IconThemeData(color: Colors.white),
+        ),
+        textSelectionTheme: TextSelectionThemeData(
+            cursorColor: lightMode,
+            selectionColor: lightMode,
+            selectionHandleColor: lightMode),
+        inputDecorationTheme: InputDecorationTheme(
+            activeIndicatorBorder: BorderSide(color: lightMode),
+            border:
+                OutlineInputBorder(borderSide: BorderSide(color: lightMode))));
   }
 
   static ThemeData get darkTheme {
     return ThemeData(
-      dialogTheme: DialogTheme(backgroundColor: darkMode),
-      dividerColor: lightMode,
-      useMaterial3: false,
-      splashColor: darkMode.withOpacity(0.4),
-      primarySwatch: darkMode,
-      primaryColor: darkMode,
-      fontFamily: 'Quicksand',
-      dialogBackgroundColor: darkMode,
-      drawerTheme: DrawerThemeData(backgroundColor: lightMode),
-      canvasColor: lightMode,
-      snackBarTheme: SnackBarThemeData(actionTextColor: lightMode),
-      chipTheme:
-          ChipThemeData(backgroundColor: darkMode, selectedColor: lightMode),
-      appBarTheme: AppBarTheme(
-        backgroundColor: darkMode,
-        titleTextStyle: const TextStyle(color: Colors.white, fontSize: 20),
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      textTheme: const TextTheme(
-          bodyLarge: TextStyle(color: Colors.white),
-          bodyMedium: TextStyle(color: Colors.white),
-          displayLarge: TextStyle(color: Colors.white),
-          displayMedium: TextStyle(color: Colors.white)),
-    );
+        dialogTheme: DialogTheme(backgroundColor: darkMode),
+        dividerColor: lightMode,
+        useMaterial3: true,
+        splashColor: darkMode.withOpacity(0.4),
+        primarySwatch: darkMode,
+        primaryColor: darkMode,
+        fontFamily: 'Quicksand',
+        dialogBackgroundColor: darkMode,
+        drawerTheme: DrawerThemeData(backgroundColor: lightMode),
+        canvasColor: lightMode,
+        snackBarTheme: SnackBarThemeData(actionTextColor: lightMode),
+        chipTheme:
+            ChipThemeData(backgroundColor: darkMode, selectedColor: lightMode),
+        appBarTheme: AppBarTheme(
+          backgroundColor: darkMode,
+          titleTextStyle: const TextStyle(color: Colors.white, fontSize: 20),
+          iconTheme: const IconThemeData(color: Colors.white),
+        ),
+        textSelectionTheme: TextSelectionThemeData(
+            cursorColor: darkMode,
+            selectionColor: darkMode,
+            selectionHandleColor: darkMode),
+        inputDecorationTheme: InputDecorationTheme(
+            activeIndicatorBorder: BorderSide(color: darkMode),
+            border:
+                OutlineInputBorder(borderSide: BorderSide(color: darkMode))));
   }
 }

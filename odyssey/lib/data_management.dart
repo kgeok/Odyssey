@@ -20,6 +20,31 @@ String defaultShape = 'circle';
 double defaultMapZoom = 4.0;
 var pathBuffer = "";
 
+String colorToString(Color color) {
+  var colorBuffer = color.toString();
+  colorBuffer = colorBuffer.replaceAll("Color(", "");
+  colorBuffer = colorBuffer.replaceAll(")", "");
+
+  return colorBuffer;
+}
+
+String locationToString(LatLng latLng) {
+  var latLngBuffer = latLng.toString();
+  latLngBuffer = latLngBuffer.replaceAll("LatLng(", "");
+  latLngBuffer = latLngBuffer.replaceAll(")", "");
+
+  return latLngBuffer;
+}
+
+LatLng stringToLocation(String string) {
+  //You must have LatLng() in the string otherwise you have to use locationToString first
+  var latLngBuffer = string.split(", ");
+  var lat = double.parse(latLngBuffer[0].trim());
+  var lng = double.parse(latLngBuffer[1].trim());
+
+  return LatLng(lat, lng);
+}
+
 class OdysseyDatabase {
   static final OdysseyDatabase instance = OdysseyDatabase._init();
 
@@ -27,13 +52,13 @@ class OdysseyDatabase {
 
   OdysseyDatabase._init();
 
-  Future<Database> get database async {
+  Future get database async {
     if (_database != null) return _database!;
     _database = await _initDB('OdysseyDB.db');
     return _database!;
   }
 
-  Future<Database> _initDB(String fpath) async {
+  Future _initDB(String fpath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, fpath);
     print(path);
@@ -65,14 +90,6 @@ class OdysseyDatabase {
     onboarding = 1;
   }
 
-  String colorToString(Color color) {
-    var colorBuffer = color.toString();
-    colorBuffer = colorBuffer.replaceAll("Color(", "");
-    colorBuffer = colorBuffer.replaceAll(")", "");
-
-    return colorBuffer;
-  }
-
   Future addPinDB(
       id, caption, date, color, shape, latLng, location, note, photo) async {
     final db = await instance.database;
@@ -81,12 +98,9 @@ class OdysseyDatabase {
 
     //Split latlng and make it a two parter float
 
-    var latLngBuffer = latLng.toString();
-    latLngBuffer = latLngBuffer.replaceAll("LatLng(", "");
-    latLngBuffer = latLngBuffer.replaceAll(")", "");
-    var latLngBuffer2 = latLngBuffer.split(", ");
-    var lat = double.parse(latLngBuffer2[0].trim());
-    var lng = double.parse(latLngBuffer2[1].trim());
+    var latLngBuffer = (locationToString(latLng)).split(", ");
+    var lat = double.parse(latLngBuffer[0].trim());
+    var lng = double.parse(latLngBuffer[1].trim());
 
     location.toString();
 
@@ -131,6 +145,20 @@ class OdysseyDatabase {
     final db = await instance.database;
 
     switch (type) {
+      case "latlng":
+        var latLngBuffer = (locationToString(content)).split(", ");
+        var lat = double.parse(latLngBuffer[0].trim());
+        var lng = double.parse(latLngBuffer[1].trim());
+
+        db.rawUpdate('''UPDATE Pins SET lat = ? WHERE id = ?''', [lat, id]);
+        db.rawUpdate('''UPDATE Pins SET lng = ? WHERE id = ?''', [lng, id]);
+        break;
+
+      case "location":
+        db.rawUpdate(
+            '''UPDATE Pins SET location = ? WHERE id = ?''', [content, id]);
+        break;
+
       case "caption":
         db.rawUpdate(
             '''UPDATE Pins SET caption = ? WHERE id = ?''', [content, id]);
@@ -179,6 +207,7 @@ class OdysseyDatabase {
 
       //Load User Data
       var counterBuffer = await db.query("Pins", columns: ["MAX(id)"]);
+
       var counter = int.tryParse(counterBuffer[0]['MAX(id)'].toString());
       var colorBuffer = await db.query("Pins", columns: ["color"]);
 
@@ -236,12 +265,6 @@ class OdysseyDatabase {
             pinshape: shape,
             pinlocation: location,
             pinphoto: photo));
-
-        caption = "";
-        captionBuffer = "";
-        note = "";
-        photo = null;
-        shape = "";
       }
     } else {
       print("Empty/No DB, Skipping...");
@@ -340,5 +363,4 @@ void mapTypeHandler(String mt) {
       mapType = MapType.normal;
       break;
   }
-  print(mapType);
 }
