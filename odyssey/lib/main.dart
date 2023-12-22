@@ -1,5 +1,6 @@
 // ignore_for_file: prefer_const_constructors, prefer_typing_uninitialized_variables, avoid_print, use_build_context_synchronously, prefer_interpolation_to_compose_strings
 
+import 'dart:math';
 import 'dart:ui' as ui;
 import 'dart:io';
 import 'dart:async';
@@ -57,6 +58,7 @@ double mapZoom = defaultMapZoom; //Zoom of Map
 String shape =
     defaultShape; //This variable is used to the BitMapDescriptor exclusively
 int pinCounter = 0;
+int waypointCounter = 0;
 var caption = ""; //Null if not initilized
 var captionBuffer; //Temp Buffer for the Caption before it goes into PinData
 var note = "";
@@ -70,6 +72,7 @@ String svgString =
 int onboarding = 0;
 var pins =
     []; //Pins is a seperate list from statemarkers, independent from whats used by GMapsController
+List<LatLng> waypoints = [];
 List<int> journal = [];
 var nearbyresults = [];
 final photo = ImagePicker();
@@ -78,6 +81,7 @@ final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
 
 class PinData {
   var pinid;
+  var pinwaypoint;
   late String pincaption = "";
   late var pindate;
   late Color pincolor;
@@ -89,6 +93,7 @@ class PinData {
 
   PinData(
       {this.pinid,
+      this.pinwaypoint,
       required this.pincaption,
       this.pindate,
       required this.pinnote,
@@ -203,6 +208,19 @@ String shapeHandler(shape) {
   }
 }
 
+const routeColors = {
+//Borrowed from Vibrance, colors for Polylines
+  0: 0xFFE91E63,
+  1: 0xFF9C27B0,
+  2: 0xFF2196F3,
+  3: 0xFFFFEB3B,
+  4: 0xFF4CAF50,
+  5: 0xFFFF9800,
+  6: 0xFF8C8C8C,
+  7: 0xFFE91E62,
+  8: 0xFF000000
+};
+
 Future bitmapDescriptorFromSvg(BuildContext context, String shape) async {
   DrawableRoot svgDrawableRoot =
       await svg.fromSvgString(shapeHandler(shape), null.toString());
@@ -230,6 +248,7 @@ void colorToHex(Color color) {
 class OdysseyMainState extends State<OdysseyMain> {
   late GoogleMapController mapController;
   Set<Marker> statemarkers = {};
+  Set<Polyline> statepolylines = {};
 
   populateMapfromState(bool startup) async {
     //await Future.delayed(const Duration(milliseconds: 1500));
@@ -246,7 +265,7 @@ class OdysseyMainState extends State<OdysseyMain> {
       caption = pins[i].pincaption;
       note = pins[i].pinnote;
       if (pins[i].pinlocation == "Location N/A") {
-        print("Correcting Missing Location if Possible...");
+        //print("Correcting Missing Location if Possible...");
         //Correction for if we didn't fine a location before due to connection issues, etc.
         pins[i].pinlocation = await reverseGeocoder(pins[i].pincoor);
         OdysseyDatabase.instance
@@ -266,11 +285,32 @@ class OdysseyMainState extends State<OdysseyMain> {
                 reenumerateState();
               },
               infoWindow: InfoWindow(
-                title: caption,
-                //  snippet: locationBuffer,
+                title: pins[i].pinlocation,
+                snippet: caption,
+                onTap: () => journalDialog(
+                    context,
+                    pins[i].pincaption,
+                    pins[i].pinlocation,
+                    locationToString(pins[i].pincoor),
+                    pins[i].pincolor,
+                    pins[i].pindate,
+                    pins[i].pinnote,
+                    pins[i].pinshape,
+                    pins[i].pinphoto,
+                    (pins[i].pinid)),
               ),
               icon: bitmapDescriptor),
         );
+        if (pins[i].pinwaypoint != null) {
+          waypoints.add(pins[i].pincoor);
+          statepolylines.add(Polyline(
+              polylineId: PolylineId((pins[i].pinwaypoint).toString()),
+              points: waypoints,
+              width: 5,
+              color: Color(int.parse(
+                  routeColors[Random().nextInt(routeColors.length - 1)]
+                      .toString()))));
+        }
         journal.add(i - 1);
       });
       center = pins[i]
@@ -281,7 +321,7 @@ class OdysseyMainState extends State<OdysseyMain> {
 
     if (startup == true) {
       //We only want to move the camera when the app is started up otherwise it causes too much movement
-      print("Center: $center, Bearing: $bearing, Zoom: $mapZoom");
+      //print("Center: $center, Bearing: $bearing, Zoom: $mapZoom");
       mapController.animateCamera(
         CameraUpdate.newCameraPosition(
           CameraPosition(
@@ -337,13 +377,34 @@ class OdysseyMainState extends State<OdysseyMain> {
               reenumerateState();
             },
             infoWindow: InfoWindow(
-              title: caption,
-              //  snippet: locationBuffer,
+              title: locationBuffer,
+              snippet: caption,
+              onTap: () => journalDialog(context, caption, locationBuffer,
+                  latLng, pincolor, date, note, shape, null, pinCounter),
             ),
             icon: bitmapDescriptor),
       );
     });
     cleanBuffers();
+  }
+
+  void appendPolyline(LatLng latLng, id) async {
+    waypointCounter++;
+    waypoints.add(latLng);
+
+    setState(() {
+      statepolylines.add(Polyline(
+          polylineId: PolylineId(waypointCounter.toString()),
+          points: waypoints,
+          width: 5,
+          color: Color(int.parse(
+              routeColors[Random().nextInt(routeColors.length - 1)]
+                  .toString()))));
+      OdysseyDatabase.instance.updatePinsDB(id, waypointCounter, "waypoint");
+      scaffoldMessengerKey.currentState?.showSnackBar(const SnackBar(
+        content: Text('Waypoint Set.'),
+      ));
+    });
   }
 
   Future reverseGeocoder(LatLng latLng) async {
@@ -352,10 +413,17 @@ class OdysseyMainState extends State<OdysseyMain> {
       List<Placemark> placeMarks =
           await placemarkFromCoordinates(latLng.latitude, latLng.longitude);
       pinlocation = placeMarks;
-      locationBuffer =
-          "${pinlocation[0].name}: ${pinlocation[0].locality} ${pinlocation[0].administrativeArea} ${pinlocation[0].isoCountryCode}";
+      if ((pinlocation[0].locality).isEmpty ||
+          (pinlocation[0].administrativeArea).isEmpty ||
+          (pinlocation[0].isoCountryCode).isEmpty) {
+        locationBuffer = "${pinlocation[0].name}";
+      } else {
+        locationBuffer =
+            "${pinlocation[0].name}: ${pinlocation[0].locality} ${pinlocation[0].administrativeArea} ${pinlocation[0].isoCountryCode}";
+      }
     } catch (e) {
       //In case, for whatever reason theres no Internet or the platform can't get a location
+      print("Unable to get Location: $e");
       pinlocation = "Location N/A";
       locationBuffer = pinlocation;
     }
@@ -389,7 +457,7 @@ class OdysseyMainState extends State<OdysseyMain> {
       return Text("");
     } else {
       return Padding(
-          padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
+          padding: const EdgeInsets.fromLTRB(0, 0, 0, 15),
           child: Container(
               height: 200,
               decoration: BoxDecoration(
@@ -430,7 +498,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                           BoxShadow(
                             color: Colors.black.withOpacity(0.05),
                             spreadRadius: 5,
-                            blurRadius: 7,
+                            blurRadius: 10,
                             offset: const Offset(
                                 0, 3), // changes position of shadow
                           ),
@@ -861,6 +929,16 @@ class OdysseyMainState extends State<OdysseyMain> {
                                               ),
                                             ])));
                                       });
+                                },
+                              ),
+                              ListTile(
+                                title: Text("Set Waypoint",
+                                    style: GoogleFonts.quicksand(
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black)),
+                                onTap: () async {
+                                  Navigator.of(context).pop();
+                                  appendPolyline(stringToLocation(latlng), id);
                                 },
                               ),
                               ListTile(
@@ -1375,8 +1453,10 @@ class OdysseyMainState extends State<OdysseyMain> {
     cleanBuffers();
     pinCounter = 0;
     pins.clear();
+    waypoints.clear();
     setState(() {
       statemarkers = {};
+      statepolylines = {};
       journal = [];
     });
     //await OdysseyDatabase.instance.initStatefromDB();
@@ -1494,236 +1574,294 @@ class OdysseyMainState extends State<OdysseyMain> {
   }
 
   void scanQRcode(context) async {
+    double cardwidth() {
+      if (MediaQuery.of(context).size.width < 500) {
+        return MediaQuery.of(context).size.width / 1.5;
+      } else {
+        return 300;
+      }
+    }
+
+/*     double cardheight() {
+      if (MediaQuery.of(context).size.height < 500) {
+        return MediaQuery.of(context).size.width / 1.5;
+      } else {
+        return 300;
+      }
+    } */
+
     showModalBottomSheet(
         context: context,
         enableDrag: true,
         isScrollControlled: true,
         useRootNavigator: true,
         builder: (BuildContext context) {
-          return FractionallySizedBox(
-              heightFactor: 0.5,
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-                      child: Text("Scan QR Code",
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.quicksand(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 20,
-                              color: Colors.black)),
-                    ),
-                    Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-                        child: Text(
-                            "Open Odyssey on another device, open a Journal Entry and show QR Code",
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.quicksand(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                                color: Colors.black))),
-                    SizedBox(
-                        height: 250,
-                        width: 250,
-                        child: ClipRRect(
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(32.0),
-                              topRight: Radius.circular(32.0),
-                              bottomRight: Radius.circular(32.0),
-                              bottomLeft: Radius.circular(32.0),
-                            ),
-                            child: AspectRatio(
-                                aspectRatio: 1,
-                                child: MobileScanner(
-                                    controller: MobileScannerController(
-                                      detectionSpeed:
-                                          DetectionSpeed.noDuplicates,
-                                    ),
-                                    fit: BoxFit.fill,
-                                    onDetect: (capture) async {
-                                      final List barcodes = capture.barcodes;
-                                      //final Uint8List? image = capture.image;
-                                      for (final barcode in barcodes) {
-                                        if ((barcode.rawValue)
-                                            .toString()
-                                            .startsWith("odyssey://")) {
-                                          var capturedValue =
-                                              (barcode.rawValue.toString())
-                                                  .split(RegExp(r'[&:]'));
-                                          Navigator.pop(context);
-                                          var location = await reverseGeocoder(
-                                              stringToLocation(capturedValue[
-                                                  capturedValue.indexWhere(
-                                                          (element) =>
-                                                              element ==
-                                                              "latlng") +
-                                                      1]));
-                                          showDialog(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return AlertDialog(
-                                                  title: Text(
-                                                      'Add this Journal Entry?',
-                                                      style:
-                                                          GoogleFonts.quicksand(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w700,
-                                                              color: Colors
-                                                                  .white)),
-                                                  content:
-                                                      SingleChildScrollView(
-                                                    child: ListBody(
-                                                      children: <Widget>[
-                                                        SingleChildScrollView(
-                                                          child: ListBody(
-                                                            children: <Widget>[
-                                                              Text(
-                                                                  capturedValue[
-                                                                          capturedValue.indexWhere((element) => element == "caption") +
-                                                                              1]
-                                                                      .toString(),
-                                                                  style: GoogleFonts.quicksand(
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .w600,
-                                                                      color: Colors
-                                                                          .white)),
-                                                              const Text(""),
-                                                              Text(location,
-                                                                  style: GoogleFonts.quicksand(
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .w600,
-                                                                      color: Colors
-                                                                          .white)),
-                                                              const Text(""),
-                                                              Text(
-                                                                  capturedValue[
-                                                                          capturedValue.indexWhere((element) => element == "latlng") +
-                                                                              1]
-                                                                      .toString(),
-                                                                  style: GoogleFonts.quicksand(
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .w600,
-                                                                      color: Colors
-                                                                          .white)),
-                                                              const Text(""),
-                                                              Text(
-                                                                  capturedValue[
-                                                                          capturedValue.indexWhere((element) => element == "note") +
-                                                                              1]
-                                                                      .toString(),
-                                                                  style: GoogleFonts.quicksand(
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .w600,
-                                                                      color: Colors
-                                                                          .white)),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  actions: <Widget>[
-                                                    TextButton(
-                                                      child: Text('Cancel',
-                                                          style: GoogleFonts
-                                                              .quicksand(
+          return Column(
+              mainAxisSize: MainAxisSize.min,
+              // crossAxisAlignment: CrossAxisAlignment.center,
+              //mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: EdgeInsets.fromLTRB(0, 15, 0, 0),
+                  child: Text("Scan QR Code",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.quicksand(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 20,
+                          color: Colors.black)),
+                ),
+                Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+                    child: Text(
+                        "Open Odyssey on another device, open a Journal Entry and show QR Code",
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.quicksand(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                            color: Colors.black))),
+                SizedBox(
+                    height: cardwidth(),
+                    width: cardwidth(),
+                    child: ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(32.0),
+                          topRight: Radius.circular(32.0),
+                          bottomRight: Radius.circular(32.0),
+                          bottomLeft: Radius.circular(32.0),
+                        ),
+                        child: AspectRatio(
+                            aspectRatio: 1,
+                            child: MobileScanner(
+                                controller: MobileScannerController(
+                                  detectionSpeed: DetectionSpeed.noDuplicates,
+                                ),
+                                fit: BoxFit.fill,
+                                onDetect: (capture) async {
+                                  final List barcodes = capture.barcodes;
+                                  for (final barcode in barcodes) {
+                                    if ((barcode.rawValue)
+                                        .toString()
+                                        .startsWith("odyssey://")) {
+                                      var capturedValue =
+                                          (barcode.rawValue.toString())
+                                              .split(RegExp(r'[&:]'));
+                                      Navigator.pop(context);
+                                      var location = await reverseGeocoder(
+                                          stringToLocation(capturedValue[
+                                              capturedValue.indexWhere(
+                                                      (element) =>
+                                                          element == "latlng") +
+                                                  1]));
+                                      pincolor = Color(int.parse(capturedValue[
+                                              (capturedValue.indexWhere(
+                                                      (element) =>
+                                                          element == "color")) +
+                                                  1]
+                                          .toString()));
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                              backgroundColor: pincolor,
+                                              title: Text(
+                                                  'Add this Journal Entry?',
+                                                  style: GoogleFonts.quicksand(
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color:
+                                                          pincolor.computeLuminance() >
+                                                                  0.5
+                                                              ? Colors.black
+                                                              : Colors.white)),
+                                              content: SingleChildScrollView(
+                                                child: ListBody(
+                                                  children: <Widget>[
+                                                    SingleChildScrollView(
+                                                      child: ListBody(
+                                                        children: <Widget>[
+                                                          Text(
+                                                              capturedValue[capturedValue.indexWhere((element) =>
+                                                                          element ==
+                                                                          "caption") +
+                                                                      1]
+                                                                  .toString(),
+                                                              style: GoogleFonts.quicksand(
                                                                   fontWeight:
                                                                       FontWeight
-                                                                          .w700,
-                                                                  color: Colors
-                                                                      .white)),
-                                                      onPressed: () {
-                                                        Navigator.of(context)
-                                                            .pop();
-                                                        scanQRcode(context);
-                                                      },
-                                                    ),
-                                                    TextButton(
-                                                      child: Text('OK',
-                                                          style: GoogleFonts
-                                                              .quicksand(
+                                                                          .w600,
+                                                                  color: pincolor
+                                                                              .computeLuminance() >
+                                                                          0.5
+                                                                      ? Colors
+                                                                          .black
+                                                                      : Colors
+                                                                          .white)),
+                                                          const Text(""),
+                                                          Text(location,
+                                                              style: GoogleFonts.quicksand(
                                                                   fontWeight:
                                                                       FontWeight
-                                                                          .w700,
-                                                                  color: Colors
-                                                                      .white)),
-                                                      onPressed: () {
-                                                        Navigator.pop(context);
-                                                        caption = capturedValue[
-                                                                capturedValue.indexWhere((element) =>
-                                                                        element ==
-                                                                        "caption") +
-                                                                    1]
-                                                            .toString();
-                                                        note = capturedValue[
-                                                                capturedValue.indexWhere((element) =>
-                                                                        element ==
-                                                                        "note") +
-                                                                    1]
-                                                            .toString();
-                                                        shape = capturedValue[
-                                                                capturedValue.indexWhere((element) =>
-                                                                        element ==
-                                                                        "shape") +
-                                                                    1]
-                                                            .toString();
-                                                        pincolor = Color(int.parse(
-                                                            capturedValue[(capturedValue.indexWhere((element) =>
-                                                                        element ==
-                                                                        "color")) +
-                                                                    1]
-                                                                .toString()));
-                                                        colorToHex(Color(int.parse(capturedValue[
-                                                            (capturedValue.indexWhere(
-                                                                    (element) =>
-                                                                        element ==
-                                                                        "color")) +
-                                                                1])));
-                                                        appendMarker(stringToLocation(capturedValue[
+                                                                          .w600,
+                                                                  color: pincolor
+                                                                              .computeLuminance() >
+                                                                          0.5
+                                                                      ? Colors
+                                                                          .black
+                                                                      : Colors
+                                                                          .white)),
+                                                          const Text(""),
+                                                          Text(
+                                                              capturedValue[capturedValue.indexWhere((element) =>
+                                                                          element ==
+                                                                          "latlng") +
+                                                                      1]
+                                                                  .toString(),
+                                                              style: GoogleFonts.quicksand(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  color: pincolor
+                                                                              .computeLuminance() >
+                                                                          0.5
+                                                                      ? Colors
+                                                                          .black
+                                                                      : Colors
+                                                                          .white)),
+                                                          const Text(""),
+                                                          Text(
+                                                              capturedValue[capturedValue.indexWhere((element) =>
+                                                                          element ==
+                                                                          "note") +
+                                                                      1]
+                                                                  .toString(),
+                                                              style: GoogleFonts.quicksand(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  color: pincolor
+                                                                              .computeLuminance() >
+                                                                          0.5
+                                                                      ? Colors
+                                                                          .black
+                                                                      : Colors
+                                                                          .white)),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              actions: <Widget>[
+                                                TextButton(
+                                                  child: Text('Cancel',
+                                                      style: GoogleFonts.quicksand(
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                          color: pincolor
+                                                                      .computeLuminance() >
+                                                                  0.5
+                                                              ? Colors.black
+                                                              : Colors.white)),
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                    scanQRcode(context);
+                                                  },
+                                                ),
+                                                TextButton(
+                                                  child: Text('OK',
+                                                      style: GoogleFonts.quicksand(
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                          color: pincolor
+                                                                      .computeLuminance() >
+                                                                  0.5
+                                                              ? Colors.black
+                                                              : Colors.white)),
+                                                  onPressed: () {
+                                                    Navigator.pop(context);
+                                                    caption = capturedValue[
                                                             capturedValue.indexWhere(
                                                                     (element) =>
                                                                         element ==
+                                                                        "caption") +
+                                                                1]
+                                                        .toString();
+                                                    note = capturedValue[
+                                                            capturedValue.indexWhere(
+                                                                    (element) =>
+                                                                        element ==
+                                                                        "note") +
+                                                                1]
+                                                        .toString();
+                                                    shape = capturedValue[
+                                                            capturedValue.indexWhere(
+                                                                    (element) =>
+                                                                        element ==
+                                                                        "shape") +
+                                                                1]
+                                                        .toString();
+                                                    colorToHex(Color(int.parse(
+                                                        capturedValue[(capturedValue
+                                                                .indexWhere(
+                                                                    (element) =>
+                                                                        element ==
+                                                                        "color")) +
+                                                            1])));
+                                                    appendMarker(stringToLocation(
+                                                        capturedValue[capturedValue
+                                                                .indexWhere(
+                                                                    (element) =>
+                                                                        element ==
                                                                         "latlng") +
-                                                                1]));
-                                                        scaffoldMessengerKey
-                                                            .currentState
-                                                            ?.showSnackBar(
-                                                                const SnackBar(
-                                                                    content: Text(
-                                                                        'Added Journal Entry')));
-                                                      },
-                                                    )
-                                                  ]);
-                                            },
-                                          );
-                                        }
-                                      }
-                                    })))),
-                    const Expanded(child: Text("")),
-                  ]));
+                                                            1]));
+                                                    scaffoldMessengerKey
+                                                        .currentState
+                                                        ?.showSnackBar(
+                                                            const SnackBar(
+                                                                content: Text(
+                                                                    'Added Journal Entry')));
+                                                  },
+                                                )
+                                              ]);
+                                        },
+                                      );
+                                    }
+                                  }
+                                })))),
+                SizedBox(height: 25)
+              ]);
         });
   }
 
   void clearStateMarkers() {
     cleanBuffers();
     pinCounter = 0;
+    waypointCounter = 0;
     pins.clear();
+    waypoints.clear();
     OdysseyDatabase.instance
         .updatePrefsDB(defaultMapZoom, defaultBearing, defaultMapType);
     OdysseyDatabase.instance.clearPinsDB();
 
     setState(() {
       statemarkers = {};
+      statepolylines = {};
       journal = [];
     });
   }
+
+  void clearStatePolylines() {
+    cleanBuffers();
+    waypointCounter = 0;
+    waypoints.clear();
+    OdysseyDatabase.instance.clearWaypointsDB();
+
+    setState(() {
+      statepolylines = {};
+    });
+  }
+
+  void deletePolyline(id) {}
 
   void deleteLastMarker() {
     Marker lastmarker = statemarkers.firstWhere(
@@ -2080,6 +2218,13 @@ class OdysseyMainState extends State<OdysseyMain> {
             ),
             actions: <Widget>[
               TextButton(
+                child: Text('Coordinates', style: dialogBody),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  coorDialog(context);
+                },
+              ),
+              TextButton(
                 child: Text('Cancel', style: dialogBody),
                 onPressed: () {
                   Navigator.of(context).pop();
@@ -2105,6 +2250,75 @@ class OdysseyMainState extends State<OdysseyMain> {
     );
   }
 
+  void coorDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+            title: Text('Enter Coordinates', style: dialogHeader),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  TextField(
+                      autofocus: true,
+                      keyboardType: TextInputType.numberWithOptions(),
+                      decoration: InputDecoration(
+                          fillColor: Colors.grey[300],
+                          filled: true,
+                          border: const OutlineInputBorder(),
+                          hintText: "Latitude, Longitude"),
+                      onChanged: (value) {
+                        setState(() {
+                          addressBuffer = value;
+                        });
+                      }),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('Address', style: dialogBody),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  addressDialog(context);
+                },
+              ),
+              TextButton(
+                child: Text('Cancel', style: dialogBody),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: Text('OK', style: dialogBody),
+                onPressed: () async {
+                  if (await reverseGeocoder(stringToLocation(addressBuffer)) ==
+                      "Location N/A") {
+                    simpleDialog(
+                        context,
+                        "Could not use Coordinates",
+                        "The coordinates you entered couldn't be used, check and try again.",
+                        "",
+                        "error");
+                  } else {
+                    setState(() {
+                      if (addressBuffer == "") {
+                        addressBuffer = " ";
+                      } else {
+                        addressBuffer ??= " ";
+                      }
+                      appendMarker(stringToLocation(addressBuffer));
+                      addressBuffer = "";
+                      Navigator.pop(context);
+                    });
+                  }
+                },
+              )
+            ]);
+      },
+    );
+  }
+
   void settings(BuildContext context) {
     showDialog(
       context: context,
@@ -2116,9 +2330,18 @@ class OdysseyMainState extends State<OdysseyMain> {
                 children: <Widget>[
                   SimpleDialogOption(
                     onPressed: () {
-                      clearWarning(context);
+                      clearAllPinsWarning(context);
                     },
                     child: Text('Clear All Pins',
+                        style: GoogleFonts.quicksand(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.red[400])),
+                  ),
+                  SimpleDialogOption(
+                    onPressed: () {
+                      clearAllWaypointsWarning(context);
+                    },
+                    child: Text('Clear All Waypoints',
                         style: GoogleFonts.quicksand(
                             fontWeight: FontWeight.w600,
                             color: Colors.red[400])),
@@ -2212,7 +2435,7 @@ class OdysseyMainState extends State<OdysseyMain> {
     }
   }
 
-  void clearWarning(BuildContext context) {
+  void clearAllPinsWarning(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -2224,7 +2447,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                 children: <Widget>[
                   Text("Are you sure you want to clear all pins?",
                       style: dialogBody),
-                  Text("(This will also clear the Journal)", style: dialogBody),
+                  Text("(This will also clear the Journal and Waypoints)",
+                      style: dialogBody),
                 ],
               ),
             ),
@@ -2239,6 +2463,41 @@ class OdysseyMainState extends State<OdysseyMain> {
                 child: Text('OK', style: dialogBody),
                 onPressed: () {
                   clearStateMarkers();
+                  Navigator.of(context).pop();
+                },
+              )
+            ]);
+      },
+    );
+  }
+
+  void clearAllWaypointsWarning(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+            backgroundColor: Colors.orange[800],
+            title: Text("Clear Waypoints?", style: dialogHeader),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  Text("Are you sure you want to clear all waypoints?",
+                      style: dialogBody),
+                  Text("", style: dialogBody),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('Cancel', style: dialogBody),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: Text('OK', style: dialogBody),
+                onPressed: () {
+                  clearStatePolylines();
                   Navigator.of(context).pop();
                 },
               )
@@ -2718,6 +2977,7 @@ class OdysseyMainState extends State<OdysseyMain> {
               body: Stack(children: <Widget>[
                 GoogleMap(
                   mapToolbarEnabled: false,
+                  polylines: statepolylines,
                   onMapCreated: mapMade,
                   compassEnabled: false,
                   zoomControlsEnabled: false,
@@ -2771,7 +3031,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                                       BoxShadow(
                                         color: Colors.black.withOpacity(0.2),
                                         spreadRadius: 5,
-                                        blurRadius: 7,
+                                        blurRadius: 10,
                                         offset: const Offset(
                                             0, 3), // changes position of shadow
                                       ),
@@ -2798,7 +3058,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                                       BoxShadow(
                                         color: Colors.black.withOpacity(0.2),
                                         spreadRadius: 5,
-                                        blurRadius: 7,
+                                        blurRadius: 10,
                                         offset: const Offset(
                                             0, 3), // changes position of shadow
                                       ),
@@ -2836,7 +3096,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                                       BoxShadow(
                                         color: Colors.black.withOpacity(0.2),
                                         spreadRadius: 5,
-                                        blurRadius: 7,
+                                        blurRadius: 10,
                                         offset: const Offset(
                                             0, 3), // changes position of shadow
                                       ),
@@ -2880,7 +3140,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                                       BoxShadow(
                                         color: Colors.black.withOpacity(0.2),
                                         spreadRadius: 5,
-                                        blurRadius: 7,
+                                        blurRadius: 10,
                                         offset: const Offset(
                                             0, 3), // changes position of shadow
                                       ),

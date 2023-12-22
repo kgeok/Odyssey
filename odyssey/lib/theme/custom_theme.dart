@@ -32,8 +32,10 @@ class CustomTheme {
         drawerTheme: DrawerThemeData(backgroundColor: darkMode),
         canvasColor: darkMode,
         snackBarTheme: SnackBarThemeData(actionTextColor: lightMode),
-        chipTheme:
-            ChipThemeData(backgroundColor: lightMode, selectedColor: darkMode),
+        chipTheme: ChipThemeData(
+            backgroundColor: lightMode,
+            selectedColor: darkMode,
+            checkmarkColor: Colors.white),
         appBarTheme: AppBarTheme(
           backgroundColor: lightMode,
           titleTextStyle: const TextStyle(color: Colors.white, fontSize: 20),
@@ -62,8 +64,10 @@ class CustomTheme {
         drawerTheme: DrawerThemeData(backgroundColor: lightMode),
         canvasColor: lightMode,
         snackBarTheme: SnackBarThemeData(actionTextColor: lightMode),
-        chipTheme:
-            ChipThemeData(backgroundColor: darkMode, selectedColor: lightMode),
+        chipTheme: ChipThemeData(
+            backgroundColor: darkMode,
+            selectedColor: lightMode,
+            checkmarkColor: Colors.white),
         appBarTheme: AppBarTheme(
           backgroundColor: darkMode,
           titleTextStyle: const TextStyle(color: Colors.white, fontSize: 20),

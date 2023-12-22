@@ -38,11 +38,17 @@ String locationToString(LatLng latLng) {
 
 LatLng stringToLocation(String string) {
   //You must have LatLng() in the string otherwise you have to use locationToString first
-  var latLngBuffer = string.split(", ");
-  var lat = double.parse(latLngBuffer[0].trim());
-  var lng = double.parse(latLngBuffer[1].trim());
-
-  return LatLng(lat, lng);
+  string = string.replaceAll(RegExp(r'\(|\)'), '');
+  string = string.replaceAll(' ', '');
+  if (RegExp(
+          r'([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))?,([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))?')
+      .hasMatch(string)) {
+    var latLngBuffer = string.split(",");
+    return LatLng(double.parse(latLngBuffer[0].trim()),
+        double.parse(latLngBuffer[1].trim()));
+  } else {
+    return const LatLng(640, 640);
+  }
 }
 
 class OdysseyDatabase {
@@ -183,6 +189,11 @@ class OdysseyDatabase {
         db.rawUpdate(
             '''UPDATE Pins SET photo = ? WHERE id = ?''', [content, id]);
         break;
+
+      case "waypoint":
+        db.rawUpdate(
+            '''UPDATE Pins SET waypoint = ? WHERE id = ?''', [content, id]);
+        break;
     }
   }
 
@@ -206,9 +217,18 @@ class OdysseyDatabase {
       bearing = double.parse(bearingBuffer[0]['bearing'].toString());
 
       //Load User Data
-      var counterBuffer = await db.query("Pins", columns: ["MAX(id)"]);
+      var pinCounterBuffer = await db.query("Pins", columns: ["MAX(id)"]);
+      var pinCounterBuffer2 =
+          int.tryParse(pinCounterBuffer[0]['MAX(id)'].toString());
 
-      var counter = int.tryParse(counterBuffer[0]['MAX(id)'].toString());
+      if (await db.query("Pins", columns: ["MAX(waypoint)"]) != null) {
+        var waypointCounterBuffer =
+            await db.query("Pins", columns: ["MAX(waypoint)"]);
+        var waypointCounterBuffer2 =
+            int.tryParse(waypointCounterBuffer[0]['MAX(waypoint)'].toString());
+        waypointCounterBuffer2 ??= 0;
+        waypointCounter = waypointCounterBuffer2;
+      }
       var colorBuffer = await db.query("Pins", columns: ["color"]);
 
       captionBuffer = await db.query("Pins", columns: ["caption"]);
@@ -219,13 +239,14 @@ class OdysseyDatabase {
       var photoBuffer = await db.query("Pins", columns: ["photo"]);
       var locationBufferlat = await db.query("Pins", columns: ["lat"]);
       var locationBufferlng = await db.query("Pins", columns: ["lng"]);
+      var waypointBuffer = await db.query("Pins", columns: ["waypoint"]);
 
-      counter ??= 0;
+      pinCounterBuffer2 ??= 0;
 
-      pinCounter = counter;
-/*       This part is the star of the show, we are parsing everything from the Pins DB
-      Then by counter we are attempting, one by one to place everything on the map */
-      for (var i = 0; i <= counter - 1; i++) {
+      pinCounter = pinCounterBuffer2;
+/*    This part is the star of the show, we are parsing everything from the Pins DB
+      Then by counter  we are attempting, one by one to place everything on the map */
+      for (var i = 0; i <= pinCounterBuffer2 - 1; i++) {
         //Parse the Pin's Color
         var colorBuffer2 = colorBuffer[i]["color"].toString();
         pincolor = Color(int.parse(colorBuffer2));
@@ -250,6 +271,9 @@ class OdysseyDatabase {
         //Parse the Pin's photo
         var photo = photoBuffer[i]["photo"];
 
+        //Parse the Pin's waypoint
+        var waypoint = waypointBuffer[i]["waypoint"];
+
         //Parse the Pin's Lat and Lng
         LatLng latLng = LatLng(
             double.parse(locationBufferlat[i]["lat"].toString()),
@@ -264,7 +288,8 @@ class OdysseyDatabase {
             pincaption: caption,
             pinshape: shape,
             pinlocation: location,
-            pinphoto: photo));
+            pinphoto: photo,
+            pinwaypoint: waypoint));
       }
     } else {
       print("Empty/No DB, Skipping...");
@@ -337,6 +362,12 @@ class OdysseyDatabase {
   Future clearPinsDB() async {
     final db = await instance.database;
     db.delete("Pins");
+  }
+
+  Future clearWaypointsDB() async {
+    final db = await instance.database;
+    db.execute("ALTER TABLE Pins DROP COLUMN waypoint");
+    db.execute("ALTER TABLE Pins ADD COLUMN waypoint INTEGER;");
   }
 }
 
