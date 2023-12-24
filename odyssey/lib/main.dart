@@ -342,6 +342,7 @@ class OdysseyMainState extends State<OdysseyMain> {
     DateTime currentDate = DateTime.now();
     String date = currentDate.toString().substring(0, 10);
     date.toString();
+    locationBuffer = await reverseGeocoder(latLng);
 
     pins.add(PinData(
         pinid: pinCounter,
@@ -351,7 +352,7 @@ class OdysseyMainState extends State<OdysseyMain> {
         pinnote: note,
         pincaption: caption,
         pinshape: shape,
-        pinlocation: await reverseGeocoder(latLng)));
+        pinlocation: locationBuffer));
 
     OdysseyDatabase.instance.addPinDB(pinCounter, caption, date, pincolor,
         shape, latLng, locationBuffer, note, null);
@@ -379,8 +380,17 @@ class OdysseyMainState extends State<OdysseyMain> {
             infoWindow: InfoWindow(
               title: locationBuffer,
               snippet: caption,
-              onTap: () => journalDialog(context, caption, locationBuffer,
-                  latLng, pincolor, date, note, shape, null, pinCounter),
+              onTap: () => journalDialog(
+                  context,
+                  pins[pinCounter].pincaption,
+                  pins[pinCounter].pinlocation,
+                  locationToString(pins[pinCounter].pincoor),
+                  pins[pinCounter].pincolor,
+                  pins[pinCounter].pindate,
+                  pins[pinCounter].pinnote,
+                  pins[pinCounter].pinshape,
+                  pins[pinCounter].pinphoto,
+                  (pins[pinCounter].pinid)),
             ),
             icon: bitmapDescriptor),
       );
