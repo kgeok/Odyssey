@@ -18,3 +18,26 @@ import 'package:image_picker/image_picker.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:google_maps_webservice/places.dart' as places;
 import 'package:mobile_scanner/mobile_scanner.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const MaterialApp(home: OdysseyMain()));
+}
+
+class OdysseyMain extends StatefulWidget {
+  const OdysseyMain({super.key});
+  @override
+  OdysseyMainState createState() => OdysseyMainState();
+
+  //Debug
+  static const OdysseyMain instance = OdysseyMain._init();
+  const OdysseyMain._init();
+}
+
+GlobalKey<OdysseyMainState> key = GlobalKey();
+
+class OdysseyMainState extends State<OdysseyMain> {
+  @override
+return null;
+
+}

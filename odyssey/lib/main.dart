@@ -287,17 +287,6 @@ class OdysseyMainState extends State<OdysseyMain> {
               infoWindow: InfoWindow(
                 title: pins[i].pinlocation,
                 snippet: caption,
-                onTap: () => journalDialog(
-                    context,
-                    pins[i].pincaption,
-                    pins[i].pinlocation,
-                    locationToString(pins[i].pincoor),
-                    pins[i].pincolor,
-                    pins[i].pindate,
-                    pins[i].pinnote,
-                    pins[i].pinshape,
-                    pins[i].pinphoto,
-                    (pins[i].pinid)),
               ),
               icon: bitmapDescriptor),
         );
@@ -371,26 +360,21 @@ class OdysseyMainState extends State<OdysseyMain> {
             position: latLng,
             draggable: true,
             onDragEnd: (newPos) async {
-              OdysseyDatabase.instance
-                  .updatePinsDB(pinCounter, newPos, "latlng");
+              //We need to find this Pin's ID because it's not sticky, kind of a dumb way of doing it but
+              var pinCounterBuffer = statemarkers
+                  .firstWhere((marker) => marker.position == latLng);
+
               OdysseyDatabase.instance.updatePinsDB(
-                  pinCounter, await reverseGeocoder(newPos), "location");
+                  int.parse(pinCounterBuffer.markerId.value), newPos, "latlng");
+              OdysseyDatabase.instance.updatePinsDB(
+                  int.parse(pinCounterBuffer.markerId.value),
+                  await reverseGeocoder(newPos),
+                  "location");
               reenumerateState();
             },
             infoWindow: InfoWindow(
               title: locationBuffer,
               snippet: caption,
-              onTap: () => journalDialog(
-                  context,
-                  pins[pinCounter].pincaption,
-                  pins[pinCounter].pinlocation,
-                  locationToString(pins[pinCounter].pincoor),
-                  pins[pinCounter].pincolor,
-                  pins[pinCounter].pindate,
-                  pins[pinCounter].pinnote,
-                  pins[pinCounter].pinshape,
-                  pins[pinCounter].pinphoto,
-                  (pins[pinCounter].pinid)),
             ),
             icon: bitmapDescriptor),
       );
@@ -1571,7 +1555,7 @@ class OdysseyMainState extends State<OdysseyMain> {
       child: QrImageView(
         //Update with possible URI Scheme later
         data:
-            'odyssey://&latlng:$latlng&caption:$caption&note:$note&color:${colorToString(color)}&shape:$shape',
+            'odyssey://&latlng=$latlng&caption=$caption&note=$note&color=${colorToString(color)}&shape=$shape',
         backgroundColor: Colors.white,
         version: QrVersions.auto,
         gapless: false,
@@ -1654,7 +1638,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                                         .startsWith("odyssey://")) {
                                       var capturedValue =
                                           (barcode.rawValue.toString())
-                                              .split(RegExp(r'[&:]'));
+                                              .split(RegExp(r'[&=]'));
                                       Navigator.pop(context);
                                       var location = await reverseGeocoder(
                                           stringToLocation(capturedValue[
