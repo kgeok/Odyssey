@@ -412,8 +412,16 @@ class OdysseyMainState extends State<OdysseyMain> {
           (pinlocation[0].isoCountryCode).isEmpty) {
         locationBuffer = "${pinlocation[0].name}";
       } else {
-        locationBuffer =
-            "${pinlocation[0].name}: ${pinlocation[0].locality} ${pinlocation[0].administrativeArea} ${pinlocation[0].isoCountryCode}";
+        if (pinlocation[0].street.isNotEmpty) {
+          locationBuffer =
+              "${pinlocation[0].street}: ${pinlocation[0].locality} ${pinlocation[0].administrativeArea} ${pinlocation[0].isoCountryCode}";
+        } else if (pinlocation[0].thoroughfare.isNotEmpty) {
+          locationBuffer =
+              "${pinlocation[0].thoroughfare}: ${pinlocation[0].locality} ${pinlocation[0].administrativeArea} ${pinlocation[0].isoCountryCode}";
+        } else {
+          locationBuffer =
+              "${pinlocation[0].locality} ${pinlocation[0].administrativeArea} ${pinlocation[0].isoCountryCode}";
+        }
       }
     } catch (e) {
       //In case, for whatever reason theres no Internet or the platform can't get a location
@@ -443,6 +451,31 @@ class OdysseyMainState extends State<OdysseyMain> {
           "The address you entered couldn't be found, check and try again.",
           "",
           "error");
+    }
+  }
+
+  Future autofill(type, latLng, id) async {
+    //Using this function to autofill missing information on demand
+    var pinlocation;
+    switch (type) {
+      case "caption":
+        try {
+          List<Placemark> placeMarks =
+              await placemarkFromCoordinates(latLng.latitude, latLng.longitude);
+          pinlocation = placeMarks;
+          captionBuffer = "${pinlocation[0].name}";
+        } catch (e) {
+          //In case, for whatever reason theres no Internet or the platform can't get a location
+          print("Unable to get Location: $e");
+          captionBuffer = pins[id - 1].pindate;
+        }
+        pinlocation = [];
+        return captionBuffer.toString();
+
+      case "note":
+        noteBuffer =
+            "Pin " + (id.toString()) + ", Created on " + pins[id - 1].pindate;
+        return noteBuffer;
     }
   }
 
@@ -986,6 +1019,29 @@ class OdysseyMainState extends State<OdysseyMain> {
                                           ),
                                           actions: <Widget>[
                                             TextButton(
+                                              child: Text('Autofill',
+                                                  style: GoogleFonts.quicksand(
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color:
+                                                          color.computeLuminance() >
+                                                                  0.5
+                                                              ? Colors.black
+                                                              : Colors.white)),
+                                              onPressed: () async {
+                                                caption = await autofill(
+                                                    "caption",
+                                                    stringToLocation(latlng),
+                                                    id);
+                                                Navigator.pop(context);
+                                                OdysseyDatabase.instance
+                                                    .updatePinsDB(
+                                                        id, caption, "caption");
+                                                reenumerateState();
+                                                Navigator.of(context).pop();
+                                              },
+                                            ),
+                                            TextButton(
                                               child: Text('Cancel',
                                                   style: GoogleFonts.quicksand(
                                                       fontWeight:
@@ -1068,6 +1124,29 @@ class OdysseyMainState extends State<OdysseyMain> {
                                             ),
                                           ),
                                           actions: <Widget>[
+                                            TextButton(
+                                              child: Text('Autofill',
+                                                  style: GoogleFonts.quicksand(
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color:
+                                                          color.computeLuminance() >
+                                                                  0.5
+                                                              ? Colors.black
+                                                              : Colors.white)),
+                                              onPressed: () async {
+                                                note = await autofill(
+                                                    "note",
+                                                    stringToLocation(latlng),
+                                                    id);
+                                                Navigator.pop(context);
+                                                OdysseyDatabase.instance
+                                                    .updatePinsDB(
+                                                        id, note, "note");
+                                                reenumerateState();
+                                                Navigator.of(context).pop();
+                                              },
+                                            ),
                                             TextButton(
                                               child: Text('Cancel',
                                                   style: GoogleFonts.quicksand(
