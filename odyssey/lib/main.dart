@@ -76,6 +76,10 @@ List<LatLng> waypoints = [];
 List<int> journal = [];
 var nearbyresults = [];
 final photo = ImagePicker();
+
+//For testing only
+bool journalentries = true;
+
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
@@ -2891,15 +2895,17 @@ class OdysseyMainState extends State<OdysseyMain> {
   }
 
   Future photoOnboarding(BuildContext context, id) async {
-    //Function borrowed from Vibrance
-    //Passing the arguments along
-    final selectedPhotoToData;
-    final XFile? selectedPhoto =
-        await photo.pickImage(source: ImageSource.gallery);
-    if (selectedPhoto != null) {
-      selectedPhotoToData = await selectedPhoto.readAsBytes();
-      OdysseyDatabase.instance.updatePinsDB(id, selectedPhotoToData, "photo");
-      reenumerateState();
+    try {
+      final selectedPhotoToData;
+      final XFile? selectedPhoto =
+          await photo.pickImage(source: ImageSource.gallery);
+      if (selectedPhoto != null) {
+        selectedPhotoToData = await selectedPhoto.readAsBytes();
+        OdysseyDatabase.instance.updatePinsDB(id, selectedPhotoToData, "photo");
+      }
+    } catch (e) {
+      simpleDialog(context, "Unable to Retrieve Photos",
+          "Check your Settings and try again", "", "error");
     }
   }
 
