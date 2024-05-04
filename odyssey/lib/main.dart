@@ -23,7 +23,18 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MaterialApp(home: OdysseyMain()));
+//  runApp(MaterialApp(home: OdysseyMain()));
+
+  runApp(MaterialApp(
+    debugShowCheckedModeBanner: false,
+    theme: CustomTheme.lightTheme,
+    darkTheme: CustomTheme.darkTheme,
+    initialRoute: '/',
+    routes: {
+      '/': (context) => const OdysseyMain(),
+      '/settings': (context) => const SettingsPage(),
+    },
+  ));
 }
 
 class OdysseyMain extends StatefulWidget {
@@ -36,11 +47,19 @@ class OdysseyMain extends StatefulWidget {
   const OdysseyMain._init();
 }
 
+class SettingsPage extends StatefulWidget {
+  const SettingsPage({super.key});
+  @override
+  State<SettingsPage> createState() => SettingsPageState();
+}
+
 GlobalKey<OdysseyMainState> key = GlobalKey();
 //Variables that we will be using, will try to minimize in the future
+const sku = "Odyssey";
 const version = "1.5";
 const release = "Pre-Release";
 const apikey = "AIzaSyD8TrymPJaJVDXvXja2O6woa7B_-R-fi9w"; //Google Maps API Key
+late GoogleMapController mapController;
 Color pincolor = Color(int.parse(defaultPinColor));
 var colorBuffer =
     "FF0000"; //Default Pin Color when Map settings are not initialized
@@ -59,10 +78,11 @@ String shape =
     defaultShape; //This variable is used to the BitMapDescriptor exclusively
 int pinCounter = 0;
 int waypointCounter = 0;
-var caption = ""; //Null if not initilized
-var captionBuffer; //Temp Buffer for the Caption before it goes into PinData
-var note = "";
-var noteBuffer; //Temp Buffer for the Note before it goes into PinData
+String caption = ""; //Null if not initilized
+String captionBuffer =
+    ""; //Temp Buffer for the Caption before it goes into PinData
+String note = "";
+String noteBuffer = ""; //Temp Buffer for the Note before it goes into PinData
 var locationBuffer; //Temp Buffer for the results for reverseGeocoder before it goes into PinData
 var addressBuffer; //Temp Buffer for Pin From Address before it goes into geocoder
 var currentTheme; //Light or Dark theme
@@ -75,11 +95,16 @@ var pins =
 List<LatLng> waypoints = [];
 List<int> journal = [];
 var nearbyresults = [];
+Set<Marker> statemarkers = {};
+Set<Polyline> statepolylines = {};
 final photo = ImagePicker();
-
+DateTime currentDate = DateTime.now();
+String date = currentDate.toString().substring(0, 10);
+String filter = "";
 //For testing only
 bool journalentries = true;
 
+//Only using for Main State Scaffold, Main State has it's own Global Key
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
@@ -226,12 +251,33 @@ const routeColors = {
 };
 
 Future bitmapDescriptorFromSvg(BuildContext context, String shape) async {
-  DrawableRoot svgDrawableRoot =
-      await svg.fromSvgString(shapeHandler(shape), null.toString());
-  double width = 50 * MediaQuery.of(context).devicePixelRatio + 25;
-  double height = 50 * MediaQuery.of(context).devicePixelRatio + 25;
-  ui.Picture picture = svgDrawableRoot.toPicture(size: Size(width, height));
-  ui.Image image = await picture.toImage(width.toInt(), height.toInt());
+  double width = 75;
+  double height = 175;
+  int devicePixelRatio = ((MediaQuery.of(context).devicePixelRatio).toInt());
+
+/*   switch (devicePixelRatio) {
+    case 1:
+      width = 25;
+      height = 125;
+      break;
+    case 2:
+      width = 75;
+      height = 175;
+      break;
+    case 3:
+      width = 75;
+      height = 175;
+      break;
+    default:
+      width = 50 * MediaQuery.of(context).devicePixelRatio + 25;
+      height = 50 * MediaQuery.of(context).devicePixelRatio + 25;
+      break;
+  } */
+
+  PictureInfo pictureInfo =
+      await vg.loadPicture(SvgStringLoader(shapeHandler(shape)), null);
+  ui.Image image =
+      await pictureInfo.picture.toImage(width.toInt(), height.toInt());
   ByteData? bytes = await image.toByteData(format: ui.ImageByteFormat.png);
   return BitmapDescriptor.fromBytes(bytes!.buffer.asUint8List());
 }
@@ -249,11 +295,241 @@ void colorToHex(Color color) {
   colorBuffer = colorBuffer.replaceAll(")", "");
 }
 
-class OdysseyMainState extends State<OdysseyMain> {
-  late GoogleMapController mapController;
-  Set<Marker> statemarkers = {};
-  Set<Polyline> statepolylines = {};
+void shapeDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+          title: Text("Pin Shape", style: dialogHeader),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: [
+                SimpleDialogOption(
+                  onPressed: () {
+                    shape = "circle";
+                    Navigator.pop(context);
+                  },
+                  child: Text('Circle', style: dialogBody),
+                ),
+                SimpleDialogOption(
+                  onPressed: () {
+                    shape = "square";
+                    Navigator.pop(context);
+                  },
+                  child: Text('Square', style: dialogBody),
+                ),
+                SimpleDialogOption(
+                  onPressed: () {
+                    shape = "diamond";
+                    Navigator.pop(context);
+                  },
+                  child: Text('Diamond', style: dialogBody),
+                ),
+                SimpleDialogOption(
+                  onPressed: () {
+                    shape = "star";
+                    Navigator.pop(context);
+                  },
+                  child: Text('Star', style: dialogBody),
+                ),
+                SimpleDialogOption(
+                  onPressed: () {
+                    shape = "heart";
+                    Navigator.pop(context);
+                  },
+                  child: Text('Heart', style: dialogBody),
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Dismiss', style: dialogBody),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            )
+          ]);
+    },
+  );
+}
 
+void checkConnection(context) async {
+  try {
+    final mapsconnection = await InternetAddress.lookup('maps.google.com');
+    if (mapsconnection.isNotEmpty && mapsconnection[0].rawAddress.isNotEmpty) {
+      print('Connected to Google Maps');
+    }
+  } on SocketException catch (_) {
+    print('Not Connected to Google Maps');
+    scaffoldMessengerKey.currentState?.showSnackBar(SnackBar(
+        duration: const Duration(milliseconds: 2000),
+        content: const Text('No Internet Connection'),
+        action: SnackBarAction(
+            label: 'More Info',
+            onPressed: () {
+              simpleDialog(
+                  context,
+                  "No Internet Connection",
+                  "Please check your device settings",
+                  "Some functionality may not be available at this time.",
+                  "error");
+            })));
+  }
+}
+
+void cleanBuffers() {
+  caption = "";
+  captionBuffer = "";
+  noteBuffer = "";
+  note = "";
+  addressBuffer = "";
+  locationBuffer = "";
+}
+
+class SettingsPageState extends State<SettingsPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        backgroundColor:
+            MediaQuery.of(context).platformBrightness == Brightness.light
+                ? lightMode.withOpacity(1)
+                : darkMode.withOpacity(1),
+        appBar: AppBar(
+          title: Text("Settings",
+              style: GoogleFonts.quicksand(fontWeight: FontWeight.w700)),
+        ),
+        body: SingleChildScrollView(
+            child: Column(children: [
+          Card(
+            color: Colors.blue[50],
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ListTile(
+                  leading: Icon(Icons.info),
+                  title: Text(sku,
+                      style: GoogleFonts.quicksand(color: Colors.black)),
+                  subtitle: Text("Version $version, ($release)",
+                      style: GoogleFonts.quicksand(
+                          color: Color.fromRGBO(81, 81, 81, 1))),
+                ),
+              ],
+            ),
+          ),
+          Card(
+              color: Colors.blue[50],
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ListTile(
+                    leading: Icon(Icons.person),
+                    title: Text("With 💖 by Kevin George",
+                        style: GoogleFonts.quicksand(color: Colors.black)),
+                    subtitle: Text("http://kgeok.github.io/",
+                        style: GoogleFonts.quicksand(
+                            color: Color.fromRGBO(81, 81, 81, 1))),
+                    onTap: () => redirectURL("https://kgeok.github.io"),
+                  ),
+                ],
+              )),
+          Card(
+              child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                ListTile(
+                  leading: Icon(Icons.group),
+                  title: Text("Acknowledgements",
+                      style: GoogleFonts.quicksand(color: Colors.black)),
+                  onTap: () => showLicensePage(
+                      context: context,
+                      useRootNavigator: false,
+                      applicationName: sku,
+                      applicationVersion: version,
+                      applicationLegalese: "Kevin George"),
+                ),
+                ListTile(
+                  leading: Icon(Icons.lock),
+                  title: Text("Privacy Policy",
+                      style: GoogleFonts.quicksand(color: Colors.black)),
+                  onTap: () => redirectURL(
+                      "https://github.com/kgeok/Odyssey/blob/main/PrivacyPolicy.pdf"),
+                ),
+                ListTile(
+                  leading: Icon(Icons.flag),
+                  title: Text("Quick Start",
+                      style: GoogleFonts.quicksand(color: Colors.black)),
+                  onTap: () => helpDialog(context),
+                ),
+              ])),
+          Card(
+              child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                ListTile(
+                    leading: Icon(Icons.travel_explore),
+                    title: Text("Toggle Map View",
+                        style: GoogleFonts.quicksand(color: Colors.black)),
+                    onTap: () => null //toggleMapView(),
+                    ),
+                ListTile(
+                    leading: Icon(Icons.view_in_ar),
+                    title: Text("Toggle Map Details",
+                        style: GoogleFonts.quicksand(color: Colors.black)),
+                    onTap: () => null //toggleMapModes(),
+                    )
+              ])),
+          Card(
+              child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ListTile(
+                leading: Icon(Icons.copy),
+                title: Text("Copy Journal Contents",
+                    style: GoogleFonts.quicksand(color: Colors.black)),
+                onTap: () {
+                  var clipBoard = "";
+                  for (var i = 0; i <= (pins.length - 1); i++) {
+                    clipBoard = "$clipBoard${pins[i].pincaption}\n";
+                    clipBoard = "$clipBoard${pins[i].pinlocation}\n";
+                    clipBoard = "$clipBoard${pins[i].pinnote}\n";
+                    clipBoard = "$clipBoard${pins[i].pindate}\n";
+                    clipBoard = "$clipBoard${pins[i].pincoor}\n";
+                    clipBoard =
+                        "$clipBoard${((pins[i].pinshape).toString()).toUpperCase()}\n";
+                    clipBoard = "$clipBoard\n";
+                    clipBoard = "$clipBoard\n";
+                  }
+                  //print(clipBoard);
+                  Clipboard.setData(ClipboardData(text: clipBoard));
+                  scaffoldMessengerKey.currentState?.showSnackBar(
+                      const SnackBar(content: Text('Copied to Clipboard')));
+                },
+              ),
+              ListTile(
+                  leading: Icon(Icons.layers_clear),
+                  title: Text("Clear All Waypoints",
+                      style: GoogleFonts.quicksand(color: Colors.red)),
+                  onTap: () => null //clearAllWaypointsWarning(),
+                  ),
+              ListTile(
+                  leading: Icon(Icons.location_off),
+                  title: Text("Clear All Pins",
+                      style: GoogleFonts.quicksand(color: Colors.red)),
+                  onTap: () => null //clearAllPinsWarning(),
+                  ),
+            ],
+          )),
+        ])));
+  }
+}
+
+class OdysseyMainState extends State<OdysseyMain> {
   populateMapfromState(bool startup) async {
     //await Future.delayed(const Duration(milliseconds: 1500));
     await OdysseyDatabase.instance.initStatefromDB();
@@ -332,8 +608,6 @@ class OdysseyMainState extends State<OdysseyMain> {
     BitmapDescriptor bitmapDescriptor =
         await bitmapDescriptorFromSvg(context, shape);
     //Adding Entry here...
-    DateTime currentDate = DateTime.now();
-    String date = currentDate.toString().substring(0, 10);
     date.toString();
     locationBuffer = await reverseGeocoder(latLng);
 
@@ -367,7 +641,6 @@ class OdysseyMainState extends State<OdysseyMain> {
               //We need to find this Pin's ID because it's not sticky, kind of a dumb way of doing it but
               var pinCounterBuffer = statemarkers
                   .firstWhere((marker) => marker.position == latLng);
-
               OdysseyDatabase.instance.updatePinsDB(
                   int.parse(pinCounterBuffer.markerId.value), newPos, "latlng");
               OdysseyDatabase.instance.updatePinsDB(
@@ -594,7 +867,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                         : Colors.white)),
             content: SingleChildScrollView(
               child: ListBody(
-                children: <Widget>[
+                children: [
                   photoDisplay(photo),
                   Text(location,
                       style: GoogleFonts.quicksand(
@@ -649,7 +922,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                                         : Colors.white)),
                             content: SingleChildScrollView(
                               child: ListBody(
-                                children: <Widget>[
+                                children: [
                                   SimpleDialogOption(
                                     onPressed: () {
                                       Navigator.pop(context);
@@ -729,7 +1002,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                                         : Colors.white)),
                             content: SingleChildScrollView(
                               child: ListBody(
-                                children: <Widget>[
+                                children: [
                                   SimpleDialogOption(
                                     onPressed: () {
                                       Navigator.pop(context);
@@ -799,7 +1072,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                         color: Colors.white,
                         child: SingleChildScrollView(
                           child: ListBody(
-                            children: <Widget>[
+                            children: [
                               ListTile(
                                 title: Text("Share",
                                     style: GoogleFonts.quicksand(
@@ -899,7 +1172,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                           content:
                                                               SingleChildScrollView(
                                                             child: ListBody(
-                                                              children: <Widget>[
+                                                              children: [
                                                                 Text(
                                                                   "Open Odyssey on another device and scan QR Code",
                                                                   style: GoogleFonts.quicksand(
@@ -980,7 +1253,6 @@ class OdysseyMainState extends State<OdysseyMain> {
                                 onTap: () async {
                                   Navigator.of(context).pop();
                                   photoOnboarding(context, id);
-                                  Navigator.of(context).pop();
                                 },
                               ),
                               ListTile(
@@ -1005,7 +1277,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                           : Colors.white)),
                                           content: SingleChildScrollView(
                                             child: ListBody(
-                                              children: <Widget>[
+                                              children: [
                                                 TextField(
                                                     autofocus: true,
                                                     decoration: InputDecoration(
@@ -1071,10 +1343,10 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                               : Colors.white)),
                                               onPressed: () {
                                                 Navigator.of(context).pop();
-                                                if (captionBuffer == "") {
+                                                if (captionBuffer.isEmpty) {
                                                   captionBuffer = "";
                                                 }
-                                                captionBuffer ??= "";
+
                                                 caption = captionBuffer;
                                                 captionBuffer = "";
                                                 Navigator.pop(context);
@@ -1111,7 +1383,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                           : Colors.white)),
                                           content: SingleChildScrollView(
                                             child: ListBody(
-                                              children: <Widget>[
+                                              children: [
                                                 TextField(
                                                     autofocus: true,
                                                     decoration: InputDecoration(
@@ -1177,10 +1449,10 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                               : Colors.white)),
                                               onPressed: () {
                                                 Navigator.of(context).pop();
-                                                if (noteBuffer == "") {
+                                                if (noteBuffer.isEmpty) {
                                                   noteBuffer = "";
                                                 }
-                                                noteBuffer ??= "";
+
                                                 note = noteBuffer;
                                                 noteBuffer = "";
                                                 Navigator.pop(context);
@@ -1225,7 +1497,11 @@ class OdysseyMainState extends State<OdysseyMain> {
                                             content: SingleChildScrollView(
                                               child: ColorPicker(
                                                 pickerColor: pickerColor,
-                                                onColorChanged: changeColor,
+                                                onColorChanged: (value) {
+                                                  setState(() {
+                                                    pickerColor = value;
+                                                  });
+                                                },
                                                 pickerAreaHeightPercent: 0.8,
                                                 labelTypes: const [],
                                                 displayThumbColor: true,
@@ -1283,7 +1559,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                             : Colors.white)),
                                             content: SingleChildScrollView(
                                               child: ListBody(
-                                                children: <Widget>[
+                                                children: [
                                                   SimpleDialogOption(
                                                     onPressed: () {
                                                       Navigator.pop(context);
@@ -1436,7 +1712,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                                               style: dialogHeader),
                                           content: SingleChildScrollView(
                                             child: ListBody(
-                                              children: <Widget>[
+                                              children: [
                                                 Text(
                                                     "Are you sure you want to delete this entry?",
                                                     style: dialogBody),
@@ -1502,28 +1778,39 @@ class OdysseyMainState extends State<OdysseyMain> {
     );
   }
 
-  List<Widget> makeJournalEntry() {
-    return List<Widget>.generate(journal.length, (int index) {
-      return journalEntry(
-          pins[index].pincaption,
-          pins[index].pincolor,
-          pins[index].pinlocation,
-          pins[index].pincoor,
-          pins[index].pindate,
-          pins[index].pinnote,
-          pins[index].pinshape,
-          pins[index].pinphoto,
-          (index + 1));
-    });
-  }
-
-  void cleanBuffers() {
-    caption = "";
-    captionBuffer = "";
-    noteBuffer = "";
-    note = "";
-    addressBuffer = "";
-    locationBuffer = "";
+  List<Widget> makeJournalEntry(BuildContext context, String filters) {
+    switch (filters) {
+      case "Today":
+        setState(() {
+          pins.removeWhere((item) => (item.pindate) != date);
+          journal.removeRange(pins.length, journal.length);
+        });
+        return List<Widget>.generate(journal.length, (int index) {
+          return journalEntry(
+              pins[index].pincaption,
+              pins[index].pincolor,
+              pins[index].pinlocation,
+              pins[index].pincoor,
+              pins[index].pindate,
+              pins[index].pinnote,
+              pins[index].pinshape,
+              pins[index].pinphoto,
+              (index + 1));
+        });
+      default:
+        return List<Widget>.generate(journal.length, (int index) {
+          return journalEntry(
+              pins[index].pincaption,
+              pins[index].pincolor,
+              pins[index].pinlocation,
+              pins[index].pincoor,
+              pins[index].pindate,
+              pins[index].pinnote,
+              pins[index].pinshape,
+              pins[index].pinphoto,
+              (index + 1));
+        });
+    }
   }
 
   void reenumerateState() async {
@@ -1722,7 +2009,6 @@ class OdysseyMainState extends State<OdysseyMain> {
                                       var capturedValue =
                                           (barcode.rawValue.toString())
                                               .split(RegExp(r'[&=]'));
-                                      Navigator.pop(context);
                                       var location = await reverseGeocoder(
                                           stringToLocation(capturedValue[
                                               capturedValue.indexWhere(
@@ -1735,6 +2021,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                           element == "color")) +
                                                   1]
                                           .toString()));
+                                      if (!context.mounted) return;
+                                      Navigator.pop(context);
                                       showDialog(
                                         context: context,
                                         builder: (BuildContext context) {
@@ -1752,10 +2040,10 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                               : Colors.white)),
                                               content: SingleChildScrollView(
                                                 child: ListBody(
-                                                  children: <Widget>[
+                                                  children: [
                                                     SingleChildScrollView(
                                                       child: ListBody(
-                                                        children: <Widget>[
+                                                        children: [
                                                           Text(
                                                               capturedValue[capturedValue.indexWhere((element) =>
                                                                           element ==
@@ -1932,13 +2220,14 @@ class OdysseyMainState extends State<OdysseyMain> {
     waypointCounter = 0;
     waypoints.clear();
     OdysseyDatabase.instance.clearWaypointsDB();
-
     setState(() {
       statepolylines = {};
     });
   }
 
-  void deletePolyline(id) {}
+  void deletePolyline(id) {
+    statepolylines.removeWhere((element) => statepolylines == id);
+  }
 
   void deleteLastMarker() {
     Marker lastmarker = statemarkers.firstWhere(
@@ -2020,10 +2309,6 @@ class OdysseyMainState extends State<OdysseyMain> {
     }
   }
 
-  void changeColor(Color color) {
-    setState(() => pickerColor = color);
-  }
-
   void colorPicker(BuildContext context) {
     showDialog(
         context: context,
@@ -2038,7 +2323,11 @@ class OdysseyMainState extends State<OdysseyMain> {
               content: SingleChildScrollView(
                 child: ColorPicker(
                   pickerColor: pickerColor,
-                  onColorChanged: changeColor,
+                  onColorChanged: (value) {
+                    setState(() {
+                      pickerColor = value;
+                    });
+                  },
                   pickerAreaHeightPercent: 0.8,
                   labelTypes: const [],
                   displayThumbColor: true,
@@ -2083,7 +2372,7 @@ class OdysseyMainState extends State<OdysseyMain> {
             title: Text('Enter Caption', style: dialogHeader),
             content: SingleChildScrollView(
               child: ListBody(
-                children: <Widget>[
+                children: [
                   TextField(
                       autofocus: true,
                       decoration: InputDecoration(
@@ -2104,10 +2393,10 @@ class OdysseyMainState extends State<OdysseyMain> {
                 child: Text('Note', style: dialogBody),
                 onPressed: () {
                   setState(() {
-                    if (captionBuffer == "") {
+                    if (captionBuffer.isEmpty) {
                       captionBuffer = "";
                     }
-                    captionBuffer ??= "";
+
                     caption = captionBuffer;
                     captionBuffer = "";
                     Navigator.pop(context);
@@ -2125,73 +2414,14 @@ class OdysseyMainState extends State<OdysseyMain> {
                 child: Text('OK', style: dialogBody),
                 onPressed: () {
                   setState(() {
-                    if (captionBuffer == "") {
+                    if (captionBuffer.isEmpty) {
                       captionBuffer = "";
                     }
-                    captionBuffer ??= "";
+
                     caption = captionBuffer;
                     captionBuffer = "";
                     Navigator.pop(context);
                   });
-                },
-              )
-            ]);
-      },
-    );
-  }
-
-  void shapeDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            title: Text("Pin Shape", style: dialogHeader),
-            content: SingleChildScrollView(
-              child: ListBody(
-                children: <Widget>[
-                  SimpleDialogOption(
-                    onPressed: () {
-                      shape = "circle";
-                      Navigator.pop(context);
-                    },
-                    child: Text('Circle', style: dialogBody),
-                  ),
-                  SimpleDialogOption(
-                    onPressed: () {
-                      shape = "square";
-                      Navigator.pop(context);
-                    },
-                    child: Text('Square', style: dialogBody),
-                  ),
-                  SimpleDialogOption(
-                    onPressed: () {
-                      shape = "diamond";
-                      Navigator.pop(context);
-                    },
-                    child: Text('Diamond', style: dialogBody),
-                  ),
-                  SimpleDialogOption(
-                    onPressed: () {
-                      shape = "star";
-                      Navigator.pop(context);
-                    },
-                    child: Text('Star', style: dialogBody),
-                  ),
-                  SimpleDialogOption(
-                    onPressed: () {
-                      shape = "heart";
-                      Navigator.pop(context);
-                    },
-                    child: Text('Heart', style: dialogBody),
-                  ),
-                ],
-              ),
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: Text('Dismiss', style: dialogBody),
-                onPressed: () {
-                  Navigator.of(context).pop();
                 },
               )
             ]);
@@ -2207,7 +2437,7 @@ class OdysseyMainState extends State<OdysseyMain> {
             title: Text('Enter Note', style: dialogHeader),
             content: SingleChildScrollView(
               child: ListBody(
-                children: <Widget>[
+                children: [
                   TextField(
                       autofocus: true,
                       keyboardType: TextInputType.multiline,
@@ -2231,10 +2461,10 @@ class OdysseyMainState extends State<OdysseyMain> {
                 child: Text('Caption', style: dialogBody),
                 onPressed: () {
                   setState(() {
-                    if (noteBuffer == "") {
+                    if (noteBuffer.isEmpty) {
                       noteBuffer = "";
                     }
-                    noteBuffer ??= "";
+
                     note = noteBuffer;
                     noteBuffer = "";
                     Navigator.pop(context);
@@ -2252,10 +2482,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                 child: Text('OK', style: dialogBody),
                 onPressed: () {
                   setState(() {
-                    if (noteBuffer == "") {
-                      captionBuffer = "";
-                    }
-                    if (noteBuffer == null) {
+                    if (noteBuffer.isEmpty) {
                       captionBuffer = "";
                     }
                     note = noteBuffer;
@@ -2277,7 +2504,7 @@ class OdysseyMainState extends State<OdysseyMain> {
             title: Text('Enter an Address', style: dialogHeader),
             content: SingleChildScrollView(
               child: ListBody(
-                children: <Widget>[
+                children: [
                   TextField(
                       autofocus: true,
                       decoration: InputDecoration(
@@ -2311,7 +2538,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                 child: Text('OK', style: dialogBody),
                 onPressed: () {
                   setState(() {
-                    if (addressBuffer == "") {
+                    if (addressBuffer.isEmpty) {
                       addressBuffer = " ";
                     } else {
                       addressBuffer ??= " ";
@@ -2335,7 +2562,7 @@ class OdysseyMainState extends State<OdysseyMain> {
             title: Text('Enter Coordinates', style: dialogHeader),
             content: SingleChildScrollView(
               child: ListBody(
-                children: <Widget>[
+                children: [
                   TextField(
                       autofocus: true,
                       keyboardType: TextInputType.numberWithOptions(),
@@ -2379,7 +2606,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                         "error");
                   } else {
                     setState(() {
-                      if (addressBuffer == "") {
+                      if (addressBuffer.isEmpty) {
                         addressBuffer = " ";
                       } else {
                         addressBuffer ??= " ";
@@ -2404,7 +2631,16 @@ class OdysseyMainState extends State<OdysseyMain> {
             title: Text("Settings", style: dialogHeader),
             content: SingleChildScrollView(
               child: ListBody(
-                children: <Widget>[
+                children: [
+                  SimpleDialogOption(
+                    onPressed: () {
+                      Navigator.of(context, rootNavigator: true)
+                          .pushNamed("/settings");
+                    },
+                    child: Text('New Settings',
+                        style: GoogleFonts.quicksand(
+                            fontWeight: FontWeight.w600, color: Colors.white)),
+                  ),
                   SimpleDialogOption(
                     onPressed: () {
                       clearAllPinsWarning(context);
@@ -2437,56 +2673,6 @@ class OdysseyMainState extends State<OdysseyMain> {
                     },
                     child: Text('Toggle Map Details', style: dialogBody),
                   ),
-                  SimpleDialogOption(
-                    onPressed: () {
-                      var clipBoard = "";
-                      for (var i = 0; i <= (pins.length - 1); i++) {
-                        clipBoard = "$clipBoard${pins[i].pincaption}\n";
-                        clipBoard = "$clipBoard${pins[i].pinlocation}\n";
-                        clipBoard = "$clipBoard${pins[i].pinnote}\n";
-                        clipBoard = "$clipBoard${pins[i].pindate}\n";
-                        clipBoard = "$clipBoard${pins[i].pincoor}\n";
-                        clipBoard =
-                            "$clipBoard${((pins[i].pinshape).toString()).toUpperCase()}\n";
-                        clipBoard = "$clipBoard\n";
-                        clipBoard = "$clipBoard\n";
-                      }
-                      //print(clipBoard);
-                      Clipboard.setData(ClipboardData(text: clipBoard));
-                      scaffoldMessengerKey.currentState?.showSnackBar(
-                          const SnackBar(content: Text('Copied to Clipboard')));
-                    },
-                    child: Text('Copy Journal Contents', style: dialogBody),
-                  ),
-                  SimpleDialogOption(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      reenumerateState();
-                    },
-                    child: Text('Refresh Data', style: dialogBody),
-                  ),
-                  SimpleDialogOption(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      helpDialog(context);
-                    },
-                    child: Text('Quick Start', style: dialogBody),
-                  ),
-                  SimpleDialogOption(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      aboutDialog(context);
-                    },
-                    child: Text('About', style: dialogBody),
-                  ),
-                  SimpleDialogOption(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      redirectURL(
-                          "https://github.com/kgeok/Odyssey/blob/main/PrivacyPolicy.pdf");
-                    },
-                    child: Text('Privacy Policy', style: dialogBody),
-                  ),
                 ],
               ),
             ),
@@ -2502,16 +2688,6 @@ class OdysseyMainState extends State<OdysseyMain> {
     );
   }
 
-  void importExport(String type) {
-    switch (type) {
-      case "import":
-        break;
-
-      case "export":
-        break;
-    }
-  }
-
   void clearAllPinsWarning(BuildContext context) {
     showDialog(
       context: context,
@@ -2521,7 +2697,7 @@ class OdysseyMainState extends State<OdysseyMain> {
             title: Text("Clear Pins?", style: dialogHeader),
             content: SingleChildScrollView(
               child: ListBody(
-                children: <Widget>[
+                children: [
                   Text("Are you sure you want to clear all pins?",
                       style: dialogBody),
                   Text("(This will also clear the Journal and Waypoints)",
@@ -2557,7 +2733,7 @@ class OdysseyMainState extends State<OdysseyMain> {
             title: Text("Clear Waypoints?", style: dialogHeader),
             content: SingleChildScrollView(
               child: ListBody(
-                children: <Widget>[
+                children: [
                   Text("Are you sure you want to clear all waypoints?",
                       style: dialogBody),
                   Text("", style: dialogBody),
@@ -2583,52 +2759,16 @@ class OdysseyMainState extends State<OdysseyMain> {
     );
   }
 
-  void checkConnection() async {
-    try {
-      final mapsconnection = await InternetAddress.lookup('maps.google.com');
-      if (mapsconnection.isNotEmpty &&
-          mapsconnection[0].rawAddress.isNotEmpty) {
-        print('Connected to Google Maps');
-      }
-    } on SocketException catch (_) {
-      print('Not Connected to Google Maps');
-      scaffoldMessengerKey.currentState?.showSnackBar(SnackBar(
-          duration: const Duration(milliseconds: 2000),
-          content: const Text('No Internet Connection'),
-          action: SnackBarAction(
-              label: 'More Info',
-              onPressed: () {
-                simpleDialog(
-                    context,
-                    "No Internet Connection",
-                    "Please check your device settings",
-                    "Some functionality may not be available at this time.",
-                    "error");
-              })));
-    }
-  }
-
-  Future startOnboarding() async {
+  void mapMade(GoogleMapController controller) async {
+    checkConnection(context);
+    mapController = controller;
+    await populateMapfromState(true);
     if (onboarding == 1) {
-      onboardDialog(
-          context,
-          "Welcome to Odyssey",
-          "Give a new meaning to your places.",
-          "Keep track of the destinations you traveled with customizable pins on a beautiful map. With the Journal, you can get a glance of your overall pins and keep notes of where you went and where you want to go.",
-          "Tap anywhere on the map to set a Pin.",
-          "Open the Pin Menu to Customize the next set of Pins.");
-
+      onboardDialog(context);
       print("Onboarding...");
     } else {
       print("No Onboarding...");
     }
-  }
-
-  void mapMade(GoogleMapController controller) async {
-    checkConnection();
-    mapController = controller;
-    await populateMapfromState(true);
-    startOnboarding();
     //This is only for Pre-Release Versions, This doesn't apply for release versions.
     if (release == "Pre-Release") {
       scaffoldMessengerKey.currentState?.showSnackBar(SnackBar(
@@ -2895,21 +3035,70 @@ class OdysseyMainState extends State<OdysseyMain> {
   }
 
   Future photoOnboarding(BuildContext context, id) async {
-    try {
-      final selectedPhotoToData;
-      final XFile? selectedPhoto =
-          await photo.pickImage(source: ImageSource.gallery);
-      if (selectedPhoto != null) {
-        selectedPhotoToData = await selectedPhoto.readAsBytes();
-        OdysseyDatabase.instance.updatePinsDB(id, selectedPhotoToData, "photo");
-      }
-    } catch (e) {
-      simpleDialog(context, "Unable to Retrieve Photos",
-          "Check your Settings and try again", "", "error");
-    }
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+            backgroundColor:
+                MediaQuery.of(context).platformBrightness == Brightness.light
+                    ? lightMode.withOpacity(1)
+                    : darkMode.withOpacity(1),
+            title: Text('Choose Provider', style: dialogHeader),
+            content: SingleChildScrollView(
+                child: ListBody(children: <Widget>[
+              SimpleDialogOption(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  try {
+                    final selectedPhotoToData;
+                    final XFile? selectedPhoto =
+                        await photo.pickImage(source: ImageSource.gallery);
+                    if (selectedPhoto != null) {
+                      selectedPhotoToData = await selectedPhoto.readAsBytes();
+
+                      OdysseyDatabase.instance
+                          .updatePinsDB(id, selectedPhotoToData, "photo");
+                    }
+                  } catch (e) {
+                    simpleDialog(context, "Unable to Retrieve Photos",
+                        "Check your Settings and try again", "", "error");
+                  }
+                },
+                child: Text('System Photos', style: dialogBody),
+              ),
+              SimpleDialogOption(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  try {
+                    final selectedPhotoToData;
+                    final XFile? selectedPhoto =
+                        await photo.pickImage(source: ImageSource.camera);
+                    if (selectedPhoto != null) {
+                      selectedPhotoToData = await selectedPhoto.readAsBytes();
+                      OdysseyDatabase.instance
+                          .updatePinsDB(id, selectedPhotoToData, "photo");
+                    }
+                  } catch (e) {
+                    simpleDialog(context, "Unable to Retrieve Photos",
+                        "Check your Settings and try again", "", "error");
+                  }
+                },
+                child: Text('System Camera', style: dialogBody),
+              ),
+            ])),
+            actions: <Widget>[
+              TextButton(
+                child: Text('OK', style: dialogBody),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              )
+            ]);
+      },
+    );
   }
 
-  //UI of the app
+  //UI of Main Page
   @override
   void initState() {
     super.initState();
@@ -3010,263 +3199,328 @@ class OdysseyMainState extends State<OdysseyMain> {
           child: const Icon(Icons.push_pin, color: Colors.white),
         ));
 
-    return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: CustomTheme.lightTheme,
-        darkTheme: CustomTheme.darkTheme,
-        home: ScaffoldMessenger(
-            key: scaffoldMessengerKey,
-            child: Scaffold(
-              appBar: AppBar(
-                leading: Builder(builder: (BuildContext context) {
-                  return IconButton(
-                    icon: const Icon(Icons.menu),
-                    enableFeedback: true,
-                    tooltip: "Open Journal",
-                    onPressed: () {
-                      Scaffold.of(context).openDrawer();
-                    },
-                  );
-                }),
-                title: Text("Odyssey",
-                    style: GoogleFonts.quicksand(fontWeight: FontWeight.w700)),
-              ),
-              drawer: Drawer(
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: [
-                    SizedBox(
-                        height: 100.0, //140.0 if header cuts off on Android
-                        child: Container(
-                          padding: const EdgeInsets.only(top: 52.5, left: 15),
-                          child: Text(
-                            'Journal',
-                            style: GoogleFonts.quicksand(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 22,
-                                color: Colors.white),
-                          ),
-                        )),
-                    Column(
-                      children: makeJournalEntry(),
-                    )
-                  ],
-                ),
-              ),
-              body: Stack(children: <Widget>[
-                GoogleMap(
-                  mapToolbarEnabled: false,
-                  polylines: statepolylines,
-                  onMapCreated: mapMade,
-                  compassEnabled: false,
-                  zoomControlsEnabled: false,
-                  onCameraMove: (CameraPosition cp) {
-                    center = cp.target;
-                    bearing = cp.bearing;
-                  },
-                  myLocationButtonEnabled: false,
-                  padding: const EdgeInsets.only(
-                      bottom: 0, top: 0, right: 0, left: 0),
-                  mapType: mapType,
-                  initialCameraPosition: CameraPosition(
-                    target: center,
-                    zoom: mapZoom,
+    return ScaffoldMessenger(
+        key: scaffoldMessengerKey,
+        child: Scaffold(
+          appBar: AppBar(
+            leading: Builder(builder: (BuildContext context) {
+              return IconButton(
+                icon: const Icon(Icons.menu),
+                enableFeedback: true,
+                tooltip: "Open Journal",
+                onPressed: () {
+                  Scaffold.of(context).openDrawer();
+                },
+              );
+            }),
+            title: Text(sku,
+                style: GoogleFonts.quicksand(fontWeight: FontWeight.w700)),
+          ),
+          drawer: Drawer(
+            child: ListView(
+              padding:
+                  EdgeInsets.only(top: MediaQuery.of(context).viewPadding.top),
+              children: [
+                SizedBox(
+                    //140.0 if header cuts off on Android
+                    child: ListTile(
+                  title: Text(
+                    "Journal",
+                    style: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 22,
+                        color: Colors.white),
                   ),
-                  onTap: (LatLng latLng) {
-                    appendMarker(latLng);
-                  },
-                  onLongPress: (LatLng latlng) async {
-                    LatLng lastPin() {
-                      if (statemarkers.isEmpty == true) {
-                        return latlng;
-                      } else {
-                        return statemarkers.last.position;
-                      }
-                    }
-
-                    mapController.animateCamera(
-                      CameraUpdate.newCameraPosition(
-                        CameraPosition(
-                          target: lastPin(),
-                          zoom: await mapController.getZoomLevel(),
-                        ),
-                      ),
-                    );
-                  },
-                  markers: statemarkers,
-                ),
-                Positioned(
-                    child: Align(
-                        alignment: Alignment.topLeft,
-                        child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Wrap(
-                              direction: Axis.vertical,
-                              spacing: 6,
-                              children: [
-                                Container(
-                                  decoration: ShapeDecoration(
-                                    shadows: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.2),
-                                        spreadRadius: 5,
-                                        blurRadius: 10,
-                                        offset: const Offset(
-                                            0, 3), // changes position of shadow
-                                      ),
-                                    ],
-                                    color: MediaQuery.of(context)
-                                                .platformBrightness ==
-                                            Brightness.light
-                                        ? lightMode.withOpacity(1)
-                                        : darkMode.withOpacity(1),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(6)),
-                                  ),
-                                  child: IconButton(
-                                    icon:
-                                        const Icon(Icons.my_location_outlined),
-                                    color: Colors.white,
-                                    enableFeedback: true,
-                                    onPressed: cameraToLocation,
-                                  ),
+                  trailing: Container(
+                      width: 100,
+                      child: Row(children: [
+                        SizedBox(width: 52),
+                        IconButton(
+                          icon: Icon(Icons.more_horiz),
+                          color: Colors.white,
+                          onPressed: () {
+                            showModalBottomSheet(
+                                context: context,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
                                 ),
-                                Container(
-                                  decoration: ShapeDecoration(
-                                    shadows: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.2),
-                                        spreadRadius: 5,
-                                        blurRadius: 10,
-                                        offset: const Offset(
-                                            0, 3), // changes position of shadow
-                                      ),
-                                    ],
-                                    color: MediaQuery.of(context)
-                                                .platformBrightness ==
-                                            Brightness.light
-                                        ? lightMode.withOpacity(1)
-                                        : darkMode.withOpacity(1),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(6)),
-                                  ),
-                                  child: IconButton(
-                                      icon: const Icon(Icons.radar),
+                                constraints: BoxConstraints(maxWidth: 500),
+                                builder: (BuildContext context) {
+                                  return Container(
+                                      constraints:
+                                          BoxConstraints(maxWidth: 500),
                                       color: Colors.white,
-                                      enableFeedback: true,
-                                      onPressed: () async {
-                                        presentNearBy();
-                                      }),
-                                ),
-                              ],
-                            )))),
-                Positioned(
+                                      child: SingleChildScrollView(
+                                          child: ListBody(children: <Widget>[
+                                        ListTile(
+                                          title: Text("Refresh Data",
+                                              style: GoogleFonts.quicksand(
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.black)),
+                                          onTap: () {
+                                            reenumerateState();
+                                            Navigator.pop(context);
+                                          },
+                                        ),
+                                        ListTile(
+                                          title: filter == "Today"
+                                              ? Text(
+                                                  "Show All Entries",
+                                                  style: GoogleFonts.quicksand(
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color: Colors.black),
+                                                )
+                                              : Text(
+                                                  "Show Only Today's Entries",
+                                                  style: GoogleFonts.quicksand(
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color: Colors.black),
+                                                ),
+                                          onTap: () {
+                                            Navigator.of(context).pop();
+                                            setState(() {
+                                              if (filter == "") {
+                                                filter = "Today";
+                                              } else {
+                                                filter = "";
+                                                reenumerateState();
+                                              }
+                                            });
+                                          },
+                                        ),
+                                        ListTile(
+                                          title: Text("",
+                                              style: GoogleFonts.quicksand(
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.black)),
+                                          onTap: () {},
+                                        ),
+                                      ])));
+                                });
+                          },
+                        )
+                      ])),
+                )),
+                Column(
+                  children: makeJournalEntry(context, filter),
+                )
+              ],
+            ),
+          ),
+          body: Stack(children: <Widget>[
+            GoogleMap(
+              mapToolbarEnabled: false,
+              polylines: statepolylines,
+              onMapCreated: mapMade,
+              compassEnabled: false,
+              zoomControlsEnabled: false,
+              onCameraMove: (CameraPosition cp) {
+                center = cp.target;
+                bearing = cp.bearing;
+              },
+              myLocationButtonEnabled: false,
+              padding:
+                  const EdgeInsets.only(bottom: 0, top: 0, right: 0, left: 0),
+              mapType: mapType,
+              initialCameraPosition: CameraPosition(
+                target: center,
+                zoom: mapZoom,
+              ),
+              onTap: (LatLng latLng) {
+                appendMarker(latLng);
+              },
+              onLongPress: (LatLng latlng) async {
+                LatLng lastPin() {
+                  if (statemarkers.isEmpty == true) {
+                    return latlng;
+                  } else {
+                    return statemarkers.last.position;
+                  }
+                }
+
+                mapController.animateCamera(
+                  CameraUpdate.newCameraPosition(
+                    CameraPosition(
+                      target: lastPin(),
+                      zoom: await mapController.getZoomLevel(),
+                    ),
+                  ),
+                );
+              },
+              markers: statemarkers,
+            ),
+            Positioned(
+                child: Align(
+                    alignment: Alignment.topLeft,
                     child: Padding(
                         padding: const EdgeInsets.all(16.0),
-                        child: Align(
-                            alignment: Alignment.topRight,
-                            child: Wrap(
-                              direction: Axis.vertical,
-                              spacing: 1,
-                              children: [
-                                Container(
-                                  decoration: ShapeDecoration(
-                                    shadows: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.2),
-                                        spreadRadius: 5,
-                                        blurRadius: 10,
-                                        offset: const Offset(
-                                            0, 3), // changes position of shadow
-                                      ),
-                                    ],
-                                    color: MediaQuery.of(context)
-                                                .platformBrightness ==
+                        child: Wrap(
+                          direction: Axis.vertical,
+                          spacing: 6,
+                          children: [
+                            Container(
+                              decoration: ShapeDecoration(
+                                shadows: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.2),
+                                    spreadRadius: 5,
+                                    blurRadius: 10,
+                                    offset: const Offset(
+                                        0, 3), // changes position of shadow
+                                  ),
+                                ],
+                                color:
+                                    MediaQuery.of(context).platformBrightness ==
                                             Brightness.light
                                         ? lightMode.withOpacity(1)
                                         : darkMode.withOpacity(1),
-                                    shape: const RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.vertical(
-                                            top: Radius.circular(10),
-                                            bottom: Radius.circular(0))),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(6)),
+                              ),
+                              child: IconButton(
+                                icon: const Icon(Icons.my_location_outlined),
+                                color: Colors.white,
+                                enableFeedback: true,
+                                onPressed: cameraToLocation,
+                              ),
+                            ),
+                            Container(
+                              decoration: ShapeDecoration(
+                                shadows: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.2),
+                                    spreadRadius: 5,
+                                    blurRadius: 10,
+                                    offset: const Offset(
+                                        0, 3), // changes position of shadow
                                   ),
-                                  child: IconButton(
-                                      icon: const Icon(Icons.add),
-                                      color: Colors.white,
-                                      enableFeedback: true,
-                                      onPressed: () async {
-                                        var currentZoomLevel =
-                                            await mapController.getZoomLevel();
-                                        currentZoomLevel = currentZoomLevel + 2;
-                                        mapController.animateCamera(
-                                          CameraUpdate.newCameraPosition(
-                                            CameraPosition(
-                                              target: center,
-                                              bearing: bearing,
-                                              zoom: currentZoomLevel,
-                                            ),
-                                          ),
-                                        );
-                                        mapZoom =
-                                            await mapController.getZoomLevel();
-                                        OdysseyDatabase.instance.updatePrefsDB(
-                                            mapZoom, bearing, mapType);
-                                      }),
-                                ),
-                                Container(
-                                  decoration: ShapeDecoration(
-                                    shadows: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.2),
-                                        spreadRadius: 5,
-                                        blurRadius: 10,
-                                        offset: const Offset(
-                                            0, 3), // changes position of shadow
-                                      ),
-                                    ],
-                                    color: MediaQuery.of(context)
-                                                .platformBrightness ==
+                                ],
+                                color:
+                                    MediaQuery.of(context).platformBrightness ==
                                             Brightness.light
                                         ? lightMode.withOpacity(1)
                                         : darkMode.withOpacity(1),
-                                    shape: const RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.vertical(
-                                            top: Radius.circular(0),
-                                            bottom: Radius.circular(10))),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(6)),
+                              ),
+                              child: IconButton(
+                                  icon: const Icon(Icons.radar),
+                                  color: Colors.white,
+                                  enableFeedback: true,
+                                  onPressed: () async {
+                                    presentNearBy();
+                                  }),
+                            ),
+                          ],
+                        )))),
+            Positioned(
+                child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Align(
+                        alignment: Alignment.topRight,
+                        child: Wrap(
+                          direction: Axis.vertical,
+                          spacing: 1,
+                          children: [
+                            Container(
+                              decoration: ShapeDecoration(
+                                shadows: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.2),
+                                    spreadRadius: 5,
+                                    blurRadius: 10,
+                                    offset: const Offset(
+                                        0, 3), // changes position of shadow
                                   ),
-                                  child: IconButton(
-                                    icon: const Icon(Icons.remove),
-                                    color: Colors.white,
-                                    enableFeedback: true,
-                                    onPressed: () async {
-                                      var currentZoomLevel =
-                                          await mapController.getZoomLevel();
-                                      currentZoomLevel = currentZoomLevel - 2;
-                                      mapController.animateCamera(
-                                        CameraUpdate.newCameraPosition(
-                                          CameraPosition(
-                                            target: center,
-                                            bearing: bearing,
-                                            zoom: currentZoomLevel,
-                                          ),
+                                ],
+                                color:
+                                    MediaQuery.of(context).platformBrightness ==
+                                            Brightness.light
+                                        ? lightMode.withOpacity(1)
+                                        : darkMode.withOpacity(1),
+                                shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.vertical(
+                                        top: Radius.circular(10),
+                                        bottom: Radius.circular(0))),
+                              ),
+                              child: IconButton(
+                                  icon: const Icon(Icons.add),
+                                  color: Colors.white,
+                                  enableFeedback: true,
+                                  onPressed: () async {
+                                    var currentZoomLevel =
+                                        await mapController.getZoomLevel();
+                                    currentZoomLevel = currentZoomLevel + 2;
+                                    mapController.animateCamera(
+                                      CameraUpdate.newCameraPosition(
+                                        CameraPosition(
+                                          target: center,
+                                          bearing: bearing,
+                                          zoom: currentZoomLevel,
                                         ),
-                                      );
-                                      mapZoom =
-                                          await mapController.getZoomLevel();
-                                      OdysseyDatabase.instance.updatePrefsDB(
-                                          mapZoom, bearing, mapType);
-                                    },
+                                      ),
+                                    );
+                                    mapZoom =
+                                        await mapController.getZoomLevel();
+                                    OdysseyDatabase.instance.updatePrefsDB(
+                                        mapZoom, bearing, mapType);
+                                  }),
+                            ),
+                            Container(
+                              decoration: ShapeDecoration(
+                                shadows: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.2),
+                                    spreadRadius: 5,
+                                    blurRadius: 10,
+                                    offset: const Offset(
+                                        0, 3), // changes position of shadow
                                   ),
-                                ),
-                              ],
-                            )))),
-              ]),
-              floatingActionButton: Stack(children: <Widget>[
-                Align(
-                    alignment: Alignment.bottomRight,
-                    child: SizedBox(
-                        height: 85.0, width: 85.0, child: actionMenu())),
-              ]),
-            )));
+                                ],
+                                color:
+                                    MediaQuery.of(context).platformBrightness ==
+                                            Brightness.light
+                                        ? lightMode.withOpacity(1)
+                                        : darkMode.withOpacity(1),
+                                shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.vertical(
+                                        top: Radius.circular(0),
+                                        bottom: Radius.circular(10))),
+                              ),
+                              child: IconButton(
+                                icon: const Icon(Icons.remove),
+                                color: Colors.white,
+                                enableFeedback: true,
+                                onPressed: () async {
+                                  var currentZoomLevel =
+                                      await mapController.getZoomLevel();
+                                  currentZoomLevel = currentZoomLevel - 2;
+                                  mapController.animateCamera(
+                                    CameraUpdate.newCameraPosition(
+                                      CameraPosition(
+                                        target: center,
+                                        bearing: bearing,
+                                        zoom: currentZoomLevel,
+                                      ),
+                                    ),
+                                  );
+                                  mapZoom = await mapController.getZoomLevel();
+                                  OdysseyDatabase.instance
+                                      .updatePrefsDB(mapZoom, bearing, mapType);
+                                },
+                              ),
+                            ),
+                          ],
+                        )))),
+          ]),
+          floatingActionButton: Stack(children: <Widget>[
+            Align(
+                alignment: Alignment.bottomRight,
+                child:
+                    SizedBox(height: 85.0, width: 85.0, child: actionMenu())),
+          ]),
+        ));
   }
 }

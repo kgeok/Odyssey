@@ -20,6 +20,8 @@ String defaultShape = 'circle';
 double defaultMapZoom = 4.0;
 var pathBuffer = "";
 
+//We can use these functions to do different types of conversions that we normally wouldn't be able to do
+
 String colorToString(Color color) {
   var colorBuffer = color.toString();
   colorBuffer = colorBuffer.replaceAll("Color(", "");
@@ -51,11 +53,34 @@ LatLng stringToLocation(String string) {
   }
 }
 
+void mapTypeHandler(String maptype) {
+//We're going to use this function to "do a String conversion to MapType"
+  switch (maptype) {
+    case ("MapType.normal"):
+      mapType = MapType.normal;
+      break;
+
+    case ("MapType.hybrid"):
+      mapType = MapType.hybrid;
+      break;
+
+    case ("MapType.terrain"):
+      mapType = MapType.terrain;
+      break;
+
+    case ("MapType.satellite"):
+      mapType = MapType.satellite;
+      break;
+
+    default:
+      mapType = MapType.normal;
+      break;
+  }
+}
+
 class OdysseyDatabase {
   static final OdysseyDatabase instance = OdysseyDatabase._init();
-
   static Database? _database;
-
   OdysseyDatabase._init();
 
   Future get database async {
@@ -103,7 +128,6 @@ class OdysseyDatabase {
     caption = caption.toString();
 
     //Split latlng and make it a two parter float
-
     var latLngBuffer = (locationToString(latLng)).split(", ");
     var lat = double.parse(latLngBuffer[0].trim());
     var lng = double.parse(latLngBuffer[1].trim());
@@ -230,8 +254,7 @@ class OdysseyDatabase {
         waypointCounter = waypointCounterBuffer2;
       }
       var colorBuffer = await db.query("Pins", columns: ["color"]);
-
-      captionBuffer = await db.query("Pins", columns: ["caption"]);
+      var captionBuffer = await db.query("Pins", columns: ["caption"]);
       var locationBuffer = await db.query("Pins", columns: ["location"]);
       var dateBuffer = await db.query("Pins", columns: ["date"]);
       var noteBuffer = await db.query("Pins", columns: ["note"]);
@@ -252,7 +275,7 @@ class OdysseyDatabase {
         pincolor = Color(int.parse(colorBuffer2));
 
         //Parse the Caption
-        caption = captionBuffer[i]["caption"].toString();
+        String caption = captionBuffer[i]["caption"].toString();
 
         //Parse the Location
 
@@ -263,7 +286,7 @@ class OdysseyDatabase {
         var date = dateBuffer[i]["date"].toString();
 
         //Parse the Pin's note
-        var note = noteBuffer[i]["note"].toString();
+        String note = noteBuffer[i]["note"].toString();
 
         //Parse the Pin's shape
         var shape = shapeBuffer[i]["shape"].toString();
@@ -368,30 +391,5 @@ class OdysseyDatabase {
     final db = await instance.database;
     db.execute("ALTER TABLE Pins DROP COLUMN waypoint");
     db.execute("ALTER TABLE Pins ADD COLUMN waypoint INTEGER;");
-  }
-}
-
-void mapTypeHandler(String mt) {
-//We're going to use this function to "do a String conversion to MapType"
-  switch (mt) {
-    case ("MapType.normal"):
-      mapType = MapType.normal;
-      break;
-
-    case ("MapType.hybrid"):
-      mapType = MapType.hybrid;
-      break;
-
-    case ("MapType.terrain"):
-      mapType = MapType.terrain;
-      break;
-
-    case ("MapType.satellite"):
-      mapType = MapType.satellite;
-      break;
-
-    default:
-      mapType = MapType.normal;
-      break;
   }
 }
