@@ -1,5 +1,6 @@
 // ignore_for_file: prefer_const_constructors, prefer_typing_uninitialized_variables, avoid_print, use_build_context_synchronously, prefer_interpolation_to_compose_strings
 
+import 'dart:collection';
 import 'dart:math';
 import 'dart:ui' as ui;
 import 'dart:io';
@@ -92,7 +93,8 @@ String svgString =
 int onboarding = 0;
 var pins =
     []; //Pins is a seperate list from statemarkers, independent from whats used by GMapsController
-List<LatLng> waypoints = [];
+var waypoints = SplayTreeMap<int,
+    LatLng>(); //Need a SplayTreeMap Object to keep track of IDs and LatLngs
 List<int> journal = [];
 var nearbyresults = [];
 Set<Marker> statemarkers = {};
@@ -253,26 +255,6 @@ const routeColors = {
 Future bitmapDescriptorFromSvg(BuildContext context, String shape) async {
   double width = 75;
   double height = 175;
-  int devicePixelRatio = ((MediaQuery.of(context).devicePixelRatio).toInt());
-
-/*   switch (devicePixelRatio) {
-    case 1:
-      width = 25;
-      height = 125;
-      break;
-    case 2:
-      width = 75;
-      height = 175;
-      break;
-    case 3:
-      width = 75;
-      height = 175;
-      break;
-    default:
-      width = 50 * MediaQuery.of(context).devicePixelRatio + 25;
-      height = 50 * MediaQuery.of(context).devicePixelRatio + 25;
-      break;
-  } */
 
   PictureInfo pictureInfo =
       await vg.loadPicture(SvgStringLoader(shapeHandler(shape)), null);
@@ -545,7 +527,6 @@ class OdysseyMainState extends State<OdysseyMain> {
       caption = pins[i].pincaption;
       note = pins[i].pinnote;
       if (pins[i].pinlocation == "Location N/A") {
-        //print("Correcting Missing Location if Possible...");
         //Correction for if we didn't fine a location before due to connection issues, etc.
         pins[i].pinlocation = await reverseGeocoder(pins[i].pincoor);
         OdysseyDatabase.instance
@@ -571,14 +552,8 @@ class OdysseyMainState extends State<OdysseyMain> {
               icon: bitmapDescriptor),
         );
         if (pins[i].pinwaypoint != null) {
-          waypoints.add(pins[i].pincoor);
-          statepolylines.add(Polyline(
-              polylineId: PolylineId((pins[i].pinwaypoint).toString()),
-              points: waypoints,
-              width: 5,
-              color: Color(int.parse(
-                  routeColors[Random().nextInt(routeColors.length - 1)]
-                      .toString()))));
+          //Let's do a compare, we want all the keys from highest to lowest
+          waypoints[pins[i].pinwaypoint] = pins[i].pincoor;
         }
         journal.add(i - 1);
       });
@@ -586,11 +561,17 @@ class OdysseyMainState extends State<OdysseyMain> {
           .pincoor; //For whatever reason this was the only way that Center sticks after every cycle
       print("Restored Pin: ${i + 1}");
     }
+    statepolylines.add(Polyline(
+        polylineId: PolylineId(waypointCounter.toString()),
+        points: (waypoints.values.toList()),
+        width: 5,
+        color: Color(int.parse(
+            routeColors[Random().nextInt(routeColors.length - 1)]
+                .toString()))));
     cleanBuffers();
 
     if (startup == true) {
       //We only want to move the camera when the app is started up otherwise it causes too much movement
-      //print("Center: $center, Bearing: $bearing, Zoom: $mapZoom");
       mapController.animateCamera(
         CameraUpdate.newCameraPosition(
           CameraPosition(
@@ -660,17 +641,28 @@ class OdysseyMainState extends State<OdysseyMain> {
   }
 
   void appendPolyline(LatLng latLng, id) async {
-    waypointCounter++;
-    waypoints.add(latLng);
+    if (waypoints.values.contains(latLng)) {
+      setState(() {
+        waypoints.removeWhere((key, value) => value == latLng);
+        statepolylines.clear();
+        waypointCounter++;
+        waypoints[waypointCounter] = latLng;
+      });
+    } else {
+      statepolylines.clear();
+      waypointCounter++;
+      waypoints[waypointCounter] = latLng;
+    }
 
     setState(() {
       statepolylines.add(Polyline(
           polylineId: PolylineId(waypointCounter.toString()),
-          points: waypoints,
+          points: (waypoints.values.toList()),
           width: 5,
           color: Color(int.parse(
               routeColors[Random().nextInt(routeColors.length - 1)]
                   .toString()))));
+
       OdysseyDatabase.instance.updatePinsDB(id, waypointCounter, "waypoint");
       scaffoldMessengerKey.currentState?.showSnackBar(const SnackBar(
         content: Text('Waypoint Set.'),
@@ -1236,12 +1228,26 @@ class OdysseyMainState extends State<OdysseyMain> {
                                 },
                               ),
                               ListTile(
-                                title: Text("Set Waypoint",
-                                    style: GoogleFonts.quicksand(
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.black)),
+                                title: waypoints.isNotEmpty
+                                    ? waypoints.values
+                                            .contains(stringToLocation(latlng))
+                                        ? Text("Replace Waypoint",
+                                            style: GoogleFonts.quicksand(
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.black))
+                                        : Text("Add Waypoint",
+                                            style: GoogleFonts.quicksand(
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.black))
+                                    : Text("Start Waypoint",
+                                        style: GoogleFonts.quicksand(
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.black)),
                                 onTap: () async {
                                   Navigator.of(context).pop();
+                                  Navigator.of(context).pop();
+                                  Navigator.of(context).pop();
+
                                   appendPolyline(stringToLocation(latlng), id);
                                 },
                               ),
@@ -2232,13 +2238,24 @@ class OdysseyMainState extends State<OdysseyMain> {
   void deleteLastMarker() {
     Marker lastmarker = statemarkers.firstWhere(
         (marker) => marker.markerId.value == (statemarkers.length).toString());
-    setState(() {
-      statemarkers.remove(lastmarker);
-    });
     pins.removeLast();
     journal.removeLast();
     OdysseyDatabase.instance.deletePinDB(pinCounter);
     pinCounter--;
+    setState(() {
+      statemarkers.removeWhere((value) => value == lastmarker);
+      if (waypoints.values.contains(lastmarker.position)) {
+        waypoints.removeWhere((key, value) => value == lastmarker.position);
+        statepolylines.clear();
+        statepolylines.add(Polyline(
+            polylineId: PolylineId(waypointCounter.toString()),
+            points: (waypoints.values.toList()),
+            width: 5,
+            color: Color(int.parse(
+                routeColors[Random().nextInt(routeColors.length - 1)]
+                    .toString()))));
+      }
+    });
   }
 
   void toggleMapView() {
@@ -3365,7 +3382,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                                 shadows: [
                                   BoxShadow(
                                     color: Colors.black.withOpacity(0.2),
-                                    spreadRadius: 5,
+                                    spreadRadius: 2.5,
                                     blurRadius: 10,
                                     offset: const Offset(
                                         0, 3), // changes position of shadow
@@ -3391,7 +3408,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                                 shadows: [
                                   BoxShadow(
                                     color: Colors.black.withOpacity(0.2),
-                                    spreadRadius: 5,
+                                    spreadRadius: 2.5,
                                     blurRadius: 10,
                                     offset: const Offset(
                                         0, 3), // changes position of shadow
@@ -3428,8 +3445,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                               decoration: ShapeDecoration(
                                 shadows: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    spreadRadius: 5,
+                                    color: Colors.black.withOpacity(0.1),
+                                    spreadRadius: 2.5,
                                     blurRadius: 10,
                                     offset: const Offset(
                                         0, 3), // changes position of shadow
@@ -3472,8 +3489,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                               decoration: ShapeDecoration(
                                 shadows: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    spreadRadius: 5,
+                                    color: Colors.black.withOpacity(0.1),
+                                    spreadRadius: 2.5,
                                     blurRadius: 10,
                                     offset: const Offset(
                                         0, 3), // changes position of shadow

@@ -340,8 +340,8 @@ void onboardDialog(BuildContext context) {
                 TextButton(
                   style: ButtonStyle(
                       minimumSize:
-                          const MaterialStatePropertyAll<Size>(Size(250, 50)),
-                      backgroundColor: MaterialStatePropertyAll<Color>(
+                          const WidgetStatePropertyAll<Size>(Size(250, 50)),
+                      backgroundColor: WidgetStatePropertyAll<Color>(
                         MediaQuery.of(context).platformBrightness ==
                                 Brightness.light
                             ? darkMode.withOpacity(1)

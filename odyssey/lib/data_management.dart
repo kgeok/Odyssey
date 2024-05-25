@@ -49,6 +49,7 @@ LatLng stringToLocation(String string) {
     return LatLng(double.parse(latLngBuffer[0].trim()),
         double.parse(latLngBuffer[1].trim()));
   } else {
+    //If something isn't working, let's just return a generic LatLng()
     return const LatLng(640, 640);
   }
 }

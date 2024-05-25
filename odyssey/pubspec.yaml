@@ -37,17 +37,20 @@ dependencies:
   google_fonts: ^4.0.4
   google_maps_flutter: ^2.6.0
   google_maps_flutter_web: ^0.5.4+2
-  flutter_colorpicker: ^1.0.3
-  geocoding: ^2.1.1
+  flutter_colorpicker:
+    git:
+      url: https://github.com/mchome/flutter_colorpicker
+      ref: master  # or 786d04363f587b818ce585d25b9c2bb62de95aba
+  geocoding: ^3.0.0
   flutter_svg: ^2.0.9
   sqflite: ^2.3.0
-  location: ^5.0.3
+  location: ^6.0.2
   url_launcher: ^6.2.1
   path: ^1.8.3
   google_maps_webservice: ^0.0.20-nullsafety.5
   image_picker: ^1.0.4
   qr_flutter: ^4.1.0
-  mobile_scanner: ^4.0.1
+  mobile_scanner: ^5.1.1
 
 dev_dependencies:
   flutter_test:
@@ -58,7 +61,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^3.0.1
+  flutter_lints: ^4.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
