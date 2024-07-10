@@ -62,7 +62,7 @@ const release = "Pre-Release";
 const apikey = "AIzaSyD8TrymPJaJVDXvXja2O6woa7B_-R-fi9w"; //Google Maps API Key
 late GoogleMapController mapController;
 Color pincolor = Color(int.parse(defaultPinColor));
-var colorBuffer =
+String colorBuffer =
     "FF0000"; //Default Pin Color when Map settings are not initialized
 Color pickerColor = Color(
     0xffff0000); //Value is not constant because it is changed with the picker
@@ -255,13 +255,13 @@ const routeColors = {
 Future bitmapDescriptorFromSvg(BuildContext context, String shape) async {
   double width = 75;
   double height = 175;
-
   PictureInfo pictureInfo =
       await vg.loadPicture(SvgStringLoader(shapeHandler(shape)), null);
   ui.Image image =
       await pictureInfo.picture.toImage(width.toInt(), height.toInt());
   ByteData? bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-  return BitmapDescriptor.fromBytes(bytes!.buffer.asUint8List());
+  return BitmapDescriptor.bytes(bytes!.buffer.asUint8List(),
+      width: width / 2.5, height: height / 2.5);
 }
 
 Future redirectURL(String url) async {
@@ -272,9 +272,7 @@ Future redirectURL(String url) async {
 
 void colorToHex(Color color) {
   //Color for Flutter is parsed differently from HTML and CSS HEX Color codes which apparently SVG uses
-  colorBuffer = color.toString(); //We have to assign a new variable
-  colorBuffer = colorBuffer.replaceAll("Color(0xff", "");
-  colorBuffer = colorBuffer.replaceAll(")", "");
+  colorBuffer = color.value.toRadixString(16).substring(2);
 }
 
 void shapeDialog(BuildContext context) {
@@ -1252,20 +1250,30 @@ class OdysseyMainState extends State<OdysseyMain> {
                                 },
                               ),
                               ListTile(
-                                title: Text("Edit Photo",
-                                    style: GoogleFonts.quicksand(
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.black)),
+                                title: photo != null
+                                    ? Text("Replace Photo",
+                                        style: GoogleFonts.quicksand(
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.black))
+                                    : Text("Add Photo",
+                                        style: GoogleFonts.quicksand(
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.black)),
                                 onTap: () async {
                                   Navigator.of(context).pop();
                                   photoOnboarding(context, id);
                                 },
                               ),
                               ListTile(
-                                title: Text("Edit Caption",
-                                    style: GoogleFonts.quicksand(
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.black)),
+                                title: caption != ""
+                                    ? Text("Edit Caption",
+                                        style: GoogleFonts.quicksand(
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.black))
+                                    : Text("Add Caption",
+                                        style: GoogleFonts.quicksand(
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.black)),
                                 onTap: () {
                                   Navigator.of(context).pop();
                                   showDialog(
@@ -1368,10 +1376,15 @@ class OdysseyMainState extends State<OdysseyMain> {
                                 },
                               ),
                               ListTile(
-                                title: Text("Edit Note",
-                                    style: GoogleFonts.quicksand(
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.black)),
+                                title: note != ""
+                                    ? Text("Edit Note",
+                                        style: GoogleFonts.quicksand(
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.black))
+                                    : Text("Add Note",
+                                        style: GoogleFonts.quicksand(
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.black)),
                                 onTap: () {
                                   Navigator.of(context).pop();
                                   showDialog(
@@ -2355,8 +2368,10 @@ class OdysseyMainState extends State<OdysseyMain> {
                 TextButton(
                   child: Text('Shape', style: dialogBody),
                   onPressed: () {
-                    setState(() => currentColor = pickerColor);
-                    setState(() => pincolor = currentColor);
+                    setState(() {
+                      currentColor = pickerColor;
+                      pincolor = currentColor;
+                    });
                     colorToHex(pincolor);
                     Navigator.of(context).pop();
                     shapeDialog(context);
@@ -2481,7 +2496,6 @@ class OdysseyMainState extends State<OdysseyMain> {
                     if (noteBuffer.isEmpty) {
                       noteBuffer = "";
                     }
-
                     note = noteBuffer;
                     noteBuffer = "";
                     Navigator.pop(context);
@@ -3248,7 +3262,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                         fontSize: 22,
                         color: Colors.white),
                   ),
-                  trailing: Container(
+                  trailing: SizedBox(
                       width: 100,
                       child: Row(children: [
                         SizedBox(width: 52),

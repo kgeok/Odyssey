@@ -23,11 +23,7 @@ var pathBuffer = "";
 //We can use these functions to do different types of conversions that we normally wouldn't be able to do
 
 String colorToString(Color color) {
-  var colorBuffer = color.toString();
-  colorBuffer = colorBuffer.replaceAll("Color(", "");
-  colorBuffer = colorBuffer.replaceAll(")", "");
-
-  return colorBuffer;
+  return ("0x${color.value.toRadixString(16)}");
 }
 
 String locationToString(LatLng latLng) {
@@ -273,6 +269,16 @@ class OdysseyDatabase {
       for (var i = 0; i <= pinCounterBuffer2 - 1; i++) {
         //Parse the Pin's Color
         var colorBuffer2 = colorBuffer[i]["color"].toString();
+        //If for whatever reason there is an issue parsing the color HEX...
+        if (!colorBuffer2.startsWith("0xff")) {
+          print("Error With Pin: ${i + 1}");
+          print(
+              "We're going to need to fix it otherwise we will run into issues...");
+          colorBuffer2 = defaultPinColor;
+          await db.rawUpdate('''UPDATE Pins SET color = ? WHERE id = ?''',
+              [colorBuffer2, i + 1]);
+        }
+
         pincolor = Color(int.parse(colorBuffer2));
 
         //Parse the Caption
@@ -299,10 +305,23 @@ class OdysseyDatabase {
         var waypoint = waypointBuffer[i]["waypoint"];
 
         //Parse the Pin's Lat and Lng
-        LatLng latLng = LatLng(
-            double.parse(locationBufferlat[i]["lat"].toString()),
-            double.parse(locationBufferlng[i]["lng"].toString()));
+        LatLng latLng = const LatLng(0, 0);
+        if (double.tryParse(locationBufferlat[i]["lat"].toString()) == null ||
+            double.tryParse(locationBufferlng[i]["lng"].toString()) == null) {
+          //If we run into an issue or something else, let's just not display the pin...
 
+          print("Error With Pin: ${i + 1}");
+          print(
+              "We're going to need to fix it otherwise we will run into issues...");
+          latLng = const LatLng(0, 0);
+          await db.rawUpdate('''UPDATE Pins SET lat = ? WHERE id = ?''',
+              [latLng.latitude, i + 1]);
+          await db.rawUpdate('''UPDATE Pins SET lng = ? WHERE id = ?''',
+              [latLng.longitude, i + 1]);
+        } else {
+          latLng = LatLng(double.parse(locationBufferlat[i]["lat"].toString()),
+              double.parse(locationBufferlng[i]["lng"].toString()));
+        }
         pins.add(PinData(
             pinid: i,
             pincolor: pincolor,
