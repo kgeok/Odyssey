@@ -226,18 +226,14 @@ class OdysseyDatabase {
 
     if (pathBuffer != null) {
       //Load Prefs Data
-
-      var mapZoomBuffer = await db.query("Prefs", columns: ["mapzoom"]);
-      mapZoom = double.parse(mapZoomBuffer[0]['mapzoom'].toString());
-
-      var mapTypeBuffer = await db.query("Prefs", columns: ["maplayer"]);
-      mapTypeHandler(mapTypeBuffer[0]['maplayer'].toString());
-      //mapType = mapTypeBuffer[0]['maplayer'].toString() as MapType; //Tried casting this one didn't work...
-
-      var bearingBuffer = await db.query("Prefs", columns: ["bearing"]);
-      bearing = double.parse(bearingBuffer[0]['bearing'].toString());
+      var prefsdbResults = await db.query("Prefs");
+      mapZoom = double.parse(prefsdbResults[0]['mapzoom'].toString());
+      mapTypeHandler(prefsdbResults[0]['maplayer'].toString());
+      bearing = double.parse(prefsdbResults[0]['bearing'].toString());
 
       //Load User Data
+      var pinsdbResults = await db.query("Pins");
+
       var pinCounterBuffer = await db.query("Pins", columns: ["MAX(id)"]);
       var pinCounterBuffer2 =
           int.tryParse(pinCounterBuffer[0]['MAX(id)'].toString());
@@ -250,64 +246,29 @@ class OdysseyDatabase {
         waypointCounterBuffer2 ??= 0;
         waypointCounter = waypointCounterBuffer2;
       }
-      var colorBuffer = await db.query("Pins", columns: ["color"]);
-      var captionBuffer = await db.query("Pins", columns: ["caption"]);
-      var locationBuffer = await db.query("Pins", columns: ["location"]);
-      var dateBuffer = await db.query("Pins", columns: ["date"]);
-      var noteBuffer = await db.query("Pins", columns: ["note"]);
-      var shapeBuffer = await db.query("Pins", columns: ["shape"]);
-      var photoBuffer = await db.query("Pins", columns: ["photo"]);
-      var locationBufferlat = await db.query("Pins", columns: ["lat"]);
-      var locationBufferlng = await db.query("Pins", columns: ["lng"]);
-      var waypointBuffer = await db.query("Pins", columns: ["waypoint"]);
 
       pinCounterBuffer2 ??= 0;
-
       pinCounter = pinCounterBuffer2;
+
 /*    This part is the star of the show, we are parsing everything from the Pins DB
       Then by counter  we are attempting, one by one to place everything on the map */
-      for (var i = 0; i <= pinCounterBuffer2 - 1; i++) {
+      for (var i = 0; i <= pinCounter - 1; i++) {
         //Parse the Pin's Color
-        var colorBuffer2 = colorBuffer[i]["color"].toString();
         //If for whatever reason there is an issue parsing the color HEX...
-        if (!colorBuffer2.startsWith("0xff")) {
+        if (!(pinsdbResults[i]["color"].toString()).startsWith("0xff")) {
           print("Error With Pin: ${i + 1}");
           print(
               "We're going to need to fix it otherwise we will run into issues...");
-          colorBuffer2 = defaultPinColor;
           await db.rawUpdate('''UPDATE Pins SET color = ? WHERE id = ?''',
-              [colorBuffer2, i + 1]);
+              [defaultPinColor, i + 1]);
         }
 
-        pincolor = Color(int.parse(colorBuffer2));
-
-        //Parse the Caption
-        String caption = captionBuffer[i]["caption"].toString();
-
-        //Parse the Location
-
-        //We can't reuse locationBuffer because we can't assign it an array
-        var location = locationBuffer[i]["location"].toString();
-
-        //Parse the Pin's date
-        var date = dateBuffer[i]["date"].toString();
-
-        //Parse the Pin's note
-        String note = noteBuffer[i]["note"].toString();
-
-        //Parse the Pin's shape
-        var shape = shapeBuffer[i]["shape"].toString();
-
-        //Parse the Pin's photo
-        var photo = photoBuffer[i]["photo"];
-
-        //Parse the Pin's waypoint
-        var waypoint = waypointBuffer[i]["waypoint"];
+        pincolor = Color(int.parse(pinsdbResults[i]["color"].toString()));
 
         //Parse the Pin's Lat and Lng
         LatLng latLng = const LatLng(0, 0);
-        if (double.tryParse(locationBufferlat[i]["lat"].toString()) == null ||
-            double.tryParse(locationBufferlng[i]["lng"].toString()) == null) {
+        if (double.tryParse(pinsdbResults[i]["lat"].toString()) == null ||
+            double.tryParse(pinsdbResults[i]["lng"].toString()) == null) {
           //If we run into an issue or something else, let's just not display the pin...
 
           print("Error With Pin: ${i + 1}");
@@ -319,20 +280,21 @@ class OdysseyDatabase {
           await db.rawUpdate('''UPDATE Pins SET lng = ? WHERE id = ?''',
               [latLng.longitude, i + 1]);
         } else {
-          latLng = LatLng(double.parse(locationBufferlat[i]["lat"].toString()),
-              double.parse(locationBufferlng[i]["lng"].toString()));
+          latLng = LatLng(double.parse(pinsdbResults[i]["lat"].toString()),
+              double.parse(pinsdbResults[i]["lng"].toString()));
         }
+
         pins.add(PinData(
             pinid: i,
             pincolor: pincolor,
             pincoor: latLng,
-            pindate: date,
-            pinnote: note,
-            pincaption: caption,
-            pinshape: shape,
-            pinlocation: location,
-            pinphoto: photo,
-            pinwaypoint: waypoint));
+            pindate: pinsdbResults[i]["date"].toString(),
+            pinnote: pinsdbResults[i]["note"].toString(),
+            pincaption: pinsdbResults[i]["caption"].toString(),
+            pinshape: pinsdbResults[i]["shape"].toString(),
+            pinlocation: pinsdbResults[i]["location"].toString(),
+            pinphoto: pinsdbResults[i]["photo"],
+            pinwaypoint: pinsdbResults[i]["waypoint"]));
       }
     } else {
       print("Empty/No DB, Skipping...");
