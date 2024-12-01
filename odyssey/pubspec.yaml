@@ -44,13 +44,13 @@ dependencies:
   geocoding: ^3.0.0
   flutter_svg: ^2.0.9
   sqflite: ^2.3.0
-  location: ^6.0.2
+  location: ^7.0.1
   url_launcher: ^6.2.1
   path: ^1.8.3
   google_maps_webservice: ^0.0.20-nullsafety.5
   image_picker: ^1.0.4
   qr_flutter: ^4.1.0
-  mobile_scanner: ^5.1.1
+  mobile_scanner: ^6.0.2
 
 dev_dependencies:
   flutter_test:
@@ -61,7 +61,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^4.0.0
+  flutter_lints: ^5.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
