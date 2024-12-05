@@ -20,6 +20,10 @@ String defaultShape = 'circle';
 double defaultMapZoom = 4.0;
 var pathBuffer = "";
 
+String colorToString(Color color) {
+  return ("0x${color.value.toRadixString(16)}");
+}
+
 class OdysseyDatabase {
   static final OdysseyDatabase instance = OdysseyDatabase._init();
 
@@ -70,9 +74,6 @@ class OdysseyDatabase {
     final db = await instance.database;
 
     caption = caption.toString();
-    var colorBuffer = color.toString();
-    colorBuffer = colorBuffer.replaceAll("Color(", "");
-    colorBuffer = colorBuffer.replaceAll(")", "");
 
     //Split latlng and make it a two parter float
 
@@ -90,7 +91,7 @@ class OdysseyDatabase {
         [
           '$id',
           '$caption',
-          colorBuffer,
+          colorToString(color),
           '$lat',
           '$lng',
           date,
@@ -124,13 +125,9 @@ class OdysseyDatabase {
     //This function will include other pin elements later
     final db = await instance.database;
 
-    var colorBuffer = color.toString();
-    colorBuffer = colorBuffer.replaceAll("Color(", "");
-    colorBuffer = colorBuffer.replaceAll(")", "");
-
     db.rawUpdate(
         '''UPDATE Pins SET caption = ?, note = ?, color = ?, shape = ? WHERE id = ?''',
-        [caption, note, colorBuffer, shape, id]);
+        [caption, note, colorToString(color), shape, id]);
   }
 
   Future initStatefromDB() async {
@@ -164,6 +161,15 @@ class OdysseyDatabase {
       Then by counter we are attempting, one by one to place everything on the map */
       for (var i = 0; i <= counter - 1; i++) {
         //Parse the Pin's Color
+
+        if (!(colorBuffer[i]["color"].toString()).startsWith("0xff")) {
+          print("Error With Pin: ${i + 1}");
+          print(
+              "We're going to need to fix it otherwise we will run into issues...");
+          await db.rawUpdate('''UPDATE Pins SET color = ? WHERE id = ?''',
+              [defaultPinColor, i + 1]);
+        }
+
         var colorBuffer2 = colorBuffer[i]["color"].toString();
         pincolor = Color(int.parse(colorBuffer2));
 

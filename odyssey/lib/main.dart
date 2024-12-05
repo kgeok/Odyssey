@@ -18,7 +18,6 @@ import 'package:google_maps_webservice/places.dart' as places;
 
 void main() async {
   runApp(const MaterialApp(home: OdysseyMain()));
-  OdysseyDatabase.instance.initStatefromDB();
 }
 
 class OdysseyMain extends StatefulWidget {
@@ -33,7 +32,7 @@ class OdysseyMain extends StatefulWidget {
 
 GlobalKey<OdysseyMainState> key = GlobalKey();
 //Variables that we will be using, will try to minimize in the future
-const version = "1.4.1";
+const version = "1.4.2";
 const release = "Release";
 const apikey = "AIzaSyD8TrymPJaJVDXvXja2O6woa7B_-R-fi9w"; //Google Maps API Key
 Color pincolor = Color(int.parse(defaultPinColor));
@@ -218,9 +217,7 @@ Future<void> redirectURL(String url) async {
 
 void colorToHex(Color color) {
   //Color for Flutter is parsed differently from HTML and CSS HEX Color codes which apparently SVG uses
-  colorBuffer = color.toString(); //We have to assign a new variable
-  colorBuffer = colorBuffer.replaceAll("Color(0xff", "");
-  colorBuffer = colorBuffer.replaceAll(")", "");
+  colorBuffer = color.value.toRadixString(16).substring(2);
 }
 
 class OdysseyMainState extends State<OdysseyMain> {
@@ -228,10 +225,7 @@ class OdysseyMainState extends State<OdysseyMain> {
   Set<Marker> statemarkers = {};
 
   void populateMapfromState() async {
-    await Future.delayed(const Duration(
-        milliseconds:
-            1500)); //It apparently takes 1 second or so for DB to populate State
-
+    await OdysseyDatabase.instance.initStatefromDB();
     var pinCounterBuffer =
         pinCounter; //I need to freeze the state of the counter so that it doesn't keep iterating on append
     for (var i = 0; i < pinCounterBuffer; i++) {
@@ -892,7 +886,11 @@ class OdysseyMainState extends State<OdysseyMain> {
                                             content: SingleChildScrollView(
                                               child: ColorPicker(
                                                 pickerColor: pickerColor,
-                                                onColorChanged: changeColor,
+                                                onColorChanged: (value) {
+                                                  setState(() {
+                                                    pickerColor = value;
+                                                  });
+                                                },
                                                 pickerAreaHeightPercent: 0.8,
                                                 labelTypes: const [],
                                                 displayThumbColor: true,
@@ -917,6 +915,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                   setState(() =>
                                                       pincolor = currentColor);
                                                   colorToHex(pincolor);
+                                                  print(pincolor);
                                                   OdysseyDatabase.instance
                                                       .updatePinsDB(
                                                           id,
@@ -1215,7 +1214,7 @@ class OdysseyMainState extends State<OdysseyMain> {
       statemarkers = {};
       journal = [];
     });
-    OdysseyDatabase.instance.initStatefromDB();
+    //OdysseyDatabase.instance.initStatefromDB();
     populateMapfromState();
   }
 
@@ -1407,10 +1406,6 @@ class OdysseyMainState extends State<OdysseyMain> {
     }
   }
 
-  void changeColor(Color color) {
-    setState(() => pickerColor = color);
-  }
-
   void colorPicker(BuildContext context) {
     showDialog(
         context: context,
@@ -1425,7 +1420,11 @@ class OdysseyMainState extends State<OdysseyMain> {
               content: SingleChildScrollView(
                 child: ColorPicker(
                   pickerColor: pickerColor,
-                  onColorChanged: changeColor,
+                  onColorChanged: (value) {
+                    setState(() {
+                      pickerColor = value;
+                    });
+                  },
                   pickerAreaHeightPercent: 0.8,
                   labelTypes: const [],
                   displayThumbColor: true,
@@ -1436,8 +1435,10 @@ class OdysseyMainState extends State<OdysseyMain> {
                 TextButton(
                   child: Text('Shape', style: dialogBody),
                   onPressed: () {
-                    setState(() => currentColor = pickerColor);
-                    setState(() => pincolor = currentColor);
+                    setState(() {
+                      currentColor = pickerColor;
+                      pincolor = currentColor;
+                    });
                     colorToHex(pincolor);
                     Navigator.of(context).pop();
                     shapeDialog(context);
