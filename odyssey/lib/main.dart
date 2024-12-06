@@ -258,7 +258,7 @@ class OdysseyMainState extends State<OdysseyMain> {
     captionBuffer = "";
     caption = "";
 
-    print("Center: $center, Bearing: $bearing, Zoom: $mapZoom");
+    //print("Center: $center, Bearing: $bearing, Zoom: $mapZoom");
 
     mapController.animateCamera(
       CameraUpdate.newCameraPosition(
@@ -380,7 +380,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                   .animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
                 target: target,
                 bearing: bearing,
-                zoom: mapZoom,
+                zoom: mapZoom + 2,
               )));
             },
             child: AnimatedOpacity(
@@ -1754,7 +1754,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                         clipBoard = "$clipBoard\n";
                         clipBoard = "$clipBoard\n";
                       }
-                      print(clipBoard);
+                      //print(clipBoard);
                       Clipboard.setData(ClipboardData(text: clipBoard));
                       scaffoldMessengerKey.currentState?.showSnackBar(
                           SnackBar(content: const Text('Copied to Clipboard')));
@@ -2036,7 +2036,7 @@ class OdysseyMainState extends State<OdysseyMain> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ConstrainedBox(
-                  constraints: BoxConstraints(maxHeight: 50),
+                  constraints: BoxConstraints(maxHeight: 80),
                   child: ListView(
                     scrollDirection: Axis.horizontal,
                     padding: EdgeInsets.all(8.0),
