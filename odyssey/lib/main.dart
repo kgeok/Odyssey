@@ -272,7 +272,7 @@ Future redirectURL(String url) async {
 
 void colorToHex(Color color) {
   //Color for Flutter is parsed differently from HTML and CSS HEX Color codes which apparently SVG uses
-  colorBuffer = color.value.toRadixString(16).substring(2);
+  colorBuffer = color.toHexString().substring(2).toLowerCase();
 }
 
 void shapeDialog(BuildContext context) {
@@ -373,8 +373,8 @@ class SettingsPageState extends State<SettingsPage> {
     return Scaffold(
         backgroundColor:
             MediaQuery.of(context).platformBrightness == Brightness.light
-                ? lightMode.withOpacity(1)
-                : darkMode.withOpacity(1),
+                ? lightMode.withValues(alpha: 1)
+                : darkMode.withValues(alpha: 1),
         appBar: AppBar(
           title: Text("Settings",
               style: GoogleFonts.quicksand(fontWeight: FontWeight.w700)),
@@ -542,6 +542,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                 OdysseyDatabase.instance.updatePinsDB(
                     i + 1, await reverseGeocoder(newPos), "location");
                 reenumerateState();
+                cleanBuffers();
               },
               infoWindow: InfoWindow(
                 title: pins[i].pinlocation,
@@ -627,6 +628,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                   await reverseGeocoder(newPos),
                   "location");
               reenumerateState();
+              cleanBuffers();
             },
             infoWindow: InfoWindow(
               title: locationBuffer,
@@ -790,7 +792,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                     decoration: ShapeDecoration(
                         shadows: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             spreadRadius: 5,
                             blurRadius: 10,
                             offset: const Offset(
@@ -1245,7 +1247,6 @@ class OdysseyMainState extends State<OdysseyMain> {
                                   Navigator.of(context).pop();
                                   Navigator.of(context).pop();
                                   Navigator.of(context).pop();
-
                                   appendPolyline(stringToLocation(latlng), id);
                                 },
                               ),
@@ -1265,23 +1266,25 @@ class OdysseyMainState extends State<OdysseyMain> {
                                 },
                               ),
                               ListTile(
-                                title: caption != ""
-                                    ? Text("Edit Caption",
-                                        style: GoogleFonts.quicksand(
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.black))
-                                    : Text("Add Caption",
-                                        style: GoogleFonts.quicksand(
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.black)),
+                                title: Text("Edit Caption/Note",
+                                    style: GoogleFonts.quicksand(
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black)),
                                 onTap: () {
                                   Navigator.of(context).pop();
+                                  //Just Making Seperate Controllers For Each Field Temporarily
+                                  final captionTextController =
+                                      TextEditingController();
+                                  final noteTextController =
+                                      TextEditingController();
+                                  captionTextController.text = caption;
+                                  noteTextController.text = note;
                                   showDialog(
                                     context: context,
                                     builder: (BuildContext context) {
                                       return AlertDialog(
                                           backgroundColor: color,
-                                          title: Text('Enter New Caption',
+                                          title: Text('Edit Caption/Note',
                                               style: GoogleFonts.quicksand(
                                                   fontWeight: FontWeight.w700,
                                                   color:
@@ -1292,18 +1295,68 @@ class OdysseyMainState extends State<OdysseyMain> {
                                           content: SingleChildScrollView(
                                             child: ListBody(
                                               children: [
+                                                Padding(
+                                                    padding:
+                                                        EdgeInsets.all(5.0),
+                                                    child: Text(
+                                                      "Caption",
+                                                      style: GoogleFonts.quicksand(
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          color:
+                                                              color.computeLuminance() >
+                                                                      0.5
+                                                                  ? Colors.black
+                                                                  : Colors
+                                                                      .white),
+                                                    )),
                                                 TextField(
-                                                    autofocus: true,
-                                                    decoration: InputDecoration(
-                                                        fillColor:
-                                                            Colors.grey[300],
-                                                        filled: true,
-                                                        border:
-                                                            const OutlineInputBorder(),
-                                                        hintText: caption),
-                                                    onChanged: (value) {
-                                                      captionBuffer = value;
-                                                    }),
+                                                  controller:
+                                                      captionTextController,
+                                                  autofocus: true,
+                                                  decoration: InputDecoration(
+                                                      fillColor:
+                                                          Colors.grey[300],
+                                                      filled: true,
+                                                      border:
+                                                          const OutlineInputBorder(),
+                                                      hintText: caption),
+                                                ),
+                                                SizedBox(height: 10),
+                                                Padding(
+                                                    padding:
+                                                        EdgeInsets.all(5.0),
+                                                    child: Text(
+                                                      "Note",
+                                                      style: GoogleFonts.quicksand(
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          color:
+                                                              color.computeLuminance() >
+                                                                      0.5
+                                                                  ? Colors.black
+                                                                  : Colors
+                                                                      .white),
+                                                    )),
+                                                SizedBox(
+                                                    height: 100,
+                                                    child: TextField(
+                                                      controller:
+                                                          noteTextController,
+                                                      autofocus: true,
+                                                      keyboardType:
+                                                          TextInputType
+                                                              .multiline,
+                                                      maxLines: null,
+                                                      expands: true,
+                                                      decoration: InputDecoration(
+                                                          fillColor:
+                                                              Colors.grey[300],
+                                                          filled: true,
+                                                          border:
+                                                              const OutlineInputBorder(),
+                                                          hintText: note),
+                                                    )),
                                               ],
                                             ),
                                           ),
@@ -1323,113 +1376,6 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                     "caption",
                                                     stringToLocation(latlng),
                                                     id);
-                                                Navigator.pop(context);
-                                                OdysseyDatabase.instance
-                                                    .updatePinsDB(
-                                                        id, caption, "caption");
-                                                reenumerateState();
-                                                Navigator.of(context).pop();
-                                              },
-                                            ),
-                                            TextButton(
-                                              child: Text('Cancel',
-                                                  style: GoogleFonts.quicksand(
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                      color:
-                                                          color.computeLuminance() >
-                                                                  0.5
-                                                              ? Colors.black
-                                                              : Colors.white)),
-                                              onPressed: () {
-                                                Navigator.of(context).pop();
-                                              },
-                                            ),
-                                            TextButton(
-                                              child: Text('OK',
-                                                  style: GoogleFonts.quicksand(
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                      color:
-                                                          color.computeLuminance() >
-                                                                  0.5
-                                                              ? Colors.black
-                                                              : Colors.white)),
-                                              onPressed: () {
-                                                Navigator.of(context).pop();
-                                                if (captionBuffer.isEmpty) {
-                                                  captionBuffer = "";
-                                                }
-
-                                                caption = captionBuffer;
-                                                captionBuffer = "";
-                                                Navigator.pop(context);
-                                                OdysseyDatabase.instance
-                                                    .updatePinsDB(
-                                                        id, caption, "caption");
-                                                reenumerateState();
-                                              },
-                                            )
-                                          ]);
-                                    },
-                                  );
-                                },
-                              ),
-                              ListTile(
-                                title: note != ""
-                                    ? Text("Edit Note",
-                                        style: GoogleFonts.quicksand(
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.black))
-                                    : Text("Add Note",
-                                        style: GoogleFonts.quicksand(
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.black)),
-                                onTap: () {
-                                  Navigator.of(context).pop();
-                                  showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return AlertDialog(
-                                          backgroundColor: color,
-                                          title: Text('Enter New Note',
-                                              style: GoogleFonts.quicksand(
-                                                  fontWeight: FontWeight.w700,
-                                                  color:
-                                                      color.computeLuminance() >
-                                                              0.5
-                                                          ? Colors.black
-                                                          : Colors.white)),
-                                          content: SingleChildScrollView(
-                                            child: ListBody(
-                                              children: [
-                                                TextField(
-                                                    autofocus: true,
-                                                    decoration: InputDecoration(
-                                                        fillColor:
-                                                            Colors.grey[300],
-                                                        filled: true,
-                                                        border:
-                                                            const OutlineInputBorder(),
-                                                        hintText: note),
-                                                    onChanged: (value) {
-                                                      noteBuffer = value;
-                                                    }),
-                                              ],
-                                            ),
-                                          ),
-                                          actions: <Widget>[
-                                            TextButton(
-                                              child: Text('Autofill',
-                                                  style: GoogleFonts.quicksand(
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                      color:
-                                                          color.computeLuminance() >
-                                                                  0.5
-                                                              ? Colors.black
-                                                              : Colors.white)),
-                                              onPressed: () async {
                                                 note = await autofill(
                                                     "note",
                                                     stringToLocation(latlng),
@@ -1437,9 +1383,14 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                 Navigator.pop(context);
                                                 OdysseyDatabase.instance
                                                     .updatePinsDB(
+                                                        id, caption, "caption");
+                                                OdysseyDatabase.instance
+                                                    .updatePinsDB(
                                                         id, note, "note");
-                                                reenumerateState();
                                                 Navigator.of(context).pop();
+                                                reenumerateState();
+                                                //captionTextController.dispose();
+                                                //noteTextController.dispose();
                                               },
                                             ),
                                             TextButton(
@@ -1468,16 +1419,19 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                               : Colors.white)),
                                               onPressed: () {
                                                 Navigator.of(context).pop();
-                                                if (noteBuffer.isEmpty) {
-                                                  noteBuffer = "";
-                                                }
+                                                caption =
+                                                    captionTextController.text;
+                                                note = noteTextController.text;
+                                                //captionTextController.dispose();
+                                                //noteTextController.dispose();
 
-                                                note = noteBuffer;
-                                                noteBuffer = "";
-                                                Navigator.pop(context);
+                                                OdysseyDatabase.instance
+                                                    .updatePinsDB(
+                                                        id, caption, "caption");
                                                 OdysseyDatabase.instance
                                                     .updatePinsDB(
                                                         id, note, "note");
+                                                Navigator.pop(context);
                                                 reenumerateState();
                                               },
                                             )
@@ -1501,8 +1455,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                             context)
                                                         .platformBrightness ==
                                                     Brightness.light
-                                                ? lightMode.withOpacity(1)
-                                                : darkMode.withOpacity(1),
+                                                ? lightMode.withValues(alpha: 1)
+                                                : darkMode.withValues(alpha: 1),
                                             titlePadding:
                                                 const EdgeInsets.all(15.0),
                                             contentPadding:
@@ -1548,8 +1502,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                   OdysseyDatabase.instance
                                                       .updatePinsDB(id,
                                                           pincolor, "color");
-                                                  reenumerateState();
                                                   Navigator.of(context).pop();
+                                                  reenumerateState();
                                                 },
                                               )
                                             ]);
@@ -1585,8 +1539,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                       OdysseyDatabase.instance
                                                           .updatePinsDB(id,
                                                               "cicle", "shape");
-                                                      reenumerateState();
                                                       Navigator.pop(context);
+                                                      reenumerateState();
                                                     },
                                                     child: Text('Circle',
                                                         style: GoogleFonts.quicksand(
@@ -1608,9 +1562,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                               id,
                                                               "square",
                                                               "shape");
-                                                      reenumerateState();
-
                                                       Navigator.pop(context);
+                                                      reenumerateState();
                                                     },
                                                     child: Text('Square',
                                                         style: GoogleFonts.quicksand(
@@ -1632,9 +1585,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                               id,
                                                               "diamond",
                                                               "shape");
-                                                      reenumerateState();
-
                                                       Navigator.pop(context);
+                                                      reenumerateState();
                                                     },
                                                     child: Text('Diamond',
                                                         style: GoogleFonts.quicksand(
@@ -1654,9 +1606,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                       OdysseyDatabase.instance
                                                           .updatePinsDB(id,
                                                               "star", "shape");
-                                                      reenumerateState();
-
                                                       Navigator.pop(context);
+                                                      reenumerateState();
                                                     },
                                                     child: Text('Star',
                                                         style: GoogleFonts.quicksand(
@@ -1676,9 +1627,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                       OdysseyDatabase.instance
                                                           .updatePinsDB(id,
                                                               "heart", "shape");
-                                                      reenumerateState();
-
                                                       Navigator.pop(context);
+                                                      reenumerateState();
                                                     },
                                                     child: Text('Heart',
                                                         style: GoogleFonts.quicksand(
@@ -1757,8 +1707,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                 pins.removeAt(id - 1);
                                                 OdysseyDatabase.instance
                                                     .initDBfromState();
-                                                reenumerateState();
                                                 Navigator.of(context).pop();
+                                                reenumerateState();
                                               },
                                             )
                                           ]);
@@ -2396,15 +2346,21 @@ class OdysseyMainState extends State<OdysseyMain> {
         });
   }
 
-  void captionDialog(BuildContext context) {
+  void captionNoteDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-            title: Text('Enter Caption', style: dialogHeader),
+            title: Text('Enter Caption/Note', style: dialogHeader),
             content: SingleChildScrollView(
               child: ListBody(
                 children: [
+                  Padding(
+                      padding: EdgeInsets.all(5.0),
+                      child: Text(
+                        "Caption",
+                        style: dialogBody,
+                      )),
                   TextField(
                       autofocus: true,
                       decoration: InputDecoration(
@@ -2417,25 +2373,34 @@ class OdysseyMainState extends State<OdysseyMain> {
                           captionBuffer = value;
                         });
                       }),
+                  SizedBox(height: 10),
+                  Padding(
+                      padding: EdgeInsets.all(5.0),
+                      child: Text(
+                        "Note",
+                        style: dialogBody,
+                      )),
+                  SizedBox(
+                      height: 100,
+                      child: TextField(
+                          autofocus: true,
+                          keyboardType: TextInputType.multiline,
+                          maxLines: null,
+                          expands: true,
+                          decoration: InputDecoration(
+                              fillColor: Colors.grey[300],
+                              filled: true,
+                              border: const OutlineInputBorder(),
+                              hintText: "Note"),
+                          onChanged: (value) {
+                            setState(() {
+                              noteBuffer = value;
+                            });
+                          })),
                 ],
               ),
             ),
             actions: <Widget>[
-              TextButton(
-                child: Text('Note', style: dialogBody),
-                onPressed: () {
-                  setState(() {
-                    if (captionBuffer.isEmpty) {
-                      captionBuffer = "";
-                    }
-
-                    caption = captionBuffer;
-                    captionBuffer = "";
-                    Navigator.pop(context);
-                    noteDialog(context);
-                  });
-                },
-              ),
               TextButton(
                 child: Text('Cancel', style: dialogBody),
                 onPressed: () {
@@ -2449,74 +2414,12 @@ class OdysseyMainState extends State<OdysseyMain> {
                     if (captionBuffer.isEmpty) {
                       captionBuffer = "";
                     }
-
-                    caption = captionBuffer;
-                    captionBuffer = "";
-                    Navigator.pop(context);
-                  });
-                },
-              )
-            ]);
-      },
-    );
-  }
-
-  void noteDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            title: Text('Enter Note', style: dialogHeader),
-            content: SingleChildScrollView(
-              child: ListBody(
-                children: [
-                  TextField(
-                      autofocus: true,
-                      keyboardType: TextInputType.multiline,
-                      minLines: 1,
-                      maxLines: 3,
-                      decoration: InputDecoration(
-                          fillColor: Colors.grey[300],
-                          filled: true,
-                          border: const OutlineInputBorder(),
-                          hintText: "Note"),
-                      onChanged: (value) {
-                        setState(() {
-                          noteBuffer = value;
-                        });
-                      }),
-                ],
-              ),
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: Text('Caption', style: dialogBody),
-                onPressed: () {
-                  setState(() {
                     if (noteBuffer.isEmpty) {
                       noteBuffer = "";
                     }
+                    caption = captionBuffer;
                     note = noteBuffer;
-                    noteBuffer = "";
-                    Navigator.pop(context);
-                    captionDialog(context);
-                  });
-                },
-              ),
-              TextButton(
-                child: Text('Cancel', style: dialogBody),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-              TextButton(
-                child: Text('OK', style: dialogBody),
-                onPressed: () {
-                  setState(() {
-                    if (noteBuffer.isEmpty) {
-                      captionBuffer = "";
-                    }
-                    note = noteBuffer;
+                    captionBuffer = "";
                     noteBuffer = "";
                     Navigator.pop(context);
                   });
@@ -2958,8 +2861,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                             selectedColor:
                                 MediaQuery.of(context).platformBrightness ==
                                         Brightness.light
-                                    ? lightMode.withOpacity(1)
-                                    : darkMode.withOpacity(1),
+                                    ? lightMode.withValues(alpha: 1)
+                                    : darkMode.withValues(alpha: 1),
                             selected: catselection == index,
                             onSelected: (bool selected) async {
                               setState(() {
@@ -3072,8 +2975,8 @@ class OdysseyMainState extends State<OdysseyMain> {
         return AlertDialog(
             backgroundColor:
                 MediaQuery.of(context).platformBrightness == Brightness.light
-                    ? lightMode.withOpacity(1)
-                    : darkMode.withOpacity(1),
+                    ? lightMode.withValues(alpha: 1)
+                    : darkMode.withValues(alpha: 1),
             title: Text('Choose Provider', style: dialogHeader),
             content: SingleChildScrollView(
                 child: ListBody(children: <Widget>[
@@ -3156,7 +3059,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                   style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
                 ),
                 onTap: () {
-                  captionDialog(context);
+                  captionNoteDialog(context);
                 },
               ),
               const PopupMenuDivider(height: 20),
@@ -3215,11 +3118,11 @@ class OdysseyMainState extends State<OdysseyMain> {
           decoration: ShapeDecoration(
               color:
                   MediaQuery.of(context).platformBrightness == Brightness.light
-                      ? lightMode.withOpacity(1)
-                      : darkMode.withOpacity(1),
+                      ? lightMode.withValues(alpha: 1)
+                      : darkMode.withValues(alpha: 1),
               shadows: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withValues(alpha: 0.3),
                   spreadRadius: 1,
                   blurRadius: 5,
                   offset: const Offset(0, 3), // changes position of shadow
@@ -3395,7 +3298,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                               decoration: ShapeDecoration(
                                 shadows: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
+                                    color: Colors.black.withValues(alpha: 0.2),
                                     spreadRadius: 2.5,
                                     blurRadius: 10,
                                     offset: const Offset(
@@ -3405,8 +3308,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                                 color:
                                     MediaQuery.of(context).platformBrightness ==
                                             Brightness.light
-                                        ? lightMode.withOpacity(1)
-                                        : darkMode.withOpacity(1),
+                                        ? lightMode.withValues(alpha: 1)
+                                        : darkMode.withValues(alpha: 1),
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(6)),
                               ),
@@ -3421,7 +3324,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                               decoration: ShapeDecoration(
                                 shadows: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
+                                    color: Colors.black.withValues(alpha: 0.2),
                                     spreadRadius: 2.5,
                                     blurRadius: 10,
                                     offset: const Offset(
@@ -3431,8 +3334,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                                 color:
                                     MediaQuery.of(context).platformBrightness ==
                                             Brightness.light
-                                        ? lightMode.withOpacity(1)
-                                        : darkMode.withOpacity(1),
+                                        ? lightMode.withValues(alpha: 1)
+                                        : darkMode.withValues(alpha: 1),
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(6)),
                               ),
@@ -3459,7 +3362,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                               decoration: ShapeDecoration(
                                 shadows: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
+                                    color: Colors.black.withValues(alpha: 0.1),
                                     spreadRadius: 2.5,
                                     blurRadius: 10,
                                     offset: const Offset(
@@ -3469,8 +3372,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                                 color:
                                     MediaQuery.of(context).platformBrightness ==
                                             Brightness.light
-                                        ? lightMode.withOpacity(1)
-                                        : darkMode.withOpacity(1),
+                                        ? lightMode.withValues(alpha: 1)
+                                        : darkMode.withValues(alpha: 1),
                                 shape: const RoundedRectangleBorder(
                                     borderRadius: BorderRadius.vertical(
                                         top: Radius.circular(10),
@@ -3503,7 +3406,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                               decoration: ShapeDecoration(
                                 shadows: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
+                                    color: Colors.black.withValues(alpha: 0.1),
                                     spreadRadius: 2.5,
                                     blurRadius: 10,
                                     offset: const Offset(
@@ -3513,8 +3416,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                                 color:
                                     MediaQuery.of(context).platformBrightness ==
                                             Brightness.light
-                                        ? lightMode.withOpacity(1)
-                                        : darkMode.withOpacity(1),
+                                        ? lightMode.withValues(alpha: 1)
+                                        : darkMode.withValues(alpha: 1),
                                 shape: const RoundedRectangleBorder(
                                     borderRadius: BorderRadius.vertical(
                                         top: Radius.circular(0),

@@ -35,8 +35,8 @@ void simpleDialog(
       buttonaction2 = "OK";
       dialogColor =
           MediaQuery.of(context).platformBrightness == Brightness.light
-              ? lightMode.withOpacity(1)
-              : darkMode.withOpacity(1);
+              ? lightMode.withValues(alpha: 1)
+              : darkMode.withValues(alpha: 1);
       break;
 
     default:
@@ -44,8 +44,8 @@ void simpleDialog(
       buttonaction2 = "OK";
       dialogColor =
           MediaQuery.of(context).platformBrightness == Brightness.light
-              ? lightMode.withOpacity(1)
-              : darkMode.withOpacity(1);
+              ? lightMode.withValues(alpha: 1)
+              : darkMode.withValues(alpha: 1);
       break;
   }
   showDialog(
@@ -100,8 +100,8 @@ void complexDialog(BuildContext context, var header, var body1, var body2,
       buttonaction2 = "OK";
       dialogColor =
           MediaQuery.of(context).platformBrightness == Brightness.light
-              ? lightMode.withOpacity(1)
-              : darkMode.withOpacity(1);
+              ? lightMode.withValues(alpha: 1)
+              : darkMode.withValues(alpha: 1);
       break;
 
     default:
@@ -109,8 +109,8 @@ void complexDialog(BuildContext context, var header, var body1, var body2,
       buttonaction2 = "OK";
       dialogColor =
           MediaQuery.of(context).platformBrightness == Brightness.light
-              ? lightMode.withOpacity(1)
-              : darkMode.withOpacity(1);
+              ? lightMode.withValues(alpha: 1)
+              : darkMode.withValues(alpha: 1);
       break;
   }
   showDialog(
@@ -162,8 +162,8 @@ void onboardDialog(BuildContext context) {
       return Container(
           constraints: const BoxConstraints(maxWidth: 500),
           color: MediaQuery.of(context).platformBrightness == Brightness.light
-              ? lightMode.withOpacity(1)
-              : darkMode.withOpacity(1),
+              ? lightMode.withValues(alpha: 1)
+              : darkMode.withValues(alpha: 1),
           child: FractionallySizedBox(
               // heightFactor: 0.9,
               child: SingleChildScrollView(
@@ -344,8 +344,8 @@ void onboardDialog(BuildContext context) {
                       backgroundColor: WidgetStatePropertyAll<Color>(
                         MediaQuery.of(context).platformBrightness ==
                                 Brightness.light
-                            ? darkMode.withOpacity(1)
-                            : lightMode.withOpacity(1),
+                            ? darkMode.withValues(alpha: 1)
+                            : lightMode.withValues(alpha: 1),
                       ),
                       enableFeedback: true),
                   onPressed: () {
@@ -413,8 +413,8 @@ void helpDialog(BuildContext context) {
       return AlertDialog(
           backgroundColor:
               MediaQuery.of(context).platformBrightness == Brightness.light
-                  ? lightMode.withOpacity(1)
-                  : darkMode.withOpacity(1),
+                  ? lightMode.withValues(alpha: 1)
+                  : darkMode.withValues(alpha: 1),
           title: Text("Quick Start", style: dialogHeader),
           content: SingleChildScrollView(
               child: ListBody(children: [

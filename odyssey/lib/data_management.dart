@@ -1,4 +1,5 @@
 // ignore_for_file: avoid_print, unnecessary_null_comparison
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:path/path.dart';
 import 'package:odyssey/main.dart';
@@ -23,7 +24,7 @@ var pathBuffer = "";
 //We can use these functions to do different types of conversions that we normally wouldn't be able to do
 
 String colorToString(Color color) {
-  return ("0x${color.value.toRadixString(16)}");
+  return ("0x${(color.toHexString()).toLowerCase()}");
 }
 
 String locationToString(LatLng latLng) {
@@ -199,6 +200,7 @@ class OdysseyDatabase {
       case "color":
         db.rawUpdate('''UPDATE Pins SET color = ? WHERE id = ?''',
             [colorToString(content), id]);
+        print(colorToString(content));
         break;
 
       case "shape":
@@ -255,7 +257,9 @@ class OdysseyDatabase {
       for (var i = 0; i <= pinCounter - 1; i++) {
         //Parse the Pin's Color
         //If for whatever reason there is an issue parsing the color HEX...
-        if (!(pinsdbResults[i]["color"].toString()).startsWith("0xff")) {
+        if (!(pinsdbResults[i]["color"].toString())
+            .toLowerCase()
+            .startsWith("0xff")) {
           print("Error With Pin: ${i + 1}");
           print(
               "We're going to need to fix it otherwise we will run into issues...");
