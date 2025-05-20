@@ -118,7 +118,7 @@ class PinData {
   late Color pincolor;
   late LatLng pincoor;
   late var pinlocation;
-  late var pinnote = "";
+  late String pinnote = "";
   late var pinshape;
   late var pinphoto;
 
@@ -334,6 +334,10 @@ void shapeDialog(BuildContext context) {
   );
 }
 
+void deletePolyline(id) {
+  statepolylines.removeWhere((element) => statepolylines == id);
+}
+
 void checkConnection(context) async {
   try {
     final mapsconnection = await InternetAddress.lookup('maps.google.com');
@@ -367,7 +371,57 @@ void cleanBuffers() {
   locationBuffer = "";
 }
 
+void toggleMapViewOutside() {
+  switch (mapType) {
+    case MapType.normal:
+      mapType = MapType.hybrid;
+      break;
+    case MapType.hybrid:
+      mapType = MapType.normal;
+      break;
+    case MapType.terrain:
+      mapType = MapType.hybrid;
+      break;
+    case MapType.satellite:
+      mapType = MapType.normal;
+      break;
+    default:
+      mapType = MapType.normal;
+  }
+  OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
+}
+
 class SettingsPageState extends State<SettingsPage> {
+  void toggleMapViewSettings() {
+    switch (mapType) {
+      case MapType.normal:
+        setState(() {
+          mapType = MapType.hybrid;
+        });
+        break;
+      case MapType.hybrid:
+        setState(() {
+          mapType = MapType.normal;
+        });
+        break;
+      case MapType.terrain:
+        setState(() {
+          mapType = MapType.hybrid;
+        });
+        break;
+      case MapType.satellite:
+        setState(() {
+          mapType = MapType.normal;
+        });
+        break;
+      default:
+        setState(() {
+          mapType = MapType.normal;
+        });
+    }
+    OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -451,13 +505,21 @@ class SettingsPageState extends State<SettingsPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                 ListTile(
-                    leading: Icon(Icons.travel_explore),
-                    title: Text("Toggle Map View",
-                        style: GoogleFonts.quicksand(color: Colors.black)),
-                    onTap: () => null //toggleMapView(),
-                    ),
+                  leading: Icon(Icons.view_in_ar),
+                  title: Text("Toggle Map View",
+                      style: GoogleFonts.quicksand(color: Colors.black)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                    toggleMapViewOutside();
+                    context.visitAncestorElements((e) {
+                      e.markNeedsBuild();
+                      return true;
+                    });
+                  },
+                ),
                 ListTile(
-                    leading: Icon(Icons.view_in_ar),
+                    leading: Icon(Icons.travel_explore),
                     title: Text("Toggle Map Details",
                         style: GoogleFonts.quicksand(color: Colors.black)),
                     onTap: () => null //toggleMapModes(),
@@ -473,8 +535,8 @@ class SettingsPageState extends State<SettingsPage> {
                 title: Text("Copy Journal Contents",
                     style: GoogleFonts.quicksand(color: Colors.black)),
                 onTap: () {
-                  var clipBoard = "";
-                  for (var i = 0; i <= (pins.length - 1); i++) {
+                  String clipBoard = "";
+                  for (int i = 0; i <= (pins.length - 1); i++) {
                     clipBoard = "$clipBoard${pins[i].pincaption}\n";
                     clipBoard = "$clipBoard${pins[i].pinlocation}\n";
                     clipBoard = "$clipBoard${pins[i].pinnote}\n";
@@ -515,7 +577,7 @@ class OdysseyMainState extends State<OdysseyMain> {
     await OdysseyDatabase.instance.initStatefromDB();
     var pinCounterBuffer =
         pinCounter; //I need to freeze the state of the counter so that it doesn't keep iterating on append
-    for (var i = 0; i < pinCounterBuffer; i++) {
+    for (int i = 0; i < pinCounterBuffer; i++) {
       pincolor = pins[i].pincolor;
       colorToHex(pincolor);
       pickerColor = pincolor;
@@ -2194,10 +2256,6 @@ class OdysseyMainState extends State<OdysseyMain> {
     });
   }
 
-  void deletePolyline(id) {
-    statepolylines.removeWhere((element) => statepolylines == id);
-  }
-
   void deleteLastMarker() {
     Marker lastmarker = statemarkers.firstWhere(
         (marker) => marker.markerId.value == (statemarkers.length).toString());
@@ -2221,38 +2279,35 @@ class OdysseyMainState extends State<OdysseyMain> {
     });
   }
 
+//TODO: toggleMapView Here
   void toggleMapView() {
     switch (mapType) {
       case MapType.normal:
         setState(() {
           mapType = MapType.hybrid;
-          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
         });
         break;
       case MapType.hybrid:
         setState(() {
           mapType = MapType.normal;
-          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
         });
         break;
       case MapType.terrain:
         setState(() {
           mapType = MapType.hybrid;
-          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
         });
         break;
       case MapType.satellite:
         setState(() {
           mapType = MapType.normal;
-          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
         });
         break;
       default:
         setState(() {
           mapType = MapType.normal;
-          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
         });
     }
+    OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
   }
 
   void toggleMapModes() {
@@ -2879,7 +2934,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                                       .replaceAll(" ", "_"));
                               setState(() {
                                 if (response.results.isNotEmpty) {
-                                  for (var i = 0;
+                                  for (int i = 0;
                                       i < response.results.length;
                                       i++) {
                                     nearbyresults.add(NearByData(
@@ -3384,7 +3439,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                                   color: Colors.white,
                                   enableFeedback: true,
                                   onPressed: () async {
-                                    var currentZoomLevel =
+                                    double currentZoomLevel =
                                         await mapController.getZoomLevel();
                                     currentZoomLevel = currentZoomLevel + 2;
                                     mapController.animateCamera(
@@ -3428,7 +3483,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                                 color: Colors.white,
                                 enableFeedback: true,
                                 onPressed: () async {
-                                  var currentZoomLevel =
+                                  double currentZoomLevel =
                                       await mapController.getZoomLevel();
                                   currentZoomLevel = currentZoomLevel - 2;
                                   mapController.animateCamera(
