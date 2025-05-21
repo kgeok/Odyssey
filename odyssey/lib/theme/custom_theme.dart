@@ -21,7 +21,7 @@ class CustomTheme {
     //1
     return ThemeData(
         //2
-        dialogTheme: DialogTheme(backgroundColor: lightMode),
+        dialogTheme: DialogThemeData(backgroundColor: lightMode),
         dividerColor: darkMode,
         useMaterial3: true,
         splashColor: lightMode.withValues(alpha: 0.4),
@@ -52,7 +52,7 @@ class CustomTheme {
 
   static ThemeData get darkTheme {
     return ThemeData(
-        dialogTheme: DialogTheme(backgroundColor: darkMode),
+        dialogTheme: DialogThemeData(backgroundColor: darkMode),
         dividerColor: lightMode,
         useMaterial3: true,
         splashColor: darkMode.withValues(alpha: 0.4),

@@ -24,7 +24,6 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-//  runApp(MaterialApp(home: OdysseyMain()));
 
   runApp(MaterialApp(
     debugShowCheckedModeBanner: false,
@@ -103,8 +102,7 @@ final photo = ImagePicker();
 DateTime currentDate = DateTime.now();
 String date = currentDate.toString().substring(0, 10);
 String filter = "";
-//For testing only
-bool journalentries = true;
+bool refresh = false; //I can implement this better but using this temporaily
 
 //Only using for Main State Scaffold, Main State has it's own Global Key
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
@@ -371,28 +369,23 @@ void cleanBuffers() {
   locationBuffer = "";
 }
 
-void toggleMapViewOutside() {
-  switch (mapType) {
-    case MapType.normal:
-      mapType = MapType.hybrid;
-      break;
-    case MapType.hybrid:
-      mapType = MapType.normal;
-      break;
-    case MapType.terrain:
-      mapType = MapType.hybrid;
-      break;
-    case MapType.satellite:
-      mapType = MapType.normal;
-      break;
-    default:
-      mapType = MapType.normal;
-  }
-  OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
-}
-
 class SettingsPageState extends State<SettingsPage> {
-  void toggleMapViewSettings() {
+
+VoidCallback? onUpdate;
+  
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Retrieve arguments when dependencies change (e.g., on initial build)
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+    // Ensure the callback is only set once
+    if (args != null && args.containsKey('onUpdate') && onUpdate == null) {
+      onUpdate = args['onUpdate'] as VoidCallback;
+    }
+  }
+
+    void toggleMapView() {
     switch (mapType) {
       case MapType.normal:
         setState(() {
@@ -420,6 +413,137 @@ class SettingsPageState extends State<SettingsPage> {
         });
     }
     OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
+  }
+
+  void toggleMapModes() {
+    switch (mapType) {
+      case MapType.normal:
+        setState(() {
+          mapType = MapType.terrain;
+
+        });
+        break;
+      case MapType.satellite:
+        setState(() {
+          mapType = MapType.hybrid;
+
+        });
+        break;
+      case MapType.terrain:
+        setState(() {
+          mapType = MapType.normal;
+
+        });
+        break;
+      case MapType.hybrid:
+        setState(() {
+          mapType = MapType.satellite;
+
+        });
+        break;
+      default:
+        setState(() {
+          mapType = MapType.normal;
+
+        });
+    }
+
+    OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
+  }
+
+  void clearAllPinsWarning(BuildContext context) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+            backgroundColor: Colors.orange[800],
+            title: Text("Clear Pins?", style: dialogHeader),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: [
+                  Text("Are you sure you want to clear all pins?",
+                      style: dialogBody),
+                  Text("(This will also clear the Journal and Waypoints)",
+                      style: dialogBody),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('Cancel', style: dialogBody),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: Text('OK', style: dialogBody),
+                onPressed: () {
+                  clearStateMarkers();
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+                },
+              )
+            ]);
+      },
+    );
+  }
+
+  void clearAllWaypointsWarning(BuildContext context) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+            backgroundColor: Colors.orange[800],
+            title: Text("Clear Waypoints?", style: dialogHeader),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: [
+                  Text("Are you sure you want to clear all waypoints?",
+                      style: dialogBody),
+                  Text("", style: dialogBody),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('Cancel', style: dialogBody),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: Text('OK', style: dialogBody),
+                onPressed: () {
+                  clearStatePolylines();
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+                },
+              )
+            ]);
+      },
+    );
+  }
+
+  void clearStateMarkers() {
+      cleanBuffers();
+      statemarkers = {};
+      statepolylines = {};
+      journal = [];
+      pinCounter = 0;
+      waypointCounter = 0;
+      pins.clear();
+      waypoints.clear();
+      OdysseyDatabase.instance
+          .updatePrefsDB(defaultMapZoom, defaultBearing, defaultMapType);
+      OdysseyDatabase.instance.clearPinsDB();
+  }
+
+  void clearStatePolylines() {
+    cleanBuffers();
+    statepolylines = {};
+    waypointCounter = 0;
+    waypoints.clear();
+    OdysseyDatabase.instance.clearWaypointsDB();
   }
 
   @override
@@ -510,19 +634,20 @@ class SettingsPageState extends State<SettingsPage> {
                       style: GoogleFonts.quicksand(color: Colors.black)),
                   onTap: () {
                     Navigator.pop(context);
-                    Navigator.pop(context);
-                    toggleMapViewOutside();
-                    context.visitAncestorElements((e) {
-                      e.markNeedsBuild();
-                      return true;
-                    });
+                    toggleMapView();
+                    onUpdate?.call();
                   },
                 ),
                 ListTile(
                     leading: Icon(Icons.travel_explore),
                     title: Text("Toggle Map Details",
                         style: GoogleFonts.quicksand(color: Colors.black)),
-                    onTap: () => null //toggleMapModes(),
+                    
+                onTap: () {
+                    Navigator.pop(context);
+                    toggleMapModes();
+                    onUpdate?.call();
+                  },
                     )
               ])),
           Card(
@@ -557,13 +682,19 @@ class SettingsPageState extends State<SettingsPage> {
                   leading: Icon(Icons.layers_clear),
                   title: Text("Clear All Waypoints",
                       style: GoogleFonts.quicksand(color: Colors.red)),
-                  onTap: () => null //clearAllWaypointsWarning(),
+               onTap: () {
+                   clearAllWaypointsWarning(context);
+                    onUpdate?.call();
+                  },
                   ),
               ListTile(
                   leading: Icon(Icons.location_off),
                   title: Text("Clear All Pins",
                       style: GoogleFonts.quicksand(color: Colors.red)),
-                  onTap: () => null //clearAllPinsWarning(),
+                  onTap: () {
+                    clearAllPinsWarning(context);
+                    onUpdate?.call();
+                  },
                   ),
             ],
           )),
@@ -1844,7 +1975,7 @@ class OdysseyMainState extends State<OdysseyMain> {
     }
   }
 
-  void reenumerateState() async {
+ void reenumerateState() async {
     cleanBuffers();
     pinCounter = 0;
     pins.clear();
@@ -2229,32 +2360,7 @@ class OdysseyMainState extends State<OdysseyMain> {
         });
   }
 
-  void clearStateMarkers() {
-    cleanBuffers();
-    pinCounter = 0;
-    waypointCounter = 0;
-    pins.clear();
-    waypoints.clear();
-    OdysseyDatabase.instance
-        .updatePrefsDB(defaultMapZoom, defaultBearing, defaultMapType);
-    OdysseyDatabase.instance.clearPinsDB();
 
-    setState(() {
-      statemarkers = {};
-      statepolylines = {};
-      journal = [];
-    });
-  }
-
-  void clearStatePolylines() {
-    cleanBuffers();
-    waypointCounter = 0;
-    waypoints.clear();
-    OdysseyDatabase.instance.clearWaypointsDB();
-    setState(() {
-      statepolylines = {};
-    });
-  }
 
   void deleteLastMarker() {
     Marker lastmarker = statemarkers.firstWhere(
@@ -2279,70 +2385,8 @@ class OdysseyMainState extends State<OdysseyMain> {
     });
   }
 
-//TODO: toggleMapView Here
-  void toggleMapView() {
-    switch (mapType) {
-      case MapType.normal:
-        setState(() {
-          mapType = MapType.hybrid;
-        });
-        break;
-      case MapType.hybrid:
-        setState(() {
-          mapType = MapType.normal;
-        });
-        break;
-      case MapType.terrain:
-        setState(() {
-          mapType = MapType.hybrid;
-        });
-        break;
-      case MapType.satellite:
-        setState(() {
-          mapType = MapType.normal;
-        });
-        break;
-      default:
-        setState(() {
-          mapType = MapType.normal;
-        });
-    }
-    OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
-  }
 
-  void toggleMapModes() {
-    switch (mapType) {
-      case MapType.normal:
-        setState(() {
-          mapType = MapType.terrain;
-          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
-        });
-        break;
-      case MapType.satellite:
-        setState(() {
-          mapType = MapType.hybrid;
-          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
-        });
-        break;
-      case MapType.terrain:
-        setState(() {
-          mapType = MapType.normal;
-          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
-        });
-        break;
-      case MapType.hybrid:
-        setState(() {
-          mapType = MapType.satellite;
-          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
-        });
-        break;
-      default:
-        setState(() {
-          mapType = MapType.normal;
-          OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
-        });
-    }
-  }
+
 
   void colorPicker(BuildContext context) {
     showDialog(
@@ -2605,142 +2649,6 @@ class OdysseyMainState extends State<OdysseyMain> {
                       Navigator.pop(context);
                     });
                   }
-                },
-              )
-            ]);
-      },
-    );
-  }
-
-  void settings(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            title: Text("Settings", style: dialogHeader),
-            content: SingleChildScrollView(
-              child: ListBody(
-                children: [
-                  SimpleDialogOption(
-                    onPressed: () {
-                      Navigator.of(context, rootNavigator: true)
-                          .pushNamed("/settings");
-                    },
-                    child: Text('New Settings',
-                        style: GoogleFonts.quicksand(
-                            fontWeight: FontWeight.w600, color: Colors.white)),
-                  ),
-                  SimpleDialogOption(
-                    onPressed: () {
-                      clearAllPinsWarning(context);
-                    },
-                    child: Text('Clear All Pins',
-                        style: GoogleFonts.quicksand(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.red[400])),
-                  ),
-                  SimpleDialogOption(
-                    onPressed: () {
-                      clearAllWaypointsWarning(context);
-                    },
-                    child: Text('Clear All Waypoints',
-                        style: GoogleFonts.quicksand(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.red[400])),
-                  ),
-                  SimpleDialogOption(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      toggleMapView();
-                    },
-                    child: Text('Toggle Map View', style: dialogBody),
-                  ),
-                  SimpleDialogOption(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      toggleMapModes();
-                    },
-                    child: Text('Toggle Map Details', style: dialogBody),
-                  ),
-                ],
-              ),
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: Text('Dismiss', style: dialogBody),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              )
-            ]);
-      },
-    );
-  }
-
-  void clearAllPinsWarning(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            backgroundColor: Colors.orange[800],
-            title: Text("Clear Pins?", style: dialogHeader),
-            content: SingleChildScrollView(
-              child: ListBody(
-                children: [
-                  Text("Are you sure you want to clear all pins?",
-                      style: dialogBody),
-                  Text("(This will also clear the Journal and Waypoints)",
-                      style: dialogBody),
-                ],
-              ),
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: Text('Cancel', style: dialogBody),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-              TextButton(
-                child: Text('OK', style: dialogBody),
-                onPressed: () {
-                  clearStateMarkers();
-                  Navigator.of(context).pop();
-                },
-              )
-            ]);
-      },
-    );
-  }
-
-  void clearAllWaypointsWarning(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            backgroundColor: Colors.orange[800],
-            title: Text("Clear Waypoints?", style: dialogHeader),
-            content: SingleChildScrollView(
-              child: ListBody(
-                children: [
-                  Text("Are you sure you want to clear all waypoints?",
-                      style: dialogBody),
-                  Text("", style: dialogBody),
-                ],
-              ),
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: Text('Cancel', style: dialogBody),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-              TextButton(
-                child: Text('OK', style: dialogBody),
-                onPressed: () {
-                  clearStatePolylines();
-                  Navigator.of(context).pop();
                 },
               )
             ]);
@@ -3163,7 +3071,9 @@ class OdysseyMainState extends State<OdysseyMain> {
                   style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
                 ),
                 onTap: () {
-                  settings(context);
+                                        Navigator.of(context, rootNavigator: true)
+                          .pushNamed("/settings", arguments: {'onUpdate': reenumerateState});
+                          Navigator.of(context).reassemble();
                 },
               ),
             ],
