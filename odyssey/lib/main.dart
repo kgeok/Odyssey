@@ -102,7 +102,6 @@ final photo = ImagePicker();
 DateTime currentDate = DateTime.now();
 String date = currentDate.toString().substring(0, 10);
 String filter = "";
-bool refresh = false; //I can implement this better but using this temporaily
 
 //Only using for Main State Scaffold, Main State has it's own Global Key
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
@@ -273,6 +272,18 @@ void colorToHex(Color color) {
   colorBuffer = color.toHexString().substring(2).toLowerCase();
 }
 
+SimpleDialogOption shapeDialogOption(
+      BuildContext context, String text, String selectedShape) {
+    return SimpleDialogOption(
+      onPressed: () {
+        shape = selectedShape;
+        Navigator.pop(context);
+      },
+      child: Text(text, style: dialogBody),
+    );
+  }
+
+
 void shapeDialog(BuildContext context) {
   showDialog(
     context: context,
@@ -282,41 +293,11 @@ void shapeDialog(BuildContext context) {
           content: SingleChildScrollView(
             child: ListBody(
               children: [
-                SimpleDialogOption(
-                  onPressed: () {
-                    shape = "circle";
-                    Navigator.pop(context);
-                  },
-                  child: Text('Circle', style: dialogBody),
-                ),
-                SimpleDialogOption(
-                  onPressed: () {
-                    shape = "square";
-                    Navigator.pop(context);
-                  },
-                  child: Text('Square', style: dialogBody),
-                ),
-                SimpleDialogOption(
-                  onPressed: () {
-                    shape = "diamond";
-                    Navigator.pop(context);
-                  },
-                  child: Text('Diamond', style: dialogBody),
-                ),
-                SimpleDialogOption(
-                  onPressed: () {
-                    shape = "star";
-                    Navigator.pop(context);
-                  },
-                  child: Text('Star', style: dialogBody),
-                ),
-                SimpleDialogOption(
-                  onPressed: () {
-                    shape = "heart";
-                    Navigator.pop(context);
-                  },
-                  child: Text('Heart', style: dialogBody),
-                ),
+                shapeDialogOption(context, 'Circle', 'circle'),
+                shapeDialogOption(context, 'Square', 'square'),
+                shapeDialogOption(context, 'Diamond', 'diamond'),
+                shapeDialogOption(context, 'Star', 'star'),
+                shapeDialogOption(context, 'Heart', 'heart'),
               ],
             ),
           ),
@@ -370,14 +351,14 @@ void cleanBuffers() {
 }
 
 class SettingsPageState extends State<SettingsPage> {
+  VoidCallback? onUpdate;
 
-VoidCallback? onUpdate;
-  
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     // Retrieve arguments when dependencies change (e.g., on initial build)
-    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
     // Ensure the callback is only set once
     if (args != null && args.containsKey('onUpdate') && onUpdate == null) {
@@ -385,7 +366,7 @@ VoidCallback? onUpdate;
     }
   }
 
-    void toggleMapView() {
+  void toggleMapView() {
     switch (mapType) {
       case MapType.normal:
         setState(() {
@@ -420,31 +401,26 @@ VoidCallback? onUpdate;
       case MapType.normal:
         setState(() {
           mapType = MapType.terrain;
-
         });
         break;
       case MapType.satellite:
         setState(() {
           mapType = MapType.hybrid;
-
         });
         break;
       case MapType.terrain:
         setState(() {
           mapType = MapType.normal;
-
         });
         break;
       case MapType.hybrid:
         setState(() {
           mapType = MapType.satellite;
-
         });
         break;
       default:
         setState(() {
           mapType = MapType.normal;
-
         });
     }
 
@@ -525,17 +501,18 @@ VoidCallback? onUpdate;
   }
 
   void clearStateMarkers() {
-      cleanBuffers();
-      statemarkers = {};
-      statepolylines = {};
-      journal = [];
-      pinCounter = 0;
-      waypointCounter = 0;
-      pins.clear();
-      waypoints.clear();
-      OdysseyDatabase.instance
-          .updatePrefsDB(defaultMapZoom, defaultBearing, defaultMapType);
-      OdysseyDatabase.instance.clearPinsDB();
+    cleanBuffers();
+    statemarkers = {};
+    statepolylines = {};
+    journal = [];
+    pinCounter = 0;
+    waypointCounter = 0;
+    pins.clear();
+    waypoints.clear();
+    OdysseyDatabase.instance
+        .updatePrefsDB(defaultMapZoom, defaultBearing, defaultMapType);
+    OdysseyDatabase.instance.clearPinsDB();
+    onUpdate?.call();
   }
 
   void clearStatePolylines() {
@@ -544,6 +521,7 @@ VoidCallback? onUpdate;
     waypointCounter = 0;
     waypoints.clear();
     OdysseyDatabase.instance.clearWaypointsDB();
+    onUpdate?.call();
   }
 
   @override
@@ -639,16 +617,15 @@ VoidCallback? onUpdate;
                   },
                 ),
                 ListTile(
-                    leading: Icon(Icons.travel_explore),
-                    title: Text("Toggle Map Details",
-                        style: GoogleFonts.quicksand(color: Colors.black)),
-                    
-                onTap: () {
+                  leading: Icon(Icons.travel_explore),
+                  title: Text("Toggle Map Details",
+                      style: GoogleFonts.quicksand(color: Colors.black)),
+                  onTap: () {
                     Navigator.pop(context);
                     toggleMapModes();
                     onUpdate?.call();
                   },
-                    )
+                )
               ])),
           Card(
               child: Column(
@@ -672,30 +649,27 @@ VoidCallback? onUpdate;
                     clipBoard = "$clipBoard\n";
                     clipBoard = "$clipBoard\n";
                   }
-                  //print(clipBoard);
                   Clipboard.setData(ClipboardData(text: clipBoard));
                   scaffoldMessengerKey.currentState?.showSnackBar(
                       const SnackBar(content: Text('Copied to Clipboard')));
                 },
               ),
               ListTile(
-                  leading: Icon(Icons.layers_clear),
-                  title: Text("Clear All Waypoints",
-                      style: GoogleFonts.quicksand(color: Colors.red)),
-               onTap: () {
-                   clearAllWaypointsWarning(context);
-                    onUpdate?.call();
-                  },
-                  ),
+                leading: Icon(Icons.layers_clear),
+                title: Text("Clear All Waypoints",
+                    style: GoogleFonts.quicksand(color: Colors.red)),
+                onTap: () {
+                  clearAllWaypointsWarning(context);
+                },
+              ),
               ListTile(
-                  leading: Icon(Icons.location_off),
-                  title: Text("Clear All Pins",
-                      style: GoogleFonts.quicksand(color: Colors.red)),
-                  onTap: () {
-                    clearAllPinsWarning(context);
-                    onUpdate?.call();
-                  },
-                  ),
+                leading: Icon(Icons.location_off),
+                title: Text("Clear All Pins",
+                    style: GoogleFonts.quicksand(color: Colors.red)),
+                onTap: () {
+                  clearAllPinsWarning(context);
+                },
+              ),
             ],
           )),
         ])));
@@ -1975,7 +1949,7 @@ class OdysseyMainState extends State<OdysseyMain> {
     }
   }
 
- void reenumerateState() async {
+  void reenumerateState() async {
     cleanBuffers();
     pinCounter = 0;
     pins.clear();
@@ -2360,8 +2334,6 @@ class OdysseyMainState extends State<OdysseyMain> {
         });
   }
 
-
-
   void deleteLastMarker() {
     Marker lastmarker = statemarkers.firstWhere(
         (marker) => marker.markerId.value == (statemarkers.length).toString());
@@ -2384,9 +2356,6 @@ class OdysseyMainState extends State<OdysseyMain> {
       }
     });
   }
-
-
-
 
   void colorPicker(BuildContext context) {
     showDialog(
@@ -3071,9 +3040,10 @@ class OdysseyMainState extends State<OdysseyMain> {
                   style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
                 ),
                 onTap: () {
-                                        Navigator.of(context, rootNavigator: true)
-                          .pushNamed("/settings", arguments: {'onUpdate': reenumerateState});
-                          Navigator.of(context).reassemble();
+                  Navigator.of(context, rootNavigator: true).pushNamed(
+                      "/settings",
+                      arguments: {'onUpdate': reenumerateState});
+                  Navigator.of(context).reassemble();
                 },
               ),
             ],
