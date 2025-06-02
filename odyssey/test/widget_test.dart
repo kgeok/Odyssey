@@ -21,8 +21,8 @@ void main() {
     captionBuffer = "";
     note = "";
     noteBuffer = "";
-    locationBuffer = null;
-    addressBuffer = null;
+    locationBuffer = "";
+    addressBuffer = "";
     catselection = null;
     svgString = "";
     onboarding = 0;
@@ -34,7 +34,6 @@ void main() {
     statepolylines.clear();
     date = DateTime.now().toString().substring(0, 10);
     filter = "";
-
   });
 
   group('PinData Class', () {
@@ -64,8 +63,6 @@ void main() {
       expect(pin.pinwaypoint, isNull);
       expect(pin.pinphoto, isNull);
     });
-
-
   });
 
   group('NearByData Class', () {
@@ -75,7 +72,7 @@ void main() {
         name: 'Test Place',
         rating: 4.5,
         coor: LatLng(10, 20),
-        location: 'Test Address',
+        distance: [5, 5],
         category: 'Restaurant',
         note: 'Good food',
         state: true,
@@ -85,7 +82,6 @@ void main() {
       expect(nearby.name, 'Test Place');
       expect(nearby.rating, 4.5);
       expect(nearby.coor, LatLng(10, 20));
-      expect(nearby.location, 'Test Address');
       expect(nearby.category, 'Restaurant');
       expect(nearby.note, 'Good food');
       expect(nearby.state, true);
@@ -96,14 +92,18 @@ void main() {
     test('shapeHandler returns correct SVG for "circle"', () {
       colorBuffer = "FF0000"; // Ensure colorBuffer is set for testing
       final svg = shapeHandler("circle");
-      expect(svg, contains('<path d="M8 35.6558C8 19.0873 21.4315 5.65582 38 5.65582C54.5685 5.65582 68 19.0873 68 35.6558C68 52.2244 54.5685 65.6558 38 65.6558C21.4315 65.6558 8 52.2244 8 35.6558Z" fill="#FF0000"'));
+      expect(
+          svg,
+          contains(
+              '<path d="M8 35.6558C8 19.0873 21.4315 5.65582 38 5.65582C54.5685 5.65582 68 19.0873 68 35.6558C68 52.2244 54.5685 65.6558 38 65.6558C21.4315 65.6558 8 52.2244 8 35.6558Z" fill="#FF0000"'));
       expect(shape, "circle"); // Check if global `shape` is updated
     });
 
     test('shapeHandler returns correct SVG for "square"', () {
       colorBuffer = "0000FF";
       final svg = shapeHandler("square");
-      expect(svg, contains('<path d="M8 6L68 6L68 66L8 66L8 6Z" fill="#0000FF"'));
+      expect(
+          svg, contains('<path d="M8 6L68 6L68 66L8 66L8 6Z" fill="#0000FF"'));
       expect(shape, "square");
     });
 
@@ -155,9 +155,7 @@ void main() {
   });
 
   group('Geocoding and Autofill (requires mocking)', () {
-
     test('autofill returns correct caption (mocked)', () async {
-
       // Ensure 'pins' list has an item at index 0 for the autofill to reference
       pins.add(PinData(
         pinid: 1,
@@ -169,10 +167,6 @@ void main() {
         pinlocation: 'Original Location',
         pinshape: 'circle',
       ));
-
     });
-
-
   });
-
 }

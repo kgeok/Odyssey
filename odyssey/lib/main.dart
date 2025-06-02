@@ -84,9 +84,11 @@ String captionBuffer =
     ""; //Temp Buffer for the Caption before it goes into PinData
 String note = "";
 String noteBuffer = ""; //Temp Buffer for the Note before it goes into PinData
-var locationBuffer; //Temp Buffer for the results for reverseGeocoder before it goes into PinData
-var addressBuffer; //Temp Buffer for Pin From Address before it goes into geocoder
-var currentTheme; //Light or Dark theme
+String locationBuffer =
+    ""; //Temp Buffer for the results for reverseGeocoder before it goes into PinData
+String addressBuffer =
+    ""; //Temp Buffer for Pin From Address before it goes into geocoder
+//var currentTheme; //Light or Dark theme
 int? catselection; //Catagory Selection for NearBy
 String svgString =
     ""; //We're just leaving this blank to init it, shapeHandler will return the real value
@@ -109,25 +111,25 @@ final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
 class PinData {
-  var pinid;
-  var pinwaypoint;
-  late String pincaption = "";
-  late var pindate;
+  int pinid;
+  int? pinwaypoint;
+  late String? pincaption = "";
+  late String? pindate;
   late Color pincolor;
   late LatLng pincoor;
-  late var pinlocation;
-  late String pinnote = "";
-  late var pinshape;
-  late var pinphoto;
+  late String pinlocation;
+  late String? pinnote = "";
+  late String pinshape;
+  late Uint8List? pinphoto;
 
   PinData(
-      {this.pinid,
+      {required this.pinid,
       this.pinwaypoint,
       required this.pincaption,
-      this.pindate,
+      required this.pindate,
       required this.pinnote,
       this.pinphoto,
-      this.pinshape,
+      required this.pinshape,
       required this.pincolor,
       required this.pincoor,
       required this.pinlocation});
@@ -142,7 +144,7 @@ class PinData {
     String? pinlocation,
     String? pinnote,
     String? pinshape,
-    var pinphoto,
+    Uint8List? pinphoto,
   }) {
     return PinData(
       pinid: pinid ?? this.pinid,
@@ -160,27 +162,31 @@ class PinData {
 }
 
 class NearByData {
-  var id;
-  late var name;
-  late var rating;
+  int id;
+  late String name;
+  late num rating;
   late LatLng coor;
-  late var location;
-  late var category;
-  late var note;
+  late List<double> distance;
+  late String category;
+  late String? note;
+  late String? photoRef;
+  late String? price;
   late bool state;
 
   NearByData(
       {required this.name,
       required this.coor,
-      required this.location,
+      required this.distance,
       this.note,
-      this.category,
-      this.id,
-      this.rating,
+      this.photoRef,
+      required this.category,
+      required this.id,
+      required this.rating,
+      this.price,
       required this.state});
 }
 
-String shapeHandler(shape) {
+String shapeHandler(String shape) {
   pinshape = shape;
   switch (shape) {
     case "circle":
@@ -302,6 +308,44 @@ void colorToHex(Color color) {
   colorBuffer = color.toHexString().substring(2).toLowerCase();
 }
 
+List<double> latLngDifferenceToKmMiles({LatLng? inputOne, LatLng? inputTwo}) {
+  if (inputOne != null && inputTwo != null) {
+    print(inputOne);
+    print(inputTwo);
+
+    const int R =
+        6371; //Radius of the Earth, I guess I'll Update This Later If We Take Over Mars Or Something
+    double dLat = (inputOne.latitude - inputTwo.latitude) * (pi / 180);
+    double dLng = (inputOne.longitude - inputTwo.longitude) * (pi / 180);
+
+    double a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(inputOne.latitude * pi / 180) *
+            cos(inputTwo.latitude * pi / 180) *
+            sin(dLng / 2) *
+            sin(dLng / 2);
+
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    double d = R * c;
+
+    //Kilometers, Miles
+    return [
+      double.parse(d.toStringAsFixed(2)),
+      double.parse((d / 0.6213711922).toStringAsFixed(2))
+    ];
+  } else {
+    return [0, 0];
+  }
+}
+
+Future<Uint8List> googlePlacePhotoReftoBytes(String photoRef) async {
+  return (await NetworkAssetBundle(Uri.parse(
+              "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=$photoRef&key=$apikey"))
+          .load(
+              "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=$photoRef&key=$apikey"))
+      .buffer
+      .asUint8List();
+}
+
 SimpleDialogOption shapeDialogOption(
     BuildContext context, String text, String selectedShape) {
   return SimpleDialogOption(
@@ -342,15 +386,17 @@ void shapeDialog(BuildContext context) {
   );
 }
 
-void deletePolyline(id) {
-  statepolylines.removeWhere((element) => statepolylines == id);
+void deletePolyline(int id) {
+  statepolylines.removeWhere(
+      (element) => (element.polylineId) == PolylineId(id.toString()));
 }
 
-void checkConnection(context) async {
+Future<bool> checkConnection(BuildContext context) async {
   try {
     final mapsconnection = await InternetAddress.lookup('maps.google.com');
     if (mapsconnection.isNotEmpty && mapsconnection[0].rawAddress.isNotEmpty) {
       print('Connected to Google Maps');
+      return true;
     }
   } on SocketException catch (_) {
     print('Not Connected to Google Maps');
@@ -367,7 +413,11 @@ void checkConnection(context) async {
                   "Some functionality may not be available at this time.",
                   "error");
             })));
+    return false;
+  } catch (e) {
+    return false;
   }
+  return false;
 }
 
 void cleanBuffers() {
@@ -576,10 +626,12 @@ class SettingsPageState extends State<SettingsPage> {
                 ListTile(
                   leading: Icon(Icons.info),
                   title: Text(sku,
-                      style: GoogleFonts.quicksand(color: Colors.black)),
+                      style: GoogleFonts.quicksand(
+                          color: Colors.black, fontWeight: FontWeight.w500)),
                   subtitle: Text("Version $version, ($release)",
                       style: GoogleFonts.quicksand(
-                          color: Color.fromRGBO(81, 81, 81, 1))),
+                          color: Color.fromRGBO(81, 81, 81, 1),
+                          fontWeight: FontWeight.w500)),
                 ),
               ],
             ),
@@ -592,11 +644,13 @@ class SettingsPageState extends State<SettingsPage> {
                 children: [
                   ListTile(
                     leading: Icon(Icons.person),
-                    title: Text("With 💖 by Kevin George",
-                        style: GoogleFonts.quicksand(color: Colors.black)),
+                    title: Text("With 💝 by Kevin George",
+                        style: GoogleFonts.quicksand(
+                            color: Colors.black, fontWeight: FontWeight.w500)),
                     subtitle: Text("http://kgeok.github.io/",
                         style: GoogleFonts.quicksand(
-                            color: Color.fromRGBO(81, 81, 81, 1))),
+                            color: Color.fromRGBO(81, 81, 81, 1),
+                            fontWeight: FontWeight.w500)),
                     onTap: () => redirectURL("https://kgeok.github.io"),
                   ),
                 ],
@@ -609,7 +663,8 @@ class SettingsPageState extends State<SettingsPage> {
                 ListTile(
                   leading: Icon(Icons.group),
                   title: Text("Acknowledgements",
-                      style: GoogleFonts.quicksand(color: Colors.black)),
+                      style: GoogleFonts.quicksand(
+                          color: Colors.black, fontWeight: FontWeight.w500)),
                   onTap: () => showLicensePage(
                       context: context,
                       useRootNavigator: false,
@@ -620,14 +675,16 @@ class SettingsPageState extends State<SettingsPage> {
                 ListTile(
                   leading: Icon(Icons.lock),
                   title: Text("Privacy Policy",
-                      style: GoogleFonts.quicksand(color: Colors.black)),
+                      style: GoogleFonts.quicksand(
+                          color: Colors.black, fontWeight: FontWeight.w500)),
                   onTap: () => redirectURL(
                       "https://github.com/kgeok/Odyssey/blob/main/PrivacyPolicy.pdf"),
                 ),
                 ListTile(
                   leading: Icon(Icons.flag),
                   title: Text("Quick Start",
-                      style: GoogleFonts.quicksand(color: Colors.black)),
+                      style: GoogleFonts.quicksand(
+                          color: Colors.black, fontWeight: FontWeight.w500)),
                   onTap: () => helpDialog(context),
                 ),
               ])),
@@ -639,7 +696,8 @@ class SettingsPageState extends State<SettingsPage> {
                 ListTile(
                   leading: Icon(Icons.view_in_ar),
                   title: Text("Toggle Map View",
-                      style: GoogleFonts.quicksand(color: Colors.black)),
+                      style: GoogleFonts.quicksand(
+                          color: Colors.black, fontWeight: FontWeight.w500)),
                   onTap: () {
                     Navigator.pop(context);
                     toggleMapView();
@@ -649,7 +707,8 @@ class SettingsPageState extends State<SettingsPage> {
                 ListTile(
                   leading: Icon(Icons.travel_explore),
                   title: Text("Toggle Map Details",
-                      style: GoogleFonts.quicksand(color: Colors.black)),
+                      style: GoogleFonts.quicksand(
+                          color: Colors.black, fontWeight: FontWeight.w500)),
                   onTap: () {
                     Navigator.pop(context);
                     toggleMapModes();
@@ -665,7 +724,8 @@ class SettingsPageState extends State<SettingsPage> {
               ListTile(
                 leading: Icon(Icons.copy),
                 title: Text("Copy Journal Contents",
-                    style: GoogleFonts.quicksand(color: Colors.black)),
+                    style: GoogleFonts.quicksand(
+                        color: Colors.black, fontWeight: FontWeight.w500)),
                 onTap: () {
                   final StringBuffer clipBoard = StringBuffer();
                   for (final pin in pins) {
@@ -687,7 +747,8 @@ class SettingsPageState extends State<SettingsPage> {
               ListTile(
                 leading: Icon(Icons.layers_clear),
                 title: Text("Clear All Waypoints",
-                    style: GoogleFonts.quicksand(color: Colors.red)),
+                    style: GoogleFonts.quicksand(
+                        color: Colors.red, fontWeight: FontWeight.w500)),
                 onTap: () {
                   clearAllWaypointsWarning(context);
                 },
@@ -695,7 +756,8 @@ class SettingsPageState extends State<SettingsPage> {
               ListTile(
                 leading: Icon(Icons.location_off),
                 title: Text("Clear All Pins",
-                    style: GoogleFonts.quicksand(color: Colors.red)),
+                    style: GoogleFonts.quicksand(
+                        color: Colors.red, fontWeight: FontWeight.w500)),
                 onTap: () {
                   clearAllPinsWarning(context);
                 },
@@ -944,8 +1006,9 @@ class OdysseyMainState extends State<OdysseyMain> {
     }
   }
 
-  Widget photoDisplay(var bytes) {
-    if (bytes == null) {
+  Widget photoDisplay(Uint8List? bytes) {
+    //Only Display The Photo If There's Data
+    if (bytes == null || bytes.isEmpty) {
       return SizedBox.shrink();
     } else {
       return Padding(
@@ -1061,18 +1124,19 @@ class OdysseyMainState extends State<OdysseyMain> {
               child: ListBody(
                 children: [
                   photoDisplay(photo),
+                  const SizedBox(height: 10),
                   Text(location,
                       style: GoogleFonts.quicksand(
                           fontWeight: FontWeight.w600, color: contentColor)),
-                  const Text(""),
+                  const SizedBox(height: 10),
                   Text(locationToString(latlng),
                       style: GoogleFonts.quicksand(
                           fontWeight: FontWeight.w600, color: contentColor)),
-                  const Text(""),
+                  const SizedBox(height: 10),
                   Text(date.toString(),
                       style: GoogleFonts.quicksand(
                           fontWeight: FontWeight.w600, color: contentColor)),
-                  const Text(""),
+                  const SizedBox(height: 10),
                   Text(note.toString(),
                       style: GoogleFonts.quicksand(
                           fontWeight: FontWeight.w600, color: contentColor)),
@@ -1086,7 +1150,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                         fontWeight: FontWeight.w600, color: contentColor)),
                 onPressed: () {
                   Navigator.of(context).pop();
-                  showMapOptionsDialog(context, latlng, color);
+                  showMapOptionsDialog(context, latlng);
                 },
               ),
               TextButton(
@@ -1111,19 +1175,52 @@ class OdysseyMainState extends State<OdysseyMain> {
     );
   }
 
-  void showMapOptionsDialog(BuildContext context, LatLng latlng, Color color) {
-    final bool isLight = color.computeLuminance() > 0.5;
-    final Color contentColor = isLight ? Colors.black : Colors.white;
+  void nearbyDialog(BuildContext context, String caption, String location,
+      LatLng latlng, String note, var photo) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+            title: Text(caption, style: dialogHeader),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: [
+                  photoDisplay(photo),
+                  const SizedBox(height: 10),
+                  Text(location, style: dialogBody),
+                  const SizedBox(height: 10),
+                  Text(locationToString(latlng), style: dialogBody),
+                  const SizedBox(height: 10),
+                  Text(note.toString(), style: dialogBody),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text("Full Map", style: dialogBody),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  showMapOptionsDialog(context, latlng);
+                },
+              ),
+              TextButton(
+                child: Text("Dismiss", style: dialogBody),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              )
+            ]);
+      },
+    );
+  }
 
+  void showMapOptionsDialog(BuildContext context, LatLng latlng) {
     if (Platform.isIOS) {
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-              backgroundColor: color,
-              title: Text("Open",
-                  style: GoogleFonts.quicksand(
-                      fontWeight: FontWeight.w700, color: contentColor)),
+              title: Text("Open", style: dialogHeader),
               content: SingleChildScrollView(
                 child: ListBody(
                   children: [
@@ -1134,10 +1231,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                             Uri.parse("https://maps.apple.com/?q=$latlng"),
                             mode: LaunchMode.externalApplication);
                       },
-                      child: Text('Apple Maps (App)',
-                          style: GoogleFonts.quicksand(
-                              fontWeight: FontWeight.w700,
-                              color: contentColor)),
+                      child: Text('Apple Maps (App)', style: dialogBody),
                     ),
                     SimpleDialogOption(
                       onPressed: () {
@@ -1147,10 +1241,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                                 "comgooglemaps://?center=${latlng.latitude},${latlng.longitude}"),
                             mode: LaunchMode.externalApplication);
                       },
-                      child: Text('Google Maps (App)',
-                          style: GoogleFonts.quicksand(
-                              fontWeight: FontWeight.w700,
-                              color: contentColor)),
+                      child: Text('Google Maps (App)', style: dialogBody),
                     ),
                     SimpleDialogOption(
                       onPressed: () {
@@ -1158,19 +1249,14 @@ class OdysseyMainState extends State<OdysseyMain> {
                         redirectURL(
                             "http://maps.google.com/maps?q=${latlng.latitude},${latlng.longitude}");
                       },
-                      child: Text('Google Maps (Web)',
-                          style: GoogleFonts.quicksand(
-                              fontWeight: FontWeight.w700,
-                              color: contentColor)),
+                      child: Text('Google Maps (Web)', style: dialogBody),
                     ),
                   ],
                 ),
               ),
               actions: <Widget>[
                 TextButton(
-                  child: Text('Dismiss',
-                      style: GoogleFonts.quicksand(
-                          fontWeight: FontWeight.w700, color: contentColor)),
+                  child: Text('Cancel', style: dialogBody),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
@@ -1183,10 +1269,7 @@ class OdysseyMainState extends State<OdysseyMain> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-              backgroundColor: color,
-              title: Text("Open",
-                  style: GoogleFonts.quicksand(
-                      fontWeight: FontWeight.w700, color: contentColor)),
+              title: Text("Open", style: dialogBody),
               content: SingleChildScrollView(
                 child: ListBody(
                   children: [
@@ -1196,10 +1279,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                         redirectURL(
                             "geo:${latlng.latitude},${latlng.longitude}");
                       },
-                      child: Text('Google Maps (App)',
-                          style: GoogleFonts.quicksand(
-                              fontWeight: FontWeight.w700,
-                              color: contentColor)),
+                      child: Text('Google Maps (App)', style: dialogBody),
                     ),
                     SimpleDialogOption(
                       onPressed: () {
@@ -1207,19 +1287,14 @@ class OdysseyMainState extends State<OdysseyMain> {
                         redirectURL(
                             "http://maps.google.com/maps?q=${latlng.latitude},${latlng.longitude}");
                       },
-                      child: Text('Google Maps (Web)',
-                          style: GoogleFonts.quicksand(
-                              fontWeight: FontWeight.w700,
-                              color: contentColor)),
+                      child: Text('Google Maps (Web)', style: dialogBody),
                     ),
                   ],
                 ),
               ),
               actions: <Widget>[
                 TextButton(
-                  child: Text('Dismiss',
-                      style: GoogleFonts.quicksand(
-                          fontWeight: FontWeight.w700, color: contentColor)),
+                  child: Text('Cancel', style: dialogBody),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
@@ -1429,8 +1504,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                                   fontWeight: FontWeight.w600,
                                   color: Colors.black)),
                   onTap: () async {
-                    Navigator.pop(context); // Pop share options
-                    Navigator.pop(context); // Pop journal dialog
+                    Navigator.pop(context);
+                    Navigator.pop(context);
                     appendPolyline(latlng, id);
                   },
                 ),
@@ -1445,6 +1520,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                               color: Colors.black)),
                   onTap: () async {
                     Navigator.pop(context);
+                    Navigator.pop(context);
                     photoOnboarding(context, id);
                   },
                 ),
@@ -1453,6 +1529,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                       style: GoogleFonts.quicksand(
                           fontWeight: FontWeight.w600, color: Colors.black)),
                   onTap: () {
+                    Navigator.pop(context);
                     Navigator.pop(context);
                     showEditCaptionNoteDialog(
                         context, caption, note, latlng, id, color);
@@ -1464,6 +1541,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                           fontWeight: FontWeight.w600, color: Colors.black)),
                   onTap: () {
                     Navigator.pop(context);
+                    Navigator.pop(context);
                     showEditColorDialog(context, id, color);
                   },
                 ),
@@ -1472,6 +1550,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                       style: GoogleFonts.quicksand(
                           fontWeight: FontWeight.w600, color: Colors.black)),
                   onTap: () {
+                    Navigator.pop(context);
                     Navigator.pop(context);
                     showEditShapeDialog(context, id, color);
                   },
@@ -1482,10 +1561,10 @@ class OdysseyMainState extends State<OdysseyMain> {
                           fontWeight: FontWeight.w600, color: Colors.red[800])),
                   onTap: () {
                     Navigator.pop(context);
+                    Navigator.pop(context);
                     showDeleteEntryWarning(context, id);
                   },
                 ),
-                // Empty ListTile, consider removing if not needed
                 ListTile(
                   title: Text("",
                       style: GoogleFonts.quicksand(
@@ -1539,7 +1618,6 @@ class OdysseyMainState extends State<OdysseyMain> {
     );
   }
 
-  // Helper for editing caption/note dialog
   void showEditCaptionNoteDialog(BuildContext context, String currentCaption,
       String currentNote, LatLng latlng, int id, Color color) {
     final TextEditingController captionTextController =
@@ -1753,7 +1831,7 @@ class OdysseyMainState extends State<OdysseyMain> {
     populateMapfromState(startup: false);
   }
 
-  Future appendFromLocation() async {
+  Future appendFromCurrentLocation() async {
     bool serviceEnabled;
     prefix.PermissionStatus permissionGranted;
     prefix.Location location = prefix.Location();
@@ -1790,44 +1868,49 @@ class OdysseyMainState extends State<OdysseyMain> {
   }
 
   Future<void> getCurrentLocation() async {
-    bool serviceEnabled;
-    prefix.PermissionStatus permissionGranted;
-    prefix.Location location = prefix.Location();
-    prefix.LocationData currentPosition;
-    serviceEnabled = await location.serviceEnabled();
-    if (!serviceEnabled) {
-      serviceEnabled = location.requestService() as bool;
-
+    if (await checkConnection(context)) {
+      bool serviceEnabled;
+      prefix.PermissionStatus permissionGranted;
+      prefix.Location location = prefix.Location();
+      prefix.LocationData currentPosition;
+      serviceEnabled = await location.serviceEnabled();
       if (!serviceEnabled) {
-        simpleDialog(context, "No Location", "Unable to Determine Location",
-            "Check your Location or Privacy Settings", "error");
-        return;
-      }
+        serviceEnabled = location.requestService() as bool;
 
-      permissionGranted = await location.hasPermission();
-
-      if (permissionGranted == prefix.PermissionStatus.denied) {
-        permissionGranted = await location.requestPermission();
-        if (permissionGranted != prefix.PermissionStatus.granted) {
+        if (!serviceEnabled) {
           simpleDialog(context, "No Location", "Unable to Determine Location",
               "Check your Location or Privacy Settings", "error");
           return;
         }
-        if (permissionGranted == prefix.PermissionStatus.deniedForever) {
-          simpleDialog(context, "No Location", "Unable to Determine Location",
-              "Check your Location or Privacy Settings", "error");
-          return;
+
+        permissionGranted = await location.hasPermission();
+
+        if (permissionGranted == prefix.PermissionStatus.denied) {
+          permissionGranted = await location.requestPermission();
+          if (permissionGranted != prefix.PermissionStatus.granted) {
+            simpleDialog(context, "No Location", "Unable to Determine Location",
+                "Check your Location or Privacy Settings", "error");
+            return;
+          }
+          if (permissionGranted == prefix.PermissionStatus.deniedForever) {
+            simpleDialog(context, "No Location", "Unable to Determine Location",
+                "Check your Location or Privacy Settings", "error");
+            return;
+          }
         }
       }
+
+      scaffoldMessengerKey.currentState
+          ?.showSnackBar(const SnackBar(content: Text('Getting Location...')));
+
+      currentPosition = await location.getLocation();
+
+      currentLocation = LatLng(currentPosition.latitude!.toDouble(),
+          currentPosition.longitude!.toDouble());
+    } else {
+      simpleDialog(context, "No Location", "Unable to Determine Location",
+          "Check your Connection", "error");
     }
-
-    scaffoldMessengerKey.currentState
-        ?.showSnackBar(const SnackBar(content: Text('Getting Location...')));
-
-    currentPosition = await location.getLocation();
-
-    currentLocation = LatLng(currentPosition.latitude!.toDouble(),
-        currentPosition.longitude!.toDouble());
   }
 
   void cameraToLocation() async {
@@ -1864,7 +1947,7 @@ class OdysseyMainState extends State<OdysseyMain> {
     );
   }
 
-  void scanQRcode(context) async {
+  void scanQRcode(BuildContext context) async {
     final bool isLight = pincolor.computeLuminance() > 0.5;
     final Color contentColor = isLight ? Colors.black : Colors.white;
     double cardwidth() {
@@ -2301,8 +2384,6 @@ class OdysseyMainState extends State<OdysseyMain> {
                   setState(() {
                     if (addressBuffer.isEmpty) {
                       addressBuffer = " ";
-                    } else {
-                      addressBuffer ??= " ";
                     }
                     geocoder(addressBuffer);
                     addressBuffer = "";
@@ -2369,8 +2450,6 @@ class OdysseyMainState extends State<OdysseyMain> {
                     setState(() {
                       if (addressBuffer.isEmpty) {
                         addressBuffer = " ";
-                      } else {
-                        addressBuffer ??= " ";
                       }
                       appendMarker(stringToLocation(addressBuffer));
                       addressBuffer = "";
@@ -2560,12 +2639,12 @@ class OdysseyMainState extends State<OdysseyMain> {
                                 catselection = selected ? index : null;
                                 nearbyresults.clear();
                               });
-                              print(categories[index]);
+
                               response = await placeskey.searchNearbyWithRadius(
                                   places.Location(
                                       lat: currentLocation.latitude,
                                       lng: currentLocation.longitude),
-                                  10000,
+                                  5000,
                                   type: ((categories[index]).toLowerCase())
                                       .replaceAll(" ", "_"));
                               setState(() {
@@ -2575,27 +2654,39 @@ class OdysseyMainState extends State<OdysseyMain> {
                                       i++) {
                                     nearbyresults.add(NearByData(
                                         name: response.results[i].name,
-                                        location: response
-                                                .results[i].formattedAddress ??
-                                            "N/A",
-                                        rating:
-                                            response.results[i].rating ?? "N/A",
+                                        category: categories[index],
+                                        rating: response.results[i].rating ?? 0,
                                         coor: LatLng(
-                                            response.results[i].geometry
-                                                    ?.location.lat ??
+                                            response.results[i].geometry?.location.lat ??
                                                 0,
-                                            response.results[i].geometry
-                                                    ?.location.lng ??
+                                            response.results[i].geometry?.location.lng ??
                                                 0),
+                                        distance: latLngDifferenceToKmMiles(
+                                            inputOne: LatLng(
+                                                currentLocation.latitude,
+                                                currentLocation.longitude),
+                                            inputTwo: LatLng(
+                                                response.results[i].geometry
+                                                        ?.location.lat ??
+                                                    0,
+                                                response.results[i].geometry
+                                                        ?.location.lng ??
+                                                    0)),
                                         id: i,
+                                        photoRef:
+                                            response.results[i].photos.isNotEmpty
+                                                ? response.results[i].photos.first
+                                                    .toJson()["photo_reference"]
+                                                : "",
                                         state: true));
                                   }
                                 } else {
                                   nearbyresults.add(NearByData(
                                       name: "No Results",
-                                      location: "",
-                                      rating: "0",
+                                      category: "",
+                                      rating: 0,
                                       coor: center,
+                                      distance: [0, 0],
                                       id: 0,
                                       state: false));
                                 }
@@ -2617,19 +2708,38 @@ class OdysseyMainState extends State<OdysseyMain> {
                             title: Text(nearbyresults[index].name,
                                 style: GoogleFonts.quicksand(
                                     fontWeight: FontWeight.w700)),
-                            subtitle: Text(
-                                "Rating: ${nearbyresults[index].rating} out of 5",
-                                style: GoogleFonts.quicksand(
-                                    fontWeight: FontWeight.w700)),
-                            onTap: () {
-                              mapController.animateCamera(
-                                CameraUpdate.newCameraPosition(
-                                  CameraPosition(
-                                    target: nearbyresults[index].coor,
-                                    zoom: 14,
+                            subtitle: nearbyresults[index].state
+                                ? Text(
+                                    "Rating: ${nearbyresults[index].rating}/5, Distance: ${(nearbyresults[index].distance)[0]} km Away, ${(nearbyresults[index].distance)[1]} Miles Away",
+                                    style: GoogleFonts.quicksand(
+                                        fontWeight: FontWeight.w700))
+                                : Text("No Results Found"),
+                            onTap: () async {
+                              if (nearbyresults[index].state) {
+                                mapController.animateCamera(
+                                  CameraUpdate.newCameraPosition(
+                                    CameraPosition(
+                                      target: nearbyresults[index].coor,
+                                      zoom: 14,
+                                    ),
                                   ),
-                                ),
-                              );
+                                );
+                                Uint8List? bytes;
+                                if (nearbyresults[index].photoRef != "") {
+                                  bytes = await googlePlacePhotoReftoBytes(
+                                      nearbyresults[index].photoRef);
+                                }
+                                nearbyDialog(
+                                    context,
+                                    nearbyresults[index].name,
+                                    await reverseGeocoder(
+                                        nearbyresults[index].coor),
+                                    nearbyresults[index].coor,
+                                    "Rating: ${nearbyresults[index].rating}/5",
+                                    bytes);
+                              } else {
+                                null;
+                              }
                             },
                             trailing: nearbyresults[index].state
                                 ? IconButton(
@@ -2637,18 +2747,18 @@ class OdysseyMainState extends State<OdysseyMain> {
                                     onPressed: () {
                                       caption = nearbyresults[index].name;
                                       note =
-                                          "Rating: ${nearbyresults[index].rating} out of 5";
+                                          "Rating: ${nearbyresults[index].rating}/5";
                                       appendMarker(nearbyresults[index].coor);
                                       setState(() =>
                                           nearbyresults[index].state = false);
                                       nearbyresults[index].state = false;
                                       scaffoldMessengerKey.currentState
                                           ?.showSnackBar(const SnackBar(
-                                              content:
-                                                  Text('Added Journal Entry')));
+                                              content: Text(
+                                                  'Added Journal Entry.')));
                                     })
                                 : IconButton(
-                                    icon: const Icon(Icons.check),
+                                    icon: const Icon(Icons.error_outline),
                                     onPressed: () {},
                                   ),
                           );
@@ -2680,9 +2790,9 @@ class OdysseyMainState extends State<OdysseyMain> {
                         await photo.pickImage(source: ImageSource.gallery);
                     if (selectedPhoto != null) {
                       selectedPhotoToData = await selectedPhoto.readAsBytes();
-
                       OdysseyDatabase.instance
                           .updatePinsDB(id, selectedPhotoToData, "photo");
+                      reenumerateState();
                     }
                   } catch (e) {
                     simpleDialog(context, "Unable to Retrieve Photos",
@@ -2702,6 +2812,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                       selectedPhotoToData = await selectedPhoto.readAsBytes();
                       OdysseyDatabase.instance
                           .updatePinsDB(id, selectedPhotoToData, "photo");
+                      reenumerateState();
                     }
                   } catch (e) {
                     simpleDialog(context, "Unable to Retrieve Photos",
@@ -2713,7 +2824,7 @@ class OdysseyMainState extends State<OdysseyMain> {
             ])),
             actions: <Widget>[
               TextButton(
-                child: Text('OK', style: dialogBody),
+                child: Text('Cancel', style: dialogBody),
                 onPressed: () {
                   Navigator.pop(context);
                 },
@@ -2770,7 +2881,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                     style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
                   ),
                   onTap: () {
-                    appendFromLocation();
+                    appendFromCurrentLocation();
                   }),
               PopupMenuItem(
                   value: 5,

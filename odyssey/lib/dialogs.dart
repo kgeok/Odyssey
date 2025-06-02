@@ -5,18 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:odyssey/theme/custom_theme.dart';
 
-var buttonaction1 = "";
-var buttonaction2 = "";
-var dialogColor;
+String buttonaction1 = "";
+String buttonaction2 = "";
+Color? dialogColor;
 
-var dialogHeader =
+TextStyle dialogHeader =
     GoogleFonts.quicksand(fontWeight: FontWeight.w700, color: Colors.white);
 
-var dialogBody =
+TextStyle dialogBody =
     GoogleFonts.quicksand(fontWeight: FontWeight.w600, color: Colors.white);
 
-void simpleDialog(
-    BuildContext context, var header, var body1, var body2, var type) {
+void simpleDialog(BuildContext context, String header, String body1,
+    String body2, String type) {
   switch (type) {
     case "warning":
       buttonaction1 = "Cancel";
@@ -80,8 +80,8 @@ void simpleDialog(
   );
 }
 
-void complexDialog(BuildContext context, var header, var body1, var body2,
-    var body3, var body4, var type) {
+void complexDialog(BuildContext context, String header, String body1,
+    String body2, String body3, String body4, String type) {
   switch (type) {
     case "warning":
       buttonaction1 = "Cancel";

@@ -120,7 +120,15 @@ class OdysseyDatabase {
   }
 
   Future addPinDB(
-      id, caption, date, color, shape, latLng, location, note, photo) async {
+      int id,
+      String caption,
+      String date,
+      Color color,
+      String shape,
+      LatLng latLng,
+      String location,
+      String note,
+      var photo) async {
     final db = await instance.database;
 
     caption = caption.toString();
@@ -136,14 +144,14 @@ class OdysseyDatabase {
         'INSERT INTO Pins (id, caption, color, lat, lng, date, location, shape, note, photo) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           '$id',
-          '$caption',
+          caption,
           colorToString(color),
           '$lat',
           '$lng',
           date,
-          '$location',
-          '$shape',
-          '$note',
+          location,
+          shape,
+          note,
           photo
         ]);
   }
@@ -153,7 +161,7 @@ class OdysseyDatabase {
     db.close();
   }
 
-  Future updatePrefsDB(mapZoom, bearing, mt) async {
+  Future updatePrefsDB(double mapZoom, double bearing, MapType mt) async {
     final db = await instance.database;
     print(
         "Updating values (Zoom, Bearing, Map Details): $mapZoom, $bearing, $mt");
@@ -168,7 +176,7 @@ class OdysseyDatabase {
         [mapZoom, bearing, mt.toString(), '0xffff0000']);
   }
 
-  Future updatePinsDB(id, content, type) async {
+  Future updatePinsDB(int id, content, String type) async {
     //What are we updating, it's new contents and what kind it is
     final db = await instance.database;
 
@@ -362,7 +370,7 @@ class OdysseyDatabase {
     }
   }
 
-  Future deletePinDB(id) async {
+  Future deletePinDB(int id) async {
     final db = await instance.database;
     db.query("Pins");
     db.execute("DELETE FROM Pins WHERE id = $id");
