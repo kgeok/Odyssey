@@ -89,7 +89,7 @@ String locationBuffer =
 String addressBuffer =
     ""; //Temp Buffer for Pin From Address before it goes into geocoder
 //var currentTheme; //Light or Dark theme
-int? catselection; //Catagory Selection for NearBy
+int? catselection; //Category Selection for NearBy
 String svgString =
     ""; //We're just leaving this blank to init it, shapeHandler will return the real value
 int onboarding = 0;
@@ -101,6 +101,7 @@ List<int> journal = [];
 var nearbyresults = [];
 Set<Marker> statemarkers = {};
 Set<Polyline> statepolylines = {};
+Set<Circle> statecircles = {};
 final photo = ImagePicker();
 DateTime currentDate = DateTime.now();
 String date = currentDate.toString().substring(0, 10);
@@ -310,6 +311,7 @@ void colorToHex(Color color) {
 
 List<double> latLngDifferenceToKmMiles({LatLng? inputOne, LatLng? inputTwo}) {
   if (inputOne != null && inputTwo != null) {
+    //Using Harversine Formulas
     print(inputOne);
     print(inputTwo);
 
@@ -330,10 +332,27 @@ List<double> latLngDifferenceToKmMiles({LatLng? inputOne, LatLng? inputTwo}) {
     //Kilometers, Miles
     return [
       double.parse(d.toStringAsFixed(2)),
-      double.parse((d / 0.6213711922).toStringAsFixed(2))
+      double.parse((d * 0.6213711922).toStringAsFixed(2))
     ];
   } else {
     return [0, 0];
+  }
+}
+
+String priceToString(places.PriceLevel? price) {
+  switch (price) {
+    case places.PriceLevel.free:
+      return "Free";
+    case places.PriceLevel.inexpensive:
+      return "Inexpensive";
+    case places.PriceLevel.moderate:
+      return "Moderate";
+    case places.PriceLevel.expensive:
+      return "Expensive";
+    case places.PriceLevel.veryExpensive:
+      return "Very Expensive";
+    default:
+      return "N/A";
   }
 }
 
@@ -389,6 +408,53 @@ void shapeDialog(BuildContext context) {
 void deletePolyline(int id) {
   statepolylines.removeWhere(
       (element) => (element.polylineId) == PolylineId(id.toString()));
+}
+
+void deleteCircle(int id) {
+  statecircles
+      .removeWhere((element) => (element.circleId) == CircleId(id.toString()));
+}
+
+void deleteWaypoint(int pinid) async {
+  int waypointid = waypoints.keys
+      .firstWhere((element) => waypoints[element] == pins[pinid].pincoor);
+
+  if (waypointid != waypoints.lastKey()!.toInt()) {
+    //We Don't Want To Accidentally Double-Delete An Ending Pin
+
+    if (waypoints.values.contains(pins[pinid].pincoor)) {
+      waypoints.removeWhere((key, value) => value == pins[pinid].pincoor);
+    }
+
+    //We Want To Shift All The Waypoint ID's So We Don't Leave a Hole
+    for (int i = waypointid + 1; i <= waypoints.lastKey()!.toInt(); i++) {
+      waypoints[i - 1] = waypoints[i] ?? LatLng(0, 0);
+    }
+
+    waypoints.remove(waypoints.lastKey()!.toInt());
+  } else {
+    if (waypoints.values.contains(pins[pinid].pincoor)) {
+      waypoints.removeWhere((key, value) => value == pins[pinid].pincoor);
+    }
+
+    //We Want To Shift All The Waypoint ID's So We Don't Leave a Hole
+    for (int i = waypointid + 1; i <= waypoints.lastKey()!.toInt(); i++) {
+      waypoints[i - 1] = waypoints[i] ?? LatLng(0, 0);
+    }
+  }
+
+  pins[pinid].pinwaypoint = null;
+
+  //Let's Reassign All Of The Waypoints To Accomodate For This Shift
+  for (int i = pinid + 1; i < pins.length; i++) {
+    if (pins[i].pinwaypoint != null) {
+      print(pins[i].pinwaypoint);
+      pins[i].pinwaypoint = waypoints.keys
+          .firstWhere((element) => waypoints[element] == pins[i].pincoor);
+    }
+  }
+
+  await OdysseyDatabase.instance.initDBfromState();
 }
 
 Future<bool> checkConnection(BuildContext context) async {
@@ -580,6 +646,132 @@ class SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  void clearAllPhotosWarning(BuildContext context) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+            backgroundColor: Colors.orange[800],
+            title: Text("Clear Photos?", style: dialogHeader),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: [
+                  Text("Are you sure you want to clear all photos from pins?",
+                      style: dialogBody),
+                  Text("", style: dialogBody),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('Cancel', style: dialogBody),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: Text('OK', style: dialogBody),
+                onPressed: () {
+                  clearStatePhotos();
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+                },
+              )
+            ]);
+      },
+    );
+  }
+
+  void manageWaypointsDialog(BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+              title: Text(
+                "Manage Wayponts",
+                style: dialogHeader,
+              ),
+              content: SingleChildScrollView(
+                child: ListBody(
+                    children:
+                        List<Widget>.generate(waypoints.length, (int index) {
+                  return ListTile(
+                    onTap: () async {
+                      Navigator.pop(context);
+                      showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                                title: Text(
+                                  "Options",
+                                  style: dialogHeader,
+                                ),
+                                content: SingleChildScrollView(
+                                    child: ListBody(children: [
+                                  SimpleDialogOption(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      Navigator.pop(context);
+
+                                      var waypointToPinId = pins
+                                          .firstWhere((element) =>
+                                              element.pincoor ==
+                                              waypoints[index + 1])
+                                          .pinid;
+                                      deleteWaypoint(waypointToPinId);
+                                      onUpdate?.call();
+                                    },
+                                    child: Text('Delete Waypoint',
+                                        style: GoogleFonts.quicksand(
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.red)),
+                                  ),
+                                ])),
+                                actions: <Widget>[
+                                  TextButton(
+                                    child: Text('Dismiss', style: dialogBody),
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                  )
+                                ]);
+                          });
+                    },
+                    title: Text("Waypoint - Point ${index + 1}",
+                        style: GoogleFonts.quicksand(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        )),
+                    subtitle: Text(
+                        pins
+                            .firstWhere((element) =>
+                                element.pincoor == waypoints[index + 1])
+                            .pinlocation,
+                        style: GoogleFonts.quicksand(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        )),
+                  );
+                })),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('Delete All', style: dialogBody),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    clearAllWaypointsWarning(context);
+                  },
+                ),
+                TextButton(
+                  child: Text('Dismiss', style: dialogBody),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                )
+              ]);
+        });
+  }
+
   void clearStateMarkers() {
     cleanBuffers();
     statemarkers = {};
@@ -601,6 +793,19 @@ class SettingsPageState extends State<SettingsPage> {
     waypointCounter = 0;
     waypoints.clear();
     OdysseyDatabase.instance.clearWaypointsDB();
+    onUpdate?.call();
+  }
+
+  void clearStatePhotos() {
+    cleanBuffers();
+    statemarkers = {};
+    statepolylines = {};
+    journal = [];
+    pinCounter = 0;
+    waypointCounter = 0;
+    pins.clear();
+    waypoints.clear();
+    OdysseyDatabase.instance.clearPhotosDB();
     onUpdate?.call();
   }
 
@@ -695,6 +900,10 @@ class SettingsPageState extends State<SettingsPage> {
                   children: [
                 ListTile(
                   leading: Icon(Icons.view_in_ar),
+                  subtitle: Text(mapTypeToString(mapType),
+                      style: GoogleFonts.quicksand(
+                          color: Color.fromRGBO(81, 81, 81, 1),
+                          fontWeight: FontWeight.w500)),
                   title: Text("Toggle Map View",
                       style: GoogleFonts.quicksand(
                           color: Colors.black, fontWeight: FontWeight.w500)),
@@ -745,16 +954,44 @@ class SettingsPageState extends State<SettingsPage> {
                 },
               ),
               ListTile(
-                leading: Icon(Icons.layers_clear),
-                title: Text("Clear All Waypoints",
+                leading: Icon(Icons.draw_rounded),
+                title: Text("Manage Waypoints",
+                    style: GoogleFonts.quicksand(
+                        color: Colors.black, fontWeight: FontWeight.w500)),
+                onTap: () {
+                  if (waypoints.isNotEmpty) {
+                    manageWaypointsDialog(context);
+                  } else {
+                    simpleDialog(
+                        context,
+                        "No Waypoints",
+                        "Add a Waypoint first to manage Waypoints.",
+                        "You can add a Waypoint by opening a Journal Entry and going to \"Options\"",
+                        "info");
+                  }
+                  //clearAllWaypointsWarning(context);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.no_photography),
+                title: Text("Clear All Pin Photos",
                     style: GoogleFonts.quicksand(
                         color: Colors.red, fontWeight: FontWeight.w500)),
                 onTap: () {
-                  clearAllWaypointsWarning(context);
+                  clearAllPhotosWarning(context);
                 },
               ),
               ListTile(
                 leading: Icon(Icons.location_off),
+                subtitle: pins.length == 1
+                    ? Text("Clear ${pins.length} Pin",
+                        style: GoogleFonts.quicksand(
+                            color: Color.fromRGBO(81, 81, 81, 1),
+                            fontWeight: FontWeight.w500))
+                    : Text("Clear ${pins.length} Pins",
+                        style: GoogleFonts.quicksand(
+                            color: Color.fromRGBO(81, 81, 81, 1),
+                            fontWeight: FontWeight.w500)),
                 title: Text("Clear All Pins",
                     style: GoogleFonts.quicksand(
                         color: Colors.red, fontWeight: FontWeight.w500)),
@@ -764,6 +1001,7 @@ class SettingsPageState extends State<SettingsPage> {
               ),
             ],
           )),
+          SizedBox(height: 50)
         ])));
   }
 }
@@ -869,7 +1107,7 @@ class OdysseyMainState extends State<OdysseyMain> {
         pinlocation: locationBuffer));
 
     OdysseyDatabase.instance.addPinDB(pinCounter, caption, date, pincolor,
-        shape, latLng, locationBuffer, note, null);
+        shape, latLng, locationBuffer, note, null, null);
 
     setState(() {
       journal.add(pinCounter - 1);
@@ -1043,14 +1281,17 @@ class OdysseyMainState extends State<OdysseyMain> {
             splashColor: color,
             highlightColor: color,
             onTap: () {
-              journalDialog(context, caption, subtitle, latlng, color, date,
-                  note, shape, photo, id);
-              mapController
-                  .animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
-                target: target,
-                bearing: bearing,
-                zoom: mapZoom,
-              )));
+              // No OnTap For Welcome Entry
+              if (id != -1) {
+                journalDialog(context, caption, subtitle, latlng, color, date,
+                    note, shape, photo, id);
+                mapController.animateCamera(
+                    CameraUpdate.newCameraPosition(CameraPosition(
+                  target: target,
+                  bearing: bearing,
+                  zoom: mapZoom,
+                )));
+              }
             },
             child: AnimatedOpacity(
                 duration: const Duration(milliseconds: 500),
@@ -1176,7 +1417,7 @@ class OdysseyMainState extends State<OdysseyMain> {
   }
 
   void nearbyDialog(BuildContext context, String caption, String location,
-      LatLng latlng, String note, var photo) {
+      LatLng latlng, String rating, String price, var photo) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -1191,7 +1432,9 @@ class OdysseyMainState extends State<OdysseyMain> {
                   const SizedBox(height: 10),
                   Text(locationToString(latlng), style: dialogBody),
                   const SizedBox(height: 10),
-                  Text(note.toString(), style: dialogBody),
+                  Text("Rating: ${rating.toString()}/5", style: dialogBody),
+                  const SizedBox(height: 10),
+                  Text("Pricing: $price", style: dialogBody),
                 ],
               ),
             ),
@@ -1605,10 +1848,10 @@ class OdysseyMainState extends State<OdysseyMain> {
               ),
               TextButton(
                 child: Text('OK', style: dialogBody),
-                onPressed: () {
-                  Navigator.pop(context); // Pop warning dialog
+                onPressed: () async {
+                  Navigator.pop(context);
                   pins.removeAt(id - 1);
-                  OdysseyDatabase.instance.initDBfromState();
+                  await OdysseyDatabase.instance.initDBfromState();
                   //OdysseyDatabase.instance.deletePinDB(id);
                   reenumerateState(); // Re-render map/journal
                 },
@@ -1742,11 +1985,6 @@ class OdysseyMainState extends State<OdysseyMain> {
 
           return AlertDialog(
               backgroundColor: dialogBgColor,
-              titlePadding: const EdgeInsets.all(15.0),
-              contentPadding: const EdgeInsets.all(0.0),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(5.0),
-              ),
               title: Text('Select Color', style: dialogHeader),
               content: SingleChildScrollView(
                 child: ColorPicker(
@@ -1754,7 +1992,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                   onColorChanged: (value) {
                     tempPickerColor = value; // Update temporary color
                   },
-                  pickerAreaHeightPercent: 0.8,
+                  pickerAreaHeightPercent: 0.75,
                   labelTypes: const [],
                   displayThumbColor: true,
                   enableAlpha: false,
@@ -1783,37 +2021,57 @@ class OdysseyMainState extends State<OdysseyMain> {
   }
 
   List<Widget> makeJournalEntry(BuildContext context, String filters) {
-    switch (filters) {
-      case "Today":
-        setState(() {
-          pins.removeWhere((item) => (item.pindate) != date);
-          journal.removeRange(pins.length, journal.length);
-        });
-        return List<Widget>.generate(journal.length, (int index) {
-          return journalEntry(
-              pins[index].pincaption,
-              pins[index].pincolor,
-              pins[index].pinlocation,
-              pins[index].pincoor,
-              pins[index].pindate,
-              pins[index].pinnote,
-              pins[index].pinshape,
-              pins[index].pinphoto,
-              (index + 1));
-        });
-      default:
-        return List<Widget>.generate(journal.length, (int index) {
-          return journalEntry(
-              pins[index].pincaption,
-              pins[index].pincolor,
-              pins[index].pinlocation,
-              pins[index].pincoor,
-              pins[index].pindate,
-              pins[index].pinnote,
-              pins[index].pinshape,
-              pins[index].pinphoto,
-              (index + 1));
-        });
+    if (pins.isNotEmpty) {
+      switch (filters) {
+        case "Today":
+          setState(() {
+            pins.removeWhere((item) => (item.pindate) != date);
+            journal.removeRange(pins.length, journal.length);
+          });
+          return List<Widget>.generate(journal.length, (int index) {
+            return journalEntry(
+                pins[index].pincaption,
+                pins[index].pincolor,
+                pins[index].pinlocation,
+                pins[index].pincoor,
+                pins[index].pindate,
+                pins[index].pinnote,
+                pins[index].pinshape,
+                pins[index].pinphoto,
+                (index + 1));
+          });
+        default:
+          return List<Widget>.generate(journal.length, (int index) {
+            return journalEntry(
+                pins[index].pincaption,
+                pins[index].pincolor,
+                pins[index].pinlocation,
+                pins[index].pincoor,
+                pins[index].pindate,
+                pins[index].pinnote,
+                pins[index].pinshape,
+                pins[index].pinphoto,
+                (index + 1));
+          });
+      }
+    } else {
+      final bool isLightMode =
+          MediaQuery.of(context).platformBrightness == Brightness.light;
+      final Color dialogBgColor = isLightMode
+          ? lightMode.withValues(alpha: 1)
+          : darkMode.withValues(alpha: 1);
+      return List<Widget>.generate(1, (int index) {
+        return journalEntry(
+            "Get Started",
+            dialogBgColor,
+            "Add A Pin To Use Journal",
+            LatLng(defaultCenterLat, defaultCenterLng),
+            "",
+            "",
+            defaultPinShape,
+            null,
+            -1);
+      });
     }
   }
 
@@ -1829,6 +2087,7 @@ class OdysseyMainState extends State<OdysseyMain> {
     });
     //await OdysseyDatabase.instance.initStatefromDB();
     populateMapfromState(startup: false);
+    cleanBuffers();
   }
 
   Future appendFromCurrentLocation() async {
@@ -1842,7 +2101,7 @@ class OdysseyMainState extends State<OdysseyMain> {
 
       if (!serviceEnabled) {
         simpleDialog(context, "No Location", "Unable to Determine Location",
-            "Check your Location or Privacy Settings", "error");
+            "Check your Location or Privacy Settings.", "error");
         return;
       }
 
@@ -1852,12 +2111,12 @@ class OdysseyMainState extends State<OdysseyMain> {
         permissionGranted = await location.requestPermission();
         if (permissionGranted != prefix.PermissionStatus.granted) {
           simpleDialog(context, "No Location", "Unable to Determine Location",
-              "Check your Location or Privacy Settings", "error");
+              "Check your Location or Privacy Settings.", "error");
           return;
         }
         if (permissionGranted == prefix.PermissionStatus.deniedForever) {
           simpleDialog(context, "No Location", "Unable to Determine Location",
-              "Check your Location or Privacy Settings", "error");
+              "Check your Location or Privacy Settings.", "error");
           return;
         }
       }
@@ -1879,7 +2138,7 @@ class OdysseyMainState extends State<OdysseyMain> {
 
         if (!serviceEnabled) {
           simpleDialog(context, "No Location", "Unable to Determine Location",
-              "Check your Location or Privacy Settings", "error");
+              "Check your Location or Privacy Settings.", "error");
           return;
         }
 
@@ -1889,12 +2148,12 @@ class OdysseyMainState extends State<OdysseyMain> {
           permissionGranted = await location.requestPermission();
           if (permissionGranted != prefix.PermissionStatus.granted) {
             simpleDialog(context, "No Location", "Unable to Determine Location",
-                "Check your Location or Privacy Settings", "error");
+                "Check your Location or Privacy Settings.", "error");
             return;
           }
           if (permissionGranted == prefix.PermissionStatus.deniedForever) {
             simpleDialog(context, "No Location", "Unable to Determine Location",
-                "Check your Location or Privacy Settings", "error");
+                "Check your Location or Privacy Settings.", "error");
             return;
           }
         }
@@ -1909,12 +2168,47 @@ class OdysseyMainState extends State<OdysseyMain> {
           currentPosition.longitude!.toDouble());
     } else {
       simpleDialog(context, "No Location", "Unable to Determine Location",
-          "Check your Connection", "error");
+          "Check your Connection.", "error");
     }
   }
 
   void cameraToLocation() async {
+    //We Want To Make Sure That You Can Actually See The Circle...
+    Color strokeColor = Color(0x88000000);
+    Color fillColor = Color(0x22000000);
+    switch (mapType) {
+      case MapType.normal:
+        strokeColor;
+        fillColor;
+        break;
+      case MapType.hybrid:
+        strokeColor = Color(0xDDFFFFFF);
+        fillColor = Color(0x66FFFFFF);
+        break;
+      case MapType.terrain:
+        strokeColor;
+        fillColor;
+        break;
+      case MapType.satellite:
+        strokeColor = Color(0xDDFFFFFF);
+        fillColor = Color(0x66FFFFFF);
+        break;
+      default:
+        strokeColor;
+        fillColor;
+        break;
+    }
+
     await getCurrentLocation();
+    setState(() {
+      statecircles.add(Circle(
+          circleId: CircleId("1"),
+          center: currentLocation,
+          radius: 2000,
+          strokeWidth: 4,
+          strokeColor: strokeColor,
+          fillColor: fillColor));
+    });
     mapController.animateCamera(
       CameraUpdate.newCameraPosition(
         CameraPosition(
@@ -1924,6 +2218,10 @@ class OdysseyMainState extends State<OdysseyMain> {
         ),
       ),
     );
+    await Future.delayed(Duration(seconds: 3));
+    setState(() {
+      deleteCircle(1);
+    });
   }
 
   Widget generateQRcode(final String caption, final String note,
@@ -2204,11 +2502,6 @@ class OdysseyMainState extends State<OdysseyMain> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-              titlePadding: const EdgeInsets.all(15.0),
-              contentPadding: const EdgeInsets.all(0.0),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(5.0),
-              ),
               title: Text('Select Color', style: dialogHeader),
               content: SingleChildScrollView(
                 child: ColorPicker(
@@ -2218,7 +2511,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                       pickerColor = value;
                     });
                   },
-                  pickerAreaHeightPercent: 0.8,
+                  pickerAreaHeightPercent: 0.75,
                   labelTypes: const [],
                   displayThumbColor: true,
                   enableAlpha: false,
@@ -2495,6 +2788,7 @@ class OdysseyMainState extends State<OdysseyMain> {
 
   Future presentNearBy() async {
     await getCurrentLocation();
+    //cameraToLocation();
     final placeskey = places.GoogleMapsPlaces(apiKey: apikey);
     places.PlacesSearchResponse response;
 
@@ -2666,13 +2960,13 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                 currentLocation.latitude,
                                                 currentLocation.longitude),
                                             inputTwo: LatLng(
-                                                response.results[i].geometry
-                                                        ?.location.lat ??
+                                                response.results[i].geometry?.location.lat ??
                                                     0,
-                                                response.results[i].geometry
-                                                        ?.location.lng ??
+                                                response.results[i].geometry?.location.lng ??
                                                     0)),
                                         id: i,
+                                        price: priceToString(
+                                            response.results[i].priceLevel),
                                         photoRef:
                                             response.results[i].photos.isNotEmpty
                                                 ? response.results[i].photos.first
@@ -2680,15 +2974,6 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                 : "",
                                         state: true));
                                   }
-                                } else {
-                                  nearbyresults.add(NearByData(
-                                      name: "No Results",
-                                      category: "",
-                                      rating: 0,
-                                      coor: center,
-                                      distance: [0, 0],
-                                      id: 0,
-                                      state: false));
                                 }
                               });
                             })
@@ -2699,70 +2984,95 @@ class OdysseyMainState extends State<OdysseyMain> {
                 const SizedBox(height: 1),
                 Expanded(
                     child: ListView(
-                        scrollDirection: Axis.vertical,
-                        padding: const EdgeInsets.all(2.0),
-                        shrinkWrap: true,
-                        children: List<Widget>.generate(nearbyresults.length,
-                            (int index) {
-                          return ListTile(
-                            title: Text(nearbyresults[index].name,
-                                style: GoogleFonts.quicksand(
-                                    fontWeight: FontWeight.w700)),
-                            subtitle: nearbyresults[index].state
-                                ? Text(
-                                    "Rating: ${nearbyresults[index].rating}/5, Distance: ${(nearbyresults[index].distance)[0]} km Away, ${(nearbyresults[index].distance)[1]} Miles Away",
+                  scrollDirection: Axis.vertical,
+                  padding: const EdgeInsets.all(2.0),
+                  shrinkWrap: true,
+                  children: catselection != null
+                      ? nearbyresults.isNotEmpty
+                          ? List<Widget>.generate(nearbyresults.length,
+                              (int index) {
+                              return ListTile(
+                                title: Text(nearbyresults[index].name,
                                     style: GoogleFonts.quicksand(
-                                        fontWeight: FontWeight.w700))
-                                : Text("No Results Found"),
-                            onTap: () async {
-                              if (nearbyresults[index].state) {
-                                mapController.animateCamera(
-                                  CameraUpdate.newCameraPosition(
-                                    CameraPosition(
-                                      target: nearbyresults[index].coor,
-                                      zoom: 14,
-                                    ),
-                                  ),
-                                );
-                                Uint8List? bytes;
-                                if (nearbyresults[index].photoRef != "") {
-                                  bytes = await googlePlacePhotoReftoBytes(
-                                      nearbyresults[index].photoRef);
-                                }
-                                nearbyDialog(
-                                    context,
-                                    nearbyresults[index].name,
-                                    await reverseGeocoder(
-                                        nearbyresults[index].coor),
-                                    nearbyresults[index].coor,
-                                    "Rating: ${nearbyresults[index].rating}/5",
-                                    bytes);
-                              } else {
-                                null;
-                              }
-                            },
-                            trailing: nearbyresults[index].state
-                                ? IconButton(
-                                    icon: const Icon(Icons.add),
-                                    onPressed: () {
-                                      caption = nearbyresults[index].name;
-                                      note =
-                                          "Rating: ${nearbyresults[index].rating}/5";
-                                      appendMarker(nearbyresults[index].coor);
-                                      setState(() =>
-                                          nearbyresults[index].state = false);
-                                      nearbyresults[index].state = false;
-                                      scaffoldMessengerKey.currentState
-                                          ?.showSnackBar(const SnackBar(
-                                              content: Text(
-                                                  'Added Journal Entry.')));
-                                    })
-                                : IconButton(
-                                    icon: const Icon(Icons.error_outline),
-                                    onPressed: () {},
-                                  ),
-                          );
-                        })))
+                                        fontWeight: FontWeight.w700)),
+                                subtitle: Text(
+                                    "Rating: ${nearbyresults[index].rating.toString()}/5, Distance: ${(nearbyresults[index].distance)[0]} km Away, ${(nearbyresults[index].distance)[1]} Miles Away",
+                                    style: GoogleFonts.quicksand(
+                                        fontWeight: FontWeight.w700)),
+                                onTap: () async {
+                                  if (nearbyresults[index].state) {
+                                    mapController.animateCamera(
+                                      CameraUpdate.newCameraPosition(
+                                        CameraPosition(
+                                          target: nearbyresults[index].coor,
+                                          zoom: 14,
+                                        ),
+                                      ),
+                                    );
+                                    Uint8List? bytes;
+                                    if (nearbyresults[index].photoRef != "") {
+                                      bytes = await googlePlacePhotoReftoBytes(
+                                          nearbyresults[index].photoRef);
+                                    }
+                                    nearbyDialog(
+                                        context,
+                                        nearbyresults[index].name,
+                                        await reverseGeocoder(
+                                            nearbyresults[index].coor),
+                                        nearbyresults[index].coor,
+                                        nearbyresults[index].rating.toString(),
+                                        nearbyresults[index].price,
+                                        bytes);
+                                  } else {
+                                    null;
+                                  }
+                                },
+                                trailing: nearbyresults[index].state
+                                    ? IconButton(
+                                        icon: const Icon(Icons.add),
+                                        onPressed: () {
+                                          caption = nearbyresults[index].name;
+                                          note =
+                                              "Rating: ${nearbyresults[index].rating}/5, Price: ${nearbyresults[index].price}";
+                                          appendMarker(
+                                              nearbyresults[index].coor);
+                                          setState(() => nearbyresults[index]
+                                              .state = false);
+                                          nearbyresults[index].state = false;
+                                          scaffoldMessengerKey.currentState
+                                              ?.showSnackBar(const SnackBar(
+                                                  content: Text(
+                                                      'Added Journal Entry.')));
+                                        })
+                                    : IconButton(
+                                        icon: const Icon(Icons.check),
+                                        onPressed: () {},
+                                      ),
+                              );
+                            })
+                          : List<Widget>.generate(1, (int index) {
+                              return ListTile(
+                                  title: Text("No Results",
+                                      style: GoogleFonts.quicksand(
+                                          fontWeight: FontWeight.w700,
+                                          color: Color(0xFF3B3B3B))),
+                                  subtitle: Text(
+                                      "Try Another Category Or Another Location",
+                                      style: GoogleFonts.quicksand(
+                                          fontWeight: FontWeight.w700)));
+                            })
+                      : List<Widget>.generate(1, (int index) {
+                          return ListTile(
+                              title: Text("Pick A Category",
+                                  style: GoogleFonts.quicksand(
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF3B3B3B))),
+                              subtitle: Text(
+                                  "Using Near By, You Can See Places Of Interest Near You",
+                                  style: GoogleFonts.quicksand(
+                                      fontWeight: FontWeight.w700)));
+                        }),
+                ))
               ],
             ));
           });
@@ -2796,7 +3106,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                     }
                   } catch (e) {
                     simpleDialog(context, "Unable to Retrieve Photos",
-                        "Check your Settings and try again", "", "error");
+                        "Check your Settings and try again.", "", "error");
                   }
                 },
                 child: Text('System Photos', style: dialogBody),
@@ -2816,7 +3126,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                     }
                   } catch (e) {
                     simpleDialog(context, "Unable to Retrieve Photos",
-                        "Check your Settings and try again", "", "error");
+                        "Check your Settings and try again.", "", "error");
                   }
                 },
                 child: Text('System Camera', style: dialogBody),
@@ -3067,6 +3377,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                 target: center,
                 zoom: mapZoom,
               ),
+              circles: statecircles,
               onTap: (LatLng latLng) {
                 appendMarker(latLng);
               },

@@ -137,11 +137,10 @@ packages:
   flutter_colorpicker:
     dependency: "direct main"
     description:
-      path: "."
-      ref: master
-      resolved-ref: "113618a20644abc0c5c74ea86866bd676284c707"
-      url: "https://github.com/mchome/flutter_colorpicker"
-    source: git
+      name: flutter_colorpicker
+      sha256: "969de5f6f9e2a570ac660fb7b501551451ea2a1ab9e2097e89475f60e07816ea"
+      url: "https://pub.dev"
+    source: hosted
     version: "1.1.0"
   flutter_lints:
     dependency: "direct dev"
@@ -189,10 +188,10 @@ packages:
     dependency: transitive
     description:
       name: geocoding_android
-      sha256: fe7df2e35dc49a5176af634ff9c7b0312d9a2adc94320b936a56241f8028bbbc
+      sha256: ba810da90d6633cbb82bbab630e5b4a3b7d23503263c00ae7f1ef0316dcae5b9
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.0"
+    version: "4.0.1"
   geocoding_ios:
     dependency: transitive
     description:
@@ -245,18 +244,18 @@ packages:
     dependency: transitive
     description:
       name: google_maps_flutter_ios
-      sha256: c7433645c4c9b61c587938cb06072f3dad601239e596b090c0f8f206c1f2ade7
+      sha256: "5b4ba52d2002ba86bfa0073bda69a863c8a7ca148703ff8bc1259641282acc1a"
       url: "https://pub.dev"
     source: hosted
-    version: "2.15.2"
+    version: "2.15.3"
   google_maps_flutter_platform_interface:
     dependency: transitive
     description:
       name: google_maps_flutter_platform_interface
-      sha256: "970c8f766c02909c7be282dea923c971f83a88adaf07f8871d0aacebc3b07bb2"
+      sha256: f8293f072ed8b068b092920a72da6693aa8b3d62dc6b5c5f0bc44c969a8a776c
       url: "https://pub.dev"
     source: hosted
-    version: "2.11.1"
+    version: "2.12.1"
   google_maps_flutter_web:
     dependency: "direct main"
     description:
@@ -461,10 +460,10 @@ packages:
     dependency: "direct main"
     description:
       name: mobile_scanner
-      sha256: "72f06a071aa8b14acea3ab43ea7949eefe4a2469731ae210e006ba330a033a8c"
+      sha256: "54005bdea7052d792d35b4fef0f84ec5ddc3a844b250ecd48dc192fb9b4ebc95"
       url: "https://pub.dev"
     source: hosted
-    version: "7.0.0"
+    version: "7.0.1"
   path:
     dependency: "direct main"
     description:

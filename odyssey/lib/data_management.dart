@@ -51,7 +51,7 @@ LatLng stringToLocation(String string) {
   }
 }
 
-void mapTypeHandler(String maptype) {
+void stringToMapType(String maptype) {
 //We're going to use this function to "do a String conversion to MapType"
   switch (maptype) {
     case ("MapType.normal"):
@@ -73,6 +73,21 @@ void mapTypeHandler(String maptype) {
     default:
       mapType = MapType.normal;
       break;
+  }
+}
+
+String mapTypeToString(MapType maptype) {
+  switch (mapType) {
+    case MapType.normal:
+      return "Standard";
+    case MapType.hybrid:
+      return "Hybrid";
+    case MapType.terrain:
+      return "Terrain";
+    case MapType.satellite:
+      return "Satellite";
+    default:
+      return "N/A";
   }
 }
 
@@ -128,7 +143,8 @@ class OdysseyDatabase {
       LatLng latLng,
       String location,
       String note,
-      var photo) async {
+      var photo,
+      int? waypoint) async {
     final db = await instance.database;
 
     caption = caption.toString();
@@ -141,7 +157,7 @@ class OdysseyDatabase {
     location.toString();
 
     db.rawInsert(
-        'INSERT INTO Pins (id, caption, color, lat, lng, date, location, shape, note, photo) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO Pins (id, caption, color, lat, lng, date, location, shape, note, photo, waypoint) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           '$id',
           caption,
@@ -152,7 +168,8 @@ class OdysseyDatabase {
           location,
           shape,
           note,
-          photo
+          photo,
+          waypoint
         ]);
   }
 
@@ -222,6 +239,7 @@ class OdysseyDatabase {
         break;
 
       case "waypoint":
+        //We Need To Rebalance The Test Of The Waypoint IDs
         db.rawUpdate(
             '''UPDATE Pins SET waypoint = ? WHERE id = ?''', [content, id]);
         break;
@@ -238,7 +256,7 @@ class OdysseyDatabase {
       //Load Prefs Data
       var prefsdbResults = await db.query("Prefs");
       mapZoom = double.parse(prefsdbResults[0]['mapzoom'].toString());
-      mapTypeHandler(prefsdbResults[0]['maplayer'].toString());
+      stringToMapType(prefsdbResults[0]['maplayer'].toString());
       bearing = double.parse(prefsdbResults[0]['bearing'].toString());
 
       //Load User Data
@@ -317,16 +335,16 @@ class OdysseyDatabase {
     clearPinsDB(); //We need to clean out the existing DB and reappend it
     for (var i = 0; i < pins.length; i++) {
       addPinDB(
-        i + 1,
-        pins[i].pincaption,
-        pins[i].pindate,
-        pins[i].pincolor,
-        pins[i].pinshape,
-        pins[i].pincoor,
-        pins[i].pinlocation,
-        pins[i].pinnote,
-        pins[i].pinphoto,
-      );
+          i + 1,
+          pins[i].pincaption,
+          pins[i].pindate,
+          pins[i].pincolor,
+          pins[i].pinshape,
+          pins[i].pincoor,
+          pins[i].pinlocation,
+          pins[i].pinnote,
+          pins[i].pinphoto,
+          pins[i].pinwaypoint);
     }
   }
 
@@ -385,5 +403,11 @@ class OdysseyDatabase {
     final db = await instance.database;
     db.execute("ALTER TABLE Pins DROP COLUMN waypoint");
     db.execute("ALTER TABLE Pins ADD COLUMN waypoint INTEGER;");
+  }
+
+  Future clearPhotosDB() async {
+    final db = await instance.database;
+    db.execute("ALTER TABLE Pins DROP COLUMN photo");
+    db.execute("ALTER TABLE Pins ADD COLUMN photo LONGBLOB;");
   }
 }
