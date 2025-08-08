@@ -430,31 +430,23 @@ void deleteWaypoint(int pinid) async {
     for (int i = waypointid + 1; i <= waypoints.lastKey()!.toInt(); i++) {
       waypoints[i - 1] = waypoints[i] ?? LatLng(0, 0);
     }
-
     waypoints.remove(waypoints.lastKey()!.toInt());
+
+    pins[pinid].pinwaypoint = null;
+
+    //Let's Reassign All Of The Waypoints To Accomodate For This Shift
+    for (int i = pinid + 1; i < pins.length; i++) {
+      if (pins[i].pinwaypoint != null) {
+        pins[i].pinwaypoint = waypoints.keys
+            .firstWhere((element) => waypoints[element] == pins[i].pincoor);
+      }
+    }
+    await OdysseyDatabase.instance.initDBfromState();
   } else {
     if (waypoints.values.contains(pins[pinid].pincoor)) {
-      waypoints.removeWhere((key, value) => value == pins[pinid].pincoor);
-    }
-
-    //We Want To Shift All The Waypoint ID's So We Don't Leave a Hole
-    for (int i = waypointid + 1; i <= waypoints.lastKey()!.toInt(); i++) {
-      waypoints[i - 1] = waypoints[i] ?? LatLng(0, 0);
+      OdysseyDatabase.instance.updatePinsDB(pinid + 1, null, "waypoint");
     }
   }
-
-  pins[pinid].pinwaypoint = null;
-
-  //Let's Reassign All Of The Waypoints To Accomodate For This Shift
-  for (int i = pinid + 1; i < pins.length; i++) {
-    if (pins[i].pinwaypoint != null) {
-      print(pins[i].pinwaypoint);
-      pins[i].pinwaypoint = waypoints.keys
-          .firstWhere((element) => waypoints[element] == pins[i].pincoor);
-    }
-  }
-
-  await OdysseyDatabase.instance.initDBfromState();
 }
 
 Future<bool> checkConnection(BuildContext context) async {
@@ -988,7 +980,7 @@ class SettingsPageState extends State<SettingsPage> {
                         style: GoogleFonts.quicksand(
                             color: Color.fromRGBO(81, 81, 81, 1),
                             fontWeight: FontWeight.w500))
-                    : Text("Clear ${pins.length} Pins",
+                    : Text("Clear All ${pins.length} Pins",
                         style: GoogleFonts.quicksand(
                             color: Color.fromRGBO(81, 81, 81, 1),
                             fontWeight: FontWeight.w500)),
@@ -1993,6 +1985,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                     tempPickerColor = value; // Update temporary color
                   },
                   pickerAreaHeightPercent: 0.75,
+                  pickerAreaBorderRadius: BorderRadius.all(Radius.circular(5)),
                   labelTypes: const [],
                   displayThumbColor: true,
                   enableAlpha: false,
@@ -2512,6 +2505,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                     });
                   },
                   pickerAreaHeightPercent: 0.75,
+                  pickerAreaBorderRadius: BorderRadius.all(Radius.circular(5)),
                   labelTypes: const [],
                   displayThumbColor: true,
                   enableAlpha: false,

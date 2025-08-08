@@ -1,0 +1,56 @@
+{
+  "color-space-for-untagged-svg-colors" : "display-p3",
+  "fill-specializations" : [
+    {
+      "value" : {
+        "solid" : "display-p3:0.00392,0.03137,0.27451,1.00000"
+      }
+    },
+    {
+      "appearance" : "dark",
+      "value" : {
+        "solid" : "srgb:0.00000,0.00000,0.00000,1.00000"
+      }
+    }
+  ],
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "image-name" : "Group 1.png",
+          "name" : "Group 1",
+          "position" : {
+            "scale" : 0.715,
+            "translation-in-points" : [
+              -19.1748046875,
+              -12.068359375
+            ]
+          }
+        },
+        {
+          "hidden" : false,
+          "image-name" : "Oval 1.png",
+          "name" : "Oval 1",
+          "position" : {
+            "scale" : 0.525,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "squares" : "shared"
+  }
+}

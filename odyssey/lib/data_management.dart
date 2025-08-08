@@ -225,7 +225,6 @@ class OdysseyDatabase {
       case "color":
         db.rawUpdate('''UPDATE Pins SET color = ? WHERE id = ?''',
             [colorToString(content), id]);
-        print(colorToString(content));
         break;
 
       case "shape":

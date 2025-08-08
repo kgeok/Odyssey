@@ -37,7 +37,10 @@ dependencies:
   google_fonts: ^4.0.4
   google_maps_flutter: ^2.6.0
   google_maps_flutter_web: ^0.5.4+2
-  flutter_colorpicker: 1.1.0
+  flutter_colorpicker:
+    git:
+      url: https://github.com/frankpape/flutter_colorpicker.git
+      ref: 6c81102ebeb7bd446c704edd1d2ee9335b5d3430
   geocoding: ^4.0.0
   flutter_svg: ^2.0.9
   sqflite: ^2.3.0
