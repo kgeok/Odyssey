@@ -1,97 +1,13 @@
 // ignore_for_file: avoid_print, unnecessary_null_comparison
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:path/path.dart';
 import 'package:odyssey/main.dart';
+import 'package:odyssey/data_management.dart';
 import 'package:flutter/material.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 
-/* These are the default value we use for settings
-These will also be the values to fall back on in case DB can't be loaded
-They will also be loaded into DB on init */
-
-//Center of the USA is used for default value
-var defaultCenterLat = 41.850033;
-var defaultCenterLng = -87.6500523;
-var defaultMapType = MapType.normal;
-var defaultPinShape = 'circle';
-double defaultBearing = 0;
-var defaultPinColor = '0xffff0000';
-String defaultShape = 'circle';
-double defaultMapZoom = 4.0;
-var pathBuffer = "";
-
-//We can use these functions to do different types of conversions that we normally wouldn't be able to do
-
-String colorToString(Color color) {
-  return ("0x${(color.toHexString()).toLowerCase()}");
-}
-
-String locationToString(LatLng latLng) {
-  var latLngBuffer = latLng.toString();
-  latLngBuffer = latLngBuffer.replaceAll("LatLng(", "");
-  latLngBuffer = latLngBuffer.replaceAll(")", "");
-
-  return latLngBuffer;
-}
-
-LatLng stringToLocation(String string) {
-  //You must have LatLng() in the string otherwise you have to use locationToString first
-  string = string.replaceAll(RegExp(r'\(|\)'), '');
-  string = string.replaceAll(' ', '');
-  if (RegExp(
-          r'([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))?,([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))?')
-      .hasMatch(string)) {
-    var latLngBuffer = string.split(",");
-    return LatLng(double.parse(latLngBuffer[0].trim()),
-        double.parse(latLngBuffer[1].trim()));
-  } else {
-    //If something isn't working, let's just return a generic LatLng()
-    return const LatLng(640, 640);
-  }
-}
-
-void stringToMapType(String maptype) {
-//We're going to use this function to "do a String conversion to MapType"
-  switch (maptype) {
-    case ("MapType.normal"):
-      mapType = MapType.normal;
-      break;
-
-    case ("MapType.hybrid"):
-      mapType = MapType.hybrid;
-      break;
-
-    case ("MapType.terrain"):
-      mapType = MapType.terrain;
-      break;
-
-    case ("MapType.satellite"):
-      mapType = MapType.satellite;
-      break;
-
-    default:
-      mapType = MapType.normal;
-      break;
-  }
-}
-
-String mapTypeToString(MapType maptype) {
-  switch (mapType) {
-    case MapType.normal:
-      return "Standard";
-    case MapType.hybrid:
-      return "Hybrid";
-    case MapType.terrain:
-      return "Terrain";
-    case MapType.satellite:
-      return "Satellite";
-    default:
-      return "N/A";
-  }
-}
+var factory = databaseFactoryFfiWeb;
 
 class OdysseyDatabase {
   static final OdysseyDatabase instance = OdysseyDatabase._init();
@@ -111,7 +27,7 @@ class OdysseyDatabase {
     pathBuffer =
         path; //We wanna use this variable in the initState so that we don't read a dead DB
 
-    return await openDatabase(path,
+    return await factory.openDatabase(path,
         version: 2, onCreate: createDB, onUpgrade: upgradeDB);
   }
 

@@ -57,7 +57,7 @@ GlobalKey<OdysseyMainState> key = GlobalKey();
 //Variables that we will be using, will try to minimize in the future
 const String sku = "Odyssey";
 const String version = "1.5";
-const String release = "Pre-Release";
+const String release = "Release";
 const String apikey =
     "AIzaSyD8TrymPJaJVDXvXja2O6woa7B_-R-fi9w"; //Google Maps API Key
 late GoogleMapController mapController;
@@ -106,6 +106,8 @@ final photo = ImagePicker();
 DateTime currentDate = DateTime.now();
 String date = currentDate.toString().substring(0, 10);
 String filter = "";
+bool camFlashlight = false; //Flashlight for Scan QR Code
+bool camAutozoom = false;
 
 //Only using for Main State Scaffold, Main State has it's own Global Key
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
@@ -300,7 +302,7 @@ Future bitmapDescriptorFromSvg(BuildContext context, String shape) async {
 
 Future redirectURL(String url) async {
   if (!await launchUrl(Uri.parse(url))) {
-    print("Error launching link");
+    print("Error Launching Link");
   }
 }
 
@@ -312,8 +314,6 @@ void colorToHex(Color color) {
 List<double> latLngDifferenceToKmMiles({LatLng? inputOne, LatLng? inputTwo}) {
   if (inputOne != null && inputTwo != null) {
     //Using Harversine Formulas
-    print(inputOne);
-    print(inputTwo);
 
     const int R =
         6371; //Radius of the Earth, I guess I'll Update This Later If We Take Over Mars Or Something
@@ -460,7 +460,7 @@ Future<bool> checkConnection(BuildContext context) async {
     print('Not Connected to Google Maps');
     scaffoldMessengerKey.currentState?.showSnackBar(SnackBar(
         duration: const Duration(milliseconds: 2000),
-        content: const Text('No Internet Connection'),
+        content: const Text('No Internet Connection.'),
         action: SnackBarAction(
             label: 'More Info',
             onPressed: () {
@@ -571,13 +571,11 @@ class SettingsPageState extends State<SettingsPage> {
       builder: (BuildContext context) {
         return AlertDialog(
             backgroundColor: Colors.orange[800],
-            title: Text("Clear Pins?", style: dialogHeader),
+            title: Text("Clear All Pins?", style: dialogHeader),
             content: SingleChildScrollView(
               child: ListBody(
                 children: [
-                  Text("Are you sure you want to clear all pins?",
-                      style: dialogBody),
-                  Text("(This will also clear the Journal and Waypoints)",
+                  Text("This Will Also Clear The Journal And Waypoints",
                       style: dialogBody),
                 ],
               ),
@@ -608,13 +606,12 @@ class SettingsPageState extends State<SettingsPage> {
       builder: (BuildContext context) {
         return AlertDialog(
             backgroundColor: Colors.orange[800],
-            title: Text("Clear Waypoints?", style: dialogHeader),
+            title: Text("Clear All Waypoints?", style: dialogHeader),
             content: SingleChildScrollView(
               child: ListBody(
                 children: [
-                  Text("Are you sure you want to clear all waypoints?",
+                  Text("Are You Sure You Want To Clear All Waypoints?",
                       style: dialogBody),
-                  Text("", style: dialogBody),
                 ],
               ),
             ),
@@ -644,13 +641,12 @@ class SettingsPageState extends State<SettingsPage> {
       builder: (BuildContext context) {
         return AlertDialog(
             backgroundColor: Colors.orange[800],
-            title: Text("Clear Photos?", style: dialogHeader),
+            title: Text("Clear All Photos?", style: dialogHeader),
             content: SingleChildScrollView(
               child: ListBody(
                 children: [
-                  Text("Are you sure you want to clear all photos from pins?",
+                  Text("Are You Sure You Want To Clear All Photos From Pins?",
                       style: dialogBody),
-                  Text("", style: dialogBody),
                 ],
               ),
             ),
@@ -919,6 +915,42 @@ class SettingsPageState extends State<SettingsPage> {
               ])),
           Card(
               child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                ListTile(
+                  leading: Icon(Icons.flashlight_on),
+                  subtitle: Text(camFlashlight ? "On" : "Off",
+                      style: GoogleFonts.quicksand(
+                          color: Color.fromRGBO(81, 81, 81, 1),
+                          fontWeight: FontWeight.w500)),
+                  title: Text("Toggle \"Scan QR Code\" Flashlight",
+                      style: GoogleFonts.quicksand(
+                          color: Colors.black, fontWeight: FontWeight.w500)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    camFlashlight = !camFlashlight;
+                    onUpdate?.call();
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.zoom_in_map),
+                  subtitle: Text(camAutozoom ? "On" : "Off",
+                      style: GoogleFonts.quicksand(
+                          color: Color.fromRGBO(81, 81, 81, 1),
+                          fontWeight: FontWeight.w500)),
+                  title: Text("Toggle \"Scan QR Code\" Auto Zoom",
+                      style: GoogleFonts.quicksand(
+                          color: Colors.black, fontWeight: FontWeight.w500)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    camAutozoom = !camAutozoom;
+                    onUpdate?.call();
+                  },
+                )
+              ])),
+          Card(
+              child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -957,8 +989,8 @@ class SettingsPageState extends State<SettingsPage> {
                     simpleDialog(
                         context,
                         "No Waypoints",
-                        "Add a Waypoint first to manage Waypoints.",
-                        "You can add a Waypoint by opening a Journal Entry and going to \"Options\"",
+                        "Add A Waypoint First To Manage Waypoints.",
+                        "You Can Add A Waypoint By Opening A Journal Entry And Going To \"Options\"",
                         "info");
                   }
                   //clearAllWaypointsWarning(context);
@@ -1180,7 +1212,7 @@ class OdysseyMainState extends State<OdysseyMain> {
       }
       return "Location N/A";
     } catch (e) {
-      print("Unable to get Location: $e");
+      print("Unable To Get Location: $e");
       return "Location N/A";
     }
   }
@@ -1193,7 +1225,7 @@ class OdysseyMainState extends State<OdysseyMain> {
       } else {
         simpleDialog(
             context,
-            "Could not Find Address",
+            "Address Invalid",
             "The address you entered couldn't be found, check and try again.",
             "",
             "error");
@@ -1201,14 +1233,14 @@ class OdysseyMainState extends State<OdysseyMain> {
     } on NoResultFoundException {
       simpleDialog(
           context,
-          "Could not Find Address",
+          "Address Invalid",
           "The address you entered couldn't be found, check and try again.",
           "",
           "error");
     } catch (e) {
       simpleDialog(
           context,
-          "Could not Find Address",
+          "Address Invalid",
           "The address you entered couldn't be found, check and try again.",
           "",
           "error");
@@ -1226,7 +1258,7 @@ class OdysseyMainState extends State<OdysseyMain> {
           }
           return pins[id - 1].pindate; // Fallback to date if no name
         } catch (e) {
-          print("Unable to get Location for autofill caption: $e");
+          print("Unable To Get Location To Autofill Caption: $e");
           return pins[id - 1].pindate;
         }
       case "note":
@@ -1537,6 +1569,36 @@ class OdysseyMainState extends State<OdysseyMain> {
               ]);
         },
       );
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+              title: Text("Open", style: dialogBody),
+              content: SingleChildScrollView(
+                child: ListBody(
+                  children: [
+                    SimpleDialogOption(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        redirectURL(
+                            "http://maps.google.com/maps?q=${latlng.latitude},${latlng.longitude}");
+                      },
+                      child: Text('Google Maps (Web)', style: dialogBody),
+                    ),
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('Cancel', style: dialogBody),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                )
+              ]);
+        },
+      );
     }
   }
 
@@ -1604,12 +1666,12 @@ class OdysseyMainState extends State<OdysseyMain> {
                               child: ListBody(
                                 children: [
                                   Text(
-                                    "Open Odyssey on another device and scan QR Code",
+                                    "Open Odyssey On Another Device And Scan QR Code",
                                     style: GoogleFonts.quicksand(
                                         fontWeight: FontWeight.w600,
                                         color: contentColor),
                                   ),
-                                  const SizedBox(height: 10),
+                                  const SizedBox(height: 15),
                                   generateQRcode(
                                       caption, note, latlng, color, shape)
                                 ],
@@ -1824,9 +1886,10 @@ class OdysseyMainState extends State<OdysseyMain> {
             content: SingleChildScrollView(
               child: ListBody(
                 children: [
-                  Text("Are you sure you want to delete this entry?",
+                  Text("Are You Sure You Want To Delete This Entry?",
                       style: dialogBody),
-                  Text("(This will also delete corresponding Pin)",
+                  Text(""),
+                  Text("This Will Also Delete The Corresponding Pin",
                       style: dialogBody),
                 ],
               ),
@@ -1933,6 +1996,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                   await OdysseyDatabase.instance
                       .updatePinsDB(id, caption, "caption");
                   await OdysseyDatabase.instance.updatePinsDB(id, note, "note");
+                  //captionTextController.dispose();
+                  //noteTextController.dispose();
                   Navigator.pop(context);
                   reenumerateState();
                 },
@@ -1943,6 +2008,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                         fontWeight: FontWeight.w700, color: contentColor)),
                 onPressed: () {
                   Navigator.of(context).pop();
+                  //captionTextController.dispose();
+                  //noteTextController.dispose();
                 },
               ),
               TextButton(
@@ -2084,84 +2151,70 @@ class OdysseyMainState extends State<OdysseyMain> {
   }
 
   Future appendFromCurrentLocation() async {
-    bool serviceEnabled;
-    prefix.PermissionStatus permissionGranted;
-    prefix.Location location = prefix.Location();
-    prefix.LocationData currentPosition;
-    serviceEnabled = await location.serviceEnabled();
-    if (!serviceEnabled) {
-      serviceEnabled = location.requestService() as bool;
-
-      if (!serviceEnabled) {
-        simpleDialog(context, "No Location", "Unable to Determine Location",
-            "Check your Location or Privacy Settings.", "error");
-        return;
-      }
-
-      permissionGranted = await location.hasPermission();
-
-      if (permissionGranted == prefix.PermissionStatus.denied) {
-        permissionGranted = await location.requestPermission();
-        if (permissionGranted != prefix.PermissionStatus.granted) {
-          simpleDialog(context, "No Location", "Unable to Determine Location",
-              "Check your Location or Privacy Settings.", "error");
-          return;
-        }
-        if (permissionGranted == prefix.PermissionStatus.deniedForever) {
-          simpleDialog(context, "No Location", "Unable to Determine Location",
-              "Check your Location or Privacy Settings.", "error");
-          return;
-        }
-      }
+    try {
+      currentLocation = await getCurrentLocation(context, accuracy: "high");
+      appendMarker(currentLocation);
+    } catch (e) {
+      simpleDialog(context, "No Location", "Unable to Determine Location",
+          "Check your Connection or Settings.", "error");
     }
-    currentPosition = await location.getLocation();
-    appendMarker(LatLng(currentPosition.latitude!.toDouble(),
-        currentPosition.longitude!.toDouble()));
   }
 
-  Future<void> getCurrentLocation() async {
-    if (await checkConnection(context)) {
-      bool serviceEnabled;
-      prefix.PermissionStatus permissionGranted;
-      prefix.Location location = prefix.Location();
-      prefix.LocationData currentPosition;
-      serviceEnabled = await location.serviceEnabled();
+  Future getCurrentLocation(BuildContext context,
+      {required String accuracy}) async {
+    if (!await checkConnection(context)) {
+      return null;
+    }
+
+    final prefix.Location location = prefix.Location();
+    prefix.PermissionStatus permissionGranted;
+
+    // Check and request service
+    bool serviceEnabled = await location.serviceEnabled();
+    if (!serviceEnabled) {
+      serviceEnabled = await location.requestService();
       if (!serviceEnabled) {
-        serviceEnabled = location.requestService() as bool;
-
-        if (!serviceEnabled) {
-          simpleDialog(context, "No Location", "Unable to Determine Location",
-              "Check your Location or Privacy Settings.", "error");
-          return;
-        }
-
-        permissionGranted = await location.hasPermission();
-
-        if (permissionGranted == prefix.PermissionStatus.denied) {
-          permissionGranted = await location.requestPermission();
-          if (permissionGranted != prefix.PermissionStatus.granted) {
-            simpleDialog(context, "No Location", "Unable to Determine Location",
-                "Check your Location or Privacy Settings.", "error");
-            return;
-          }
-          if (permissionGranted == prefix.PermissionStatus.deniedForever) {
-            simpleDialog(context, "No Location", "Unable to Determine Location",
-                "Check your Location or Privacy Settings.", "error");
-            return;
-          }
-        }
+        return null;
       }
+    }
 
-      scaffoldMessengerKey.currentState
-          ?.showSnackBar(const SnackBar(content: Text('Getting Location...')));
+    permissionGranted = await location.hasPermission();
+    if (permissionGranted == prefix.PermissionStatus.denied) {
+      permissionGranted = await location.requestPermission();
+      if (permissionGranted != prefix.PermissionStatus.granted) {
+        return null;
+      }
+    }
 
-      currentPosition = await location.getLocation();
+    if (permissionGranted == prefix.PermissionStatus.deniedForever) {
+      return null;
+    }
 
-      currentLocation = LatLng(currentPosition.latitude!.toDouble(),
-          currentPosition.longitude!.toDouble());
-    } else {
-      simpleDialog(context, "No Location", "Unable to Determine Location",
-          "Check your Connection.", "error");
+    scaffoldMessengerKey.currentState
+        ?.showSnackBar(const SnackBar(content: Text('Getting Location...')));
+
+    try {
+      switch (accuracy) {
+        case "high":
+          location.changeSettings(accuracy: prefix.LocationAccuracy.high);
+          break;
+        case "low":
+          location.changeSettings(accuracy: prefix.LocationAccuracy.low);
+          break;
+        default:
+          location.changeSettings(accuracy: prefix.LocationAccuracy.balanced);
+      }
+      final prefix.LocationData currentPosition =
+          await location.getLocation().timeout(const Duration(seconds: 10));
+
+      currentLocation = LatLng(
+        currentPosition.latitude!,
+        currentPosition.longitude!,
+      );
+      return currentLocation;
+    } catch (e) {
+      print(e);
+      return null;
     }
   }
 
@@ -2191,30 +2244,35 @@ class OdysseyMainState extends State<OdysseyMain> {
         fillColor;
         break;
     }
-
-    await getCurrentLocation();
-    setState(() {
-      statecircles.add(Circle(
-          circleId: CircleId("1"),
-          center: currentLocation,
-          radius: 2000,
-          strokeWidth: 4,
-          strokeColor: strokeColor,
-          fillColor: fillColor));
-    });
-    mapController.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(
-          target: currentLocation,
-          bearing: 0,
-          zoom: 12,
+    try {
+      currentLocation = await getCurrentLocation(context, accuracy: "high");
+      setState(() {
+        statecircles.add(Circle(
+            circleId: CircleId("1"),
+            center: currentLocation,
+            radius: 2000,
+            strokeWidth: 4,
+            strokeColor: strokeColor,
+            fillColor: fillColor));
+      });
+      mapController.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: currentLocation,
+            bearing: 0,
+            zoom: 12,
+          ),
         ),
-      ),
-    );
-    await Future.delayed(Duration(seconds: 3));
-    setState(() {
-      deleteCircle(1);
-    });
+      );
+      await Future.delayed(Duration(seconds: 3));
+      setState(() {
+        deleteCircle(1);
+      });
+    } catch (e) {
+      simpleDialog(context, "No Location", "Unable To Determine Location",
+          "Check Your Connection Or Settings And Try Again", "error");
+      print(e);
+    }
   }
 
   Widget generateQRcode(final String caption, final String note,
@@ -2241,230 +2299,246 @@ class OdysseyMainState extends State<OdysseyMain> {
   void scanQRcode(BuildContext context) async {
     final bool isLight = pincolor.computeLuminance() > 0.5;
     final Color contentColor = isLight ? Colors.black : Colors.white;
-    double cardwidth() {
-      if (MediaQuery.of(context).size.width < 500) {
-        return MediaQuery.of(context).size.width / 1.5;
-      } else {
-        return 300;
-      }
-    }
 
-    showModalBottomSheet(
-        context: context,
-        enableDrag: true,
-        isScrollControlled: true,
-        useRootNavigator: true,
-        builder: (BuildContext context) {
-          return Column(
-              mainAxisSize: MainAxisSize.min,
-              // crossAxisAlignment: CrossAxisAlignment.center,
-              //mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-                  child: Text("Scan QR Code",
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.quicksand(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 20,
-                          color: Colors.black)),
-                ),
-                Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-                    child: Text(
-                        "Open Odyssey on another device, open a Journal Entry and show QR Code",
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.quicksand(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                            color: Colors.black))),
-                SizedBox(
-                    height: cardwidth(),
-                    width: cardwidth(),
-                    child: ClipRRect(
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(32.0),
-                          topRight: Radius.circular(32.0),
-                          bottomRight: Radius.circular(32.0),
-                          bottomLeft: Radius.circular(32.0),
-                        ),
-                        child: AspectRatio(
-                            aspectRatio: 1,
-                            child: MobileScanner(
-                                controller: MobileScannerController(
-                                  detectionSpeed: DetectionSpeed.noDuplicates,
-                                ),
-                                fit: BoxFit.fill,
-                                onDetect: (capture) async {
-                                  final List barcodes = capture.barcodes;
-                                  for (final barcode in barcodes) {
-                                    if ((barcode.rawValue)
-                                        .toString()
-                                        .startsWith("odyssey://")) {
-                                      var capturedValue =
-                                          (barcode.rawValue.toString())
-                                              .split(RegExp(r'[&=]'));
-                                      var location = await reverseGeocoder(
-                                          stringToLocation(capturedValue[
-                                              capturedValue.indexWhere(
-                                                      (element) =>
-                                                          element == "latlng") +
-                                                  1]));
-                                      pincolor = Color(int.parse(capturedValue[
-                                              (capturedValue.indexWhere(
-                                                      (element) =>
-                                                          element == "color")) +
-                                                  1]
-                                          .toString()));
-                                      if (!context.mounted) return;
-                                      Navigator.pop(context);
-                                      showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return AlertDialog(
-                                              backgroundColor: pincolor,
-                                              title: Text(
-                                                  'Add this Journal Entry?',
-                                                  style: GoogleFonts.quicksand(
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                      color: contentColor)),
-                                              content: SingleChildScrollView(
-                                                child: ListBody(
-                                                  children: [
-                                                    SingleChildScrollView(
-                                                      child: ListBody(
-                                                        children: [
-                                                          Text(
-                                                              capturedValue[capturedValue.indexWhere((element) =>
-                                                                          element ==
-                                                                          "caption") +
-                                                                      1]
-                                                                  .toString(),
-                                                              style: GoogleFonts.quicksand(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w600,
-                                                                  color:
-                                                                      contentColor)),
-                                                          const Text(""),
-                                                          Text(location,
-                                                              style: GoogleFonts.quicksand(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w600,
-                                                                  color:
-                                                                      contentColor)),
-                                                          const Text(""),
-                                                          Text(
-                                                              capturedValue[capturedValue.indexWhere((element) =>
-                                                                          element ==
-                                                                          "latlng") +
-                                                                      1]
-                                                                  .toString(),
-                                                              style: GoogleFonts.quicksand(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w600,
-                                                                  color:
-                                                                      contentColor)),
-                                                          const Text(""),
-                                                          Text(
-                                                              capturedValue[capturedValue.indexWhere((element) =>
-                                                                          element ==
-                                                                          "note") +
-                                                                      1]
-                                                                  .toString(),
-                                                              style: GoogleFonts.quicksand(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w600,
-                                                                  color:
-                                                                      contentColor)),
-                                                        ],
-                                                      ),
+    try {
+      if (photo.supportsImageSource(ImageSource.camera)) {
+        MobileScannerController scanController = MobileScannerController(
+            detectionSpeed: DetectionSpeed.noDuplicates,
+            torchEnabled: camFlashlight,
+            autoZoom: camAutozoom);
+        double cardwidth() {
+          if (MediaQuery.of(context).size.width < 500) {
+            return MediaQuery.of(context).size.width / 1.5;
+          } else {
+            return 300;
+          }
+        }
+
+        showModalBottomSheet(
+            context: context,
+            enableDrag: true,
+            isScrollControlled: true,
+            useRootNavigator: true,
+            builder: (BuildContext context) {
+              return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  // crossAxisAlignment: CrossAxisAlignment.center,
+                  //mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(0, 15, 0, 0),
+                      child: Text("Scan QR Code",
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.quicksand(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 20,
+                              color: Colors.black)),
+                    ),
+                    Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+                        child: Text(
+                            "Open Odyssey On Another Device, Open A Journal Entry And Show QR Code",
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.quicksand(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                color: Colors.black))),
+                    SizedBox(
+                        height: cardwidth(),
+                        width: cardwidth(),
+                        child: ClipRRect(
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(32.0),
+                              topRight: Radius.circular(32.0),
+                              bottomRight: Radius.circular(32.0),
+                              bottomLeft: Radius.circular(32.0),
+                            ),
+                            child: AspectRatio(
+                                aspectRatio: 1,
+                                child: MobileScanner(
+                                    controller: scanController,
+                                    fit: BoxFit.fill,
+                                    onDetect: (capture) async {
+                                      final List barcodes = capture.barcodes;
+                                      for (final barcode in barcodes) {
+                                        if ((barcode.rawValue)
+                                            .toString()
+                                            .startsWith("odyssey://")) {
+                                          var capturedValue =
+                                              (barcode.rawValue.toString())
+                                                  .split(RegExp(r'[&=]'));
+                                          var location = await reverseGeocoder(
+                                              stringToLocation(capturedValue[
+                                                  capturedValue.indexWhere(
+                                                          (element) =>
+                                                              element ==
+                                                              "latlng") +
+                                                      1]));
+                                          pincolor = Color(int.parse(
+                                              capturedValue[
+                                                      (capturedValue.indexWhere(
+                                                              (element) =>
+                                                                  element ==
+                                                                  "color")) +
+                                                          1]
+                                                  .toString()));
+                                          if (!context.mounted) return;
+                                          Navigator.pop(context);
+                                          showDialog(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return AlertDialog(
+                                                  backgroundColor: pincolor,
+                                                  title: Text(
+                                                      'Add this Journal Entry?',
+                                                      style:
+                                                          GoogleFonts.quicksand(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w700,
+                                                              color:
+                                                                  contentColor)),
+                                                  content:
+                                                      SingleChildScrollView(
+                                                    child: ListBody(
+                                                      children: [
+                                                        SingleChildScrollView(
+                                                          child: ListBody(
+                                                            children: [
+                                                              Text(
+                                                                  capturedValue[
+                                                                          capturedValue.indexWhere((element) => element == "caption") +
+                                                                              1]
+                                                                      .toString(),
+                                                                  style: GoogleFonts.quicksand(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                      color:
+                                                                          contentColor)),
+                                                              const Text(""),
+                                                              Text(location,
+                                                                  style: GoogleFonts.quicksand(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                      color:
+                                                                          contentColor)),
+                                                              const Text(""),
+                                                              Text(
+                                                                  capturedValue[
+                                                                          capturedValue.indexWhere((element) => element == "latlng") +
+                                                                              1]
+                                                                      .toString(),
+                                                                  style: GoogleFonts.quicksand(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                      color:
+                                                                          contentColor)),
+                                                              const Text(""),
+                                                              Text(
+                                                                  capturedValue[
+                                                                          capturedValue.indexWhere((element) => element == "note") +
+                                                                              1]
+                                                                      .toString(),
+                                                                  style: GoogleFonts.quicksand(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                      color:
+                                                                          contentColor)),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ],
                                                     ),
-                                                  ],
-                                                ),
-                                              ),
-                                              actions: <Widget>[
-                                                TextButton(
-                                                  child: Text('Cancel',
-                                                      style:
-                                                          GoogleFonts.quicksand(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w700,
-                                                              color:
-                                                                  contentColor)),
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                    scanQRcode(context);
-                                                  },
-                                                ),
-                                                TextButton(
-                                                  child: Text('OK',
-                                                      style:
-                                                          GoogleFonts.quicksand(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w700,
-                                                              color:
-                                                                  contentColor)),
-                                                  onPressed: () {
-                                                    Navigator.pop(context);
-                                                    caption = capturedValue[
-                                                            capturedValue.indexWhere(
-                                                                    (element) =>
+                                                  ),
+                                                  actions: <Widget>[
+                                                    TextButton(
+                                                      child: Text('Cancel',
+                                                          style: GoogleFonts
+                                                              .quicksand(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w700,
+                                                                  color:
+                                                                      contentColor)),
+                                                      onPressed: () {
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                        scanController
+                                                            .dispose();
+                                                      },
+                                                    ),
+                                                    TextButton(
+                                                      child: Text('OK',
+                                                          style: GoogleFonts
+                                                              .quicksand(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w700,
+                                                                  color:
+                                                                      contentColor)),
+                                                      onPressed: () {
+                                                        Navigator.pop(context);
+                                                        caption = capturedValue[
+                                                                capturedValue.indexWhere((element) =>
                                                                         element ==
                                                                         "caption") +
-                                                                1]
-                                                        .toString();
-                                                    note = capturedValue[
-                                                            capturedValue.indexWhere(
-                                                                    (element) =>
+                                                                    1]
+                                                            .toString();
+                                                        note = capturedValue[
+                                                                capturedValue.indexWhere((element) =>
                                                                         element ==
                                                                         "note") +
-                                                                1]
-                                                        .toString();
-                                                    shape = capturedValue[
-                                                            capturedValue.indexWhere(
-                                                                    (element) =>
+                                                                    1]
+                                                            .toString();
+                                                        shape = capturedValue[
+                                                                capturedValue.indexWhere((element) =>
                                                                         element ==
                                                                         "shape") +
-                                                                1]
-                                                        .toString();
-                                                    colorToHex(Color(int.parse(
-                                                        capturedValue[(capturedValue
-                                                                .indexWhere(
+                                                                    1]
+                                                            .toString();
+                                                        colorToHex(Color(int.parse(capturedValue[
+                                                            (capturedValue.indexWhere(
                                                                     (element) =>
                                                                         element ==
                                                                         "color")) +
-                                                            1])));
-                                                    appendMarker(stringToLocation(
-                                                        capturedValue[capturedValue
-                                                                .indexWhere(
+                                                                1])));
+                                                        appendMarker(stringToLocation(capturedValue[
+                                                            capturedValue.indexWhere(
                                                                     (element) =>
                                                                         element ==
                                                                         "latlng") +
-                                                            1]));
-                                                    scaffoldMessengerKey
-                                                        .currentState
-                                                        ?.showSnackBar(
-                                                            const SnackBar(
-                                                                content: Text(
-                                                                    'Added Journal Entry')));
-                                                  },
-                                                )
-                                              ]);
-                                        },
-                                      );
-                                    }
-                                  }
-                                })))),
-                SizedBox(height: 25)
-              ]);
-        });
+                                                                1]));
+                                                        scaffoldMessengerKey
+                                                            .currentState
+                                                            ?.showSnackBar(
+                                                                const SnackBar(
+                                                                    content: Text(
+                                                                        'Added Journal Entry.')));
+                                                        scanController
+                                                            .dispose();
+                                                      },
+                                                    )
+                                                  ]);
+                                            },
+                                          );
+                                        }
+                                      }
+                                    })))),
+                    SizedBox(height: 25)
+                  ]);
+            });
+      } else {
+        simpleDialog(context, "Unable To Use Camera",
+            "Check Your Settings And Try Again", "", "error");
+      }
+    } catch (e) {
+      simpleDialog(context, "Unable To Use Camera",
+          "Check Your Settings And Try Again", "", "error");
+    }
   }
 
   void deleteLastMarker() {
@@ -2729,7 +2803,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                       "Location N/A") {
                     simpleDialog(
                         context,
-                        "Could not use Coordinates",
+                        "Coordinates Invalid",
                         "The coordinates you entered couldn't be used, check and try again.",
                         "",
                         "error");
@@ -2763,7 +2837,7 @@ class OdysseyMainState extends State<OdysseyMain> {
     //This is only for Pre-Release Versions, This doesn't apply for release versions.
     if (release == "Pre-Release") {
       scaffoldMessengerKey.currentState?.showSnackBar(SnackBar(
-          content: const Text('Pre-Release Version'),
+          content: const Text('Pre-Release Version.'),
           duration: const Duration(milliseconds: 3000),
           backgroundColor: Colors.red[800],
           action: SnackBarAction(
@@ -2781,296 +2855,313 @@ class OdysseyMainState extends State<OdysseyMain> {
   }
 
   Future presentNearBy() async {
-    await getCurrentLocation();
-    //cameraToLocation();
-    final placeskey = places.GoogleMapsPlaces(apiKey: apikey);
-    places.PlacesSearchResponse response;
+    try {
+      if (await getCurrentLocation(context, accuracy: "high") != null) {
+        final placeskey = places.GoogleMapsPlaces(apiKey: apikey);
+        places.PlacesSearchResponse response;
 
-    final categories = [
-      "Accounting",
-      "Airport",
-      "Amusement Park",
-      "Aquarium",
-      "Art Gallery",
-      "ATM",
-      "Bakery",
-      "Bank",
-      "Bar",
-      "Beauty Salon",
-      "Bicycle Store",
-      "Book Store",
-      "Bowling Alley",
-      "Bus Station",
-      "Cafe",
-      "Campground",
-      "Car Dealer",
-      "Car Rental",
-      "Car Repair",
-      "Car Wash",
-      "Casino",
-      "Cemetery",
-      "Church",
-      "City Hall",
-      "Clothing Store",
-      "Convenience Store",
-      "Courthouse",
-      "Dentist",
-      "Department Store",
-      "Doctor",
-      "Drugstore",
-      "Electrician",
-      "Electronics Store",
-      "Embassy",
-      "Fire Station",
-      "Florist",
-      "Funeral Home",
-      "Furniture Store",
-      "Gas Station",
-      "Gym",
-      "Hair Care",
-      "Hardware Store",
-      "Hindu Temple",
-      "Home Goods Store",
-      "Hospital",
-      "Insurance Agency",
-      "Jewelry Store",
-      "Laundry",
-      "Lawyer",
-      "Library",
-      "Light Rail Station",
-      "Liquor Store",
-      "Local Government Office",
-      "Locksmith",
-      "Lodging",
-      "Meal Delivery",
-      "Meal Takeaway",
-      "Mosque",
-      "Movie Rental",
-      "Movie Theater",
-      "Moving Company",
-      "Museum",
-      "Night Club",
-      "Painter",
-      "Park",
-      "Parking",
-      "Pet Store",
-      "Pharmacy",
-      "Physiotherapist",
-      "Plumber",
-      "Police",
-      "Post Office",
-      "Primary School",
-      "Real Estate Agency",
-      "Restaurant",
-      "Roofing Contractor",
-      "RV Park",
-      "School",
-      "Secondary School",
-      "Shoe Store",
-      "Shopping Mall",
-      "Spa",
-      "Stadium",
-      "Storage",
-      "Store",
-      "Subway Station",
-      "Supermarket",
-      "Synagogue",
-      "Taxi Stand",
-      "Tourist Attraction",
-      "Train Station",
-      "Transit Station",
-      "Travel Agency",
-      "University",
-      "Veterinary Care",
-      "Zoo",
-    ];
+        final categories = [
+          "Accounting",
+          "Airport",
+          "Amusement Park",
+          "Aquarium",
+          "Art Gallery",
+          "ATM",
+          "Bakery",
+          "Bank",
+          "Bar",
+          "Beauty Salon",
+          "Bicycle Store",
+          "Book Store",
+          "Bowling Alley",
+          "Bus Station",
+          "Cafe",
+          "Campground",
+          "Car Dealer",
+          "Car Rental",
+          "Car Repair",
+          "Car Wash",
+          "Casino",
+          "Cemetery",
+          "Church",
+          "City Hall",
+          "Clothing Store",
+          "Convenience Store",
+          "Courthouse",
+          "Dentist",
+          "Department Store",
+          "Doctor",
+          "Drugstore",
+          "Electrician",
+          "Electronics Store",
+          "Embassy",
+          "Fire Station",
+          "Florist",
+          "Funeral Home",
+          "Furniture Store",
+          "Gas Station",
+          "Gym",
+          "Hair Care",
+          "Hardware Store",
+          "Hindu Temple",
+          "Home Goods Store",
+          "Hospital",
+          "Insurance Agency",
+          "Jewelry Store",
+          "Laundry",
+          "Lawyer",
+          "Library",
+          "Light Rail Station",
+          "Liquor Store",
+          "Local Government Office",
+          "Locksmith",
+          "Lodging",
+          "Meal Delivery",
+          "Meal Takeaway",
+          "Mosque",
+          "Movie Rental",
+          "Movie Theater",
+          "Moving Company",
+          "Museum",
+          "Night Club",
+          "Painter",
+          "Park",
+          "Parking",
+          "Pet Store",
+          "Pharmacy",
+          "Physiotherapist",
+          "Plumber",
+          "Police",
+          "Post Office",
+          "Primary School",
+          "Real Estate Agency",
+          "Restaurant",
+          "Roofing Contractor",
+          "RV Park",
+          "School",
+          "Secondary School",
+          "Shoe Store",
+          "Shopping Mall",
+          "Spa",
+          "Stadium",
+          "Storage",
+          "Store",
+          "Subway Station",
+          "Supermarket",
+          "Synagogue",
+          "Taxi Stand",
+          "Tourist Attraction",
+          "Train Station",
+          "Transit Station",
+          "Travel Agency",
+          "University",
+          "Veterinary Care",
+          "Zoo",
+        ];
 
-    showModalBottomSheet(
-        context: context,
-        constraints: const BoxConstraints(maxWidth: 750),
-        builder: (BuildContext context) {
-          return StatefulBuilder(
-              builder: (BuildContext context, StateSetter setState) {
-            return Center(
-                child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(height: 15, child: Text("")),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxHeight: 50),
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.all(5.0),
-                    shrinkWrap: true,
-                    children:
-                        List<Widget>.generate(categories.length, (int index) {
-                      return Wrap(children: [
-                        const SizedBox(width: 3.5, child: Text("")),
-                        ChoiceChip(
-                            label: Text(categories[index],
-                                style: GoogleFonts.quicksand(
-                                    fontWeight: FontWeight.w700)),
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 5, horizontal: 10),
-                            backgroundColor: Colors.grey[500],
-                            labelStyle: const TextStyle(
-                                fontSize: 16, color: Colors.white),
-                            selectedColor:
-                                MediaQuery.of(context).platformBrightness ==
-                                        Brightness.light
-                                    ? lightMode.withValues(alpha: 1)
-                                    : darkMode.withValues(alpha: 1),
-                            selected: catselection == index,
-                            onSelected: (bool selected) async {
-                              setState(() {
-                                catselection = selected ? index : null;
-                                nearbyresults.clear();
-                              });
+        showModalBottomSheet(
+            context: context,
+            constraints: const BoxConstraints(maxWidth: 750),
+            builder: (BuildContext context) {
+              return StatefulBuilder(
+                  builder: (BuildContext context, StateSetter setState) {
+                return Center(
+                    child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 15, child: Text("")),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 50),
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.all(5.0),
+                        shrinkWrap: true,
+                        children: List<Widget>.generate(categories.length,
+                            (int index) {
+                          return Wrap(children: [
+                            const SizedBox(width: 3.5, child: Text("")),
+                            ChoiceChip(
+                                label: Text(categories[index],
+                                    style: GoogleFonts.quicksand(
+                                        fontWeight: FontWeight.w700)),
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 5, horizontal: 10),
+                                backgroundColor: Colors.grey[500],
+                                labelStyle: const TextStyle(
+                                    fontSize: 16, color: Colors.white),
+                                selectedColor:
+                                    MediaQuery.of(context).platformBrightness ==
+                                            Brightness.light
+                                        ? lightMode.withValues(alpha: 1)
+                                        : darkMode.withValues(alpha: 1),
+                                selected: catselection == index,
+                                onSelected: (bool selected) async {
+                                  setState(() {
+                                    catselection = selected ? index : null;
+                                    nearbyresults.clear();
+                                  });
 
-                              response = await placeskey.searchNearbyWithRadius(
-                                  places.Location(
-                                      lat: currentLocation.latitude,
-                                      lng: currentLocation.longitude),
-                                  5000,
-                                  type: ((categories[index]).toLowerCase())
-                                      .replaceAll(" ", "_"));
-                              setState(() {
-                                if (response.results.isNotEmpty) {
-                                  for (int i = 0;
-                                      i < response.results.length;
-                                      i++) {
-                                    nearbyresults.add(NearByData(
-                                        name: response.results[i].name,
-                                        category: categories[index],
-                                        rating: response.results[i].rating ?? 0,
-                                        coor: LatLng(
-                                            response.results[i].geometry?.location.lat ??
-                                                0,
-                                            response.results[i].geometry?.location.lng ??
-                                                0),
-                                        distance: latLngDifferenceToKmMiles(
-                                            inputOne: LatLng(
-                                                currentLocation.latitude,
-                                                currentLocation.longitude),
-                                            inputTwo: LatLng(
+                                  response =
+                                      await placeskey.searchNearbyWithRadius(
+                                          places.Location(
+                                              lat: currentLocation.latitude,
+                                              lng: currentLocation.longitude),
+                                          5000,
+                                          type: ((categories[index])
+                                                  .toLowerCase())
+                                              .replaceAll(" ", "_"));
+                                  setState(() {
+                                    if (response.results.isNotEmpty) {
+                                      for (int i = 0;
+                                          i < response.results.length;
+                                          i++) {
+                                        nearbyresults.add(NearByData(
+                                            name: response.results[i].name,
+                                            category: categories[index],
+                                            rating:
+                                                response.results[i].rating ?? 0,
+                                            coor: LatLng(
                                                 response.results[i].geometry?.location.lat ??
                                                     0,
-                                                response.results[i].geometry?.location.lng ??
-                                                    0)),
-                                        id: i,
-                                        price: priceToString(
-                                            response.results[i].priceLevel),
-                                        photoRef:
-                                            response.results[i].photos.isNotEmpty
-                                                ? response.results[i].photos.first
-                                                    .toJson()["photo_reference"]
-                                                : "",
-                                        state: true));
-                                  }
-                                }
-                              });
-                            })
-                      ]);
-                    }).toList(),
-                  ),
-                ),
-                const SizedBox(height: 1),
-                Expanded(
-                    child: ListView(
-                  scrollDirection: Axis.vertical,
-                  padding: const EdgeInsets.all(2.0),
-                  shrinkWrap: true,
-                  children: catselection != null
-                      ? nearbyresults.isNotEmpty
-                          ? List<Widget>.generate(nearbyresults.length,
-                              (int index) {
-                              return ListTile(
-                                title: Text(nearbyresults[index].name,
-                                    style: GoogleFonts.quicksand(
-                                        fontWeight: FontWeight.w700)),
-                                subtitle: Text(
-                                    "Rating: ${nearbyresults[index].rating.toString()}/5, Distance: ${(nearbyresults[index].distance)[0]} km Away, ${(nearbyresults[index].distance)[1]} Miles Away",
-                                    style: GoogleFonts.quicksand(
-                                        fontWeight: FontWeight.w700)),
-                                onTap: () async {
-                                  if (nearbyresults[index].state) {
-                                    mapController.animateCamera(
-                                      CameraUpdate.newCameraPosition(
-                                        CameraPosition(
-                                          target: nearbyresults[index].coor,
-                                          zoom: 14,
-                                        ),
-                                      ),
-                                    );
-                                    Uint8List? bytes;
-                                    if (nearbyresults[index].photoRef != "") {
-                                      bytes = await googlePlacePhotoReftoBytes(
-                                          nearbyresults[index].photoRef);
+                                                response.results[i].geometry
+                                                        ?.location.lng ??
+                                                    0),
+                                            distance: latLngDifferenceToKmMiles(
+                                                inputOne: LatLng(
+                                                    currentLocation.latitude,
+                                                    currentLocation.longitude),
+                                                inputTwo: LatLng(
+                                                    response.results[i].geometry
+                                                            ?.location.lat ??
+                                                        0,
+                                                    response.results[i].geometry
+                                                            ?.location.lng ??
+                                                        0)),
+                                            id: i,
+                                            price: priceToString(response.results[i].priceLevel),
+                                            photoRef: response.results[i].photos.isNotEmpty ? response.results[i].photos.first.toJson()["photo_reference"] : "",
+                                            state: true));
+                                      }
                                     }
-                                    nearbyDialog(
-                                        context,
-                                        nearbyresults[index].name,
-                                        await reverseGeocoder(
-                                            nearbyresults[index].coor),
-                                        nearbyresults[index].coor,
-                                        nearbyresults[index].rating.toString(),
-                                        nearbyresults[index].price,
-                                        bytes);
-                                  } else {
-                                    null;
-                                  }
-                                },
-                                trailing: nearbyresults[index].state
-                                    ? IconButton(
-                                        icon: const Icon(Icons.add),
-                                        onPressed: () {
-                                          caption = nearbyresults[index].name;
-                                          note =
-                                              "Rating: ${nearbyresults[index].rating}/5, Price: ${nearbyresults[index].price}";
-                                          appendMarker(
-                                              nearbyresults[index].coor);
-                                          setState(() => nearbyresults[index]
-                                              .state = false);
-                                          nearbyresults[index].state = false;
-                                          scaffoldMessengerKey.currentState
-                                              ?.showSnackBar(const SnackBar(
-                                                  content: Text(
-                                                      'Added Journal Entry.')));
-                                        })
-                                    : IconButton(
-                                        icon: const Icon(Icons.check),
-                                        onPressed: () {},
-                                      ),
-                              );
-                            })
+                                  });
+                                })
+                          ]);
+                        }).toList(),
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Expanded(
+                        child: ListView(
+                      scrollDirection: Axis.vertical,
+                      padding: const EdgeInsets.all(2.0),
+                      shrinkWrap: true,
+                      children: catselection != null
+                          ? nearbyresults.isNotEmpty
+                              ? List<Widget>.generate(nearbyresults.length,
+                                  (int index) {
+                                  return ListTile(
+                                    title: Text(nearbyresults[index].name,
+                                        style: GoogleFonts.quicksand(
+                                            fontWeight: FontWeight.w700)),
+                                    subtitle: Text(
+                                        "Rating: ${nearbyresults[index].rating.toString()}/5, Distance: ${(nearbyresults[index].distance)[0]} km Away, ${(nearbyresults[index].distance)[1]} Miles Away",
+                                        style: GoogleFonts.quicksand(
+                                            fontWeight: FontWeight.w700)),
+                                    onTap: () async {
+                                      if (nearbyresults[index].state) {
+                                        mapController.animateCamera(
+                                          CameraUpdate.newCameraPosition(
+                                            CameraPosition(
+                                              target: nearbyresults[index].coor,
+                                              zoom: 14,
+                                            ),
+                                          ),
+                                        );
+                                        Uint8List? bytes;
+                                        if (nearbyresults[index].photoRef !=
+                                            "") {
+                                          bytes =
+                                              await googlePlacePhotoReftoBytes(
+                                                  nearbyresults[index]
+                                                      .photoRef);
+                                        }
+                                        nearbyDialog(
+                                            context,
+                                            nearbyresults[index].name,
+                                            await reverseGeocoder(
+                                                nearbyresults[index].coor),
+                                            nearbyresults[index].coor,
+                                            nearbyresults[index]
+                                                .rating
+                                                .toString(),
+                                            nearbyresults[index].price,
+                                            bytes);
+                                      } else {
+                                        null;
+                                      }
+                                    },
+                                    trailing: nearbyresults[index].state
+                                        ? IconButton(
+                                            icon: const Icon(Icons.add),
+                                            onPressed: () {
+                                              caption =
+                                                  nearbyresults[index].name;
+                                              note =
+                                                  "Rating: ${nearbyresults[index].rating}/5, Price: ${nearbyresults[index].price}";
+                                              appendMarker(
+                                                  nearbyresults[index].coor);
+                                              setState(() =>
+                                                  nearbyresults[index].state =
+                                                      false);
+                                              nearbyresults[index].state =
+                                                  false;
+                                              scaffoldMessengerKey.currentState
+                                                  ?.showSnackBar(const SnackBar(
+                                                      content: Text(
+                                                          'Added Journal Entry.')));
+                                            })
+                                        : IconButton(
+                                            icon: const Icon(Icons.check),
+                                            onPressed: () {},
+                                          ),
+                                  );
+                                })
+                              : List<Widget>.generate(1, (int index) {
+                                  return ListTile(
+                                      title: Text("No Results",
+                                          style: GoogleFonts.quicksand(
+                                              fontWeight: FontWeight.w700,
+                                              color: Color(0xFF3B3B3B))),
+                                      subtitle: Text(
+                                          "Try Another Category Or Another Location",
+                                          style: GoogleFonts.quicksand(
+                                              fontWeight: FontWeight.w700)));
+                                })
                           : List<Widget>.generate(1, (int index) {
                               return ListTile(
-                                  title: Text("No Results",
+                                  title: Text("Pick A Category",
                                       style: GoogleFonts.quicksand(
                                           fontWeight: FontWeight.w700,
                                           color: Color(0xFF3B3B3B))),
                                   subtitle: Text(
-                                      "Try Another Category Or Another Location",
+                                      "Using Near By, You Can See Places Of Interest Near You",
                                       style: GoogleFonts.quicksand(
                                           fontWeight: FontWeight.w700)));
-                            })
-                      : List<Widget>.generate(1, (int index) {
-                          return ListTile(
-                              title: Text("Pick A Category",
-                                  style: GoogleFonts.quicksand(
-                                      fontWeight: FontWeight.w700,
-                                      color: Color(0xFF3B3B3B))),
-                              subtitle: Text(
-                                  "Using Near By, You Can See Places Of Interest Near You",
-                                  style: GoogleFonts.quicksand(
-                                      fontWeight: FontWeight.w700)));
-                        }),
-                ))
-              ],
-            ));
-          });
-        });
+                            }),
+                    ))
+                  ],
+                ));
+              });
+            });
+      } else {
+        simpleDialog(context, "No Location", "Unable To Determine Location",
+            "Check Your Connection Or Settings And Try Again", "error");
+      }
+    } catch (e) {
+      simpleDialog(context, "No Location", "Unable To Determine Location",
+          "Check Your Connection Or Settings And Try Again", "error");
+    }
   }
 
   Future photoOnboarding(BuildContext context, int id) async {
@@ -3099,8 +3190,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                       reenumerateState();
                     }
                   } catch (e) {
-                    simpleDialog(context, "Unable to Retrieve Photos",
-                        "Check your Settings and try again.", "", "error");
+                    simpleDialog(context, "Unable To Retrieve Photos",
+                        "Check Your Settings And Try Again", "", "error");
                   }
                 },
                 child: Text('System Photos', style: dialogBody),
@@ -3119,8 +3210,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                       reenumerateState();
                     }
                   } catch (e) {
-                    simpleDialog(context, "Unable to Retrieve Photos",
-                        "Check your Settings and try again.", "", "error");
+                    simpleDialog(context, "Unable To Use Camera",
+                        "Check Your Settings And Try Again", "", "error");
                   }
                 },
                 child: Text('System Camera', style: dialogBody),
