@@ -34,14 +34,18 @@
 	<array>
 		<string>_dartobservatory._tcp</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Odyssey needs your Camera for "Scan QR Code" to scan a QR Code or "Edit Photo” to add or edit a photo to your Journal Entry</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Odyssey needs Network access to connect to debugging services. You should only be seeing this on Pre-Release versions of Odyssey</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Odyssey needs your Location because you selected "Pin My Location", "Near By" or are using a Location-based feature of the Map</string>
+	<string>Odyssey needs your Location for "Pin My Location", "Near By" or using a Location-based feature of the Map</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Odyssey needs your Location because you selected "Pin My Location", "Near By" or are using a Location-based feature of the Map</string>
+	<string>Odyssey needs your Location for "Pin My Location", "Near By" or using a Location-based feature of the Map</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Odyssey needs your Location because you selected "Pin My Location", "Near By" or are using a Location-based feature of the Map</string>
+	<string>Odyssey needs your Location for "Pin My Location", "Near By" or using a Location-based feature of the Map</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Odyssey needs to access your Photos for “Edit Photo” to add or edit a photo to your Journal Entry</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

@@ -1,9 +1,12 @@
 // ignore_for_file: avoid_print, unnecessary_null_comparison
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:path/path.dart';
 import 'package:odyssey/main.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+//import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 
 /* These are the default value we use for settings
 These will also be the values to fall back on in case DB can't be loaded
@@ -20,24 +23,88 @@ String defaultShape = 'circle';
 double defaultMapZoom = 4.0;
 var pathBuffer = "";
 
+//We can use these functions to do different types of conversions that we normally wouldn't be able to do
+
 String colorToString(Color color) {
-  return ("0x${color.value.toRadixString(16)}");
+  return ("0x${(color.toHexString()).toLowerCase()}");
+}
+
+String locationToString(LatLng latLng) {
+  var latLngBuffer = latLng.toString();
+  latLngBuffer = latLngBuffer.replaceAll("LatLng(", "");
+  latLngBuffer = latLngBuffer.replaceAll(")", "");
+
+  return latLngBuffer;
+}
+
+LatLng stringToLocation(String string) {
+  //You must have LatLng() in the string otherwise you have to use locationToString first
+  string = string.replaceAll(RegExp(r'\(|\)'), '');
+  string = string.replaceAll(' ', '');
+  if (RegExp(
+          r'([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))?,([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))?')
+      .hasMatch(string)) {
+    var latLngBuffer = string.split(",");
+    return LatLng(double.parse(latLngBuffer[0].trim()),
+        double.parse(latLngBuffer[1].trim()));
+  } else {
+    //If something isn't working, let's just return a generic LatLng()
+    return const LatLng(640, 640);
+  }
+}
+
+void stringToMapType(String maptype) {
+//We're going to use this function to "do a String conversion to MapType"
+  switch (maptype) {
+    case ("MapType.normal"):
+      mapType = MapType.normal;
+      break;
+
+    case ("MapType.hybrid"):
+      mapType = MapType.hybrid;
+      break;
+
+    case ("MapType.terrain"):
+      mapType = MapType.terrain;
+      break;
+
+    case ("MapType.satellite"):
+      mapType = MapType.satellite;
+      break;
+
+    default:
+      mapType = MapType.normal;
+      break;
+  }
+}
+
+String mapTypeToString(MapType maptype) {
+  switch (mapType) {
+    case MapType.normal:
+      return "Standard";
+    case MapType.hybrid:
+      return "Hybrid";
+    case MapType.terrain:
+      return "Terrain";
+    case MapType.satellite:
+      return "Satellite";
+    default:
+      return "N/A";
+  }
 }
 
 class OdysseyDatabase {
   static final OdysseyDatabase instance = OdysseyDatabase._init();
-
   static Database? _database;
-
   OdysseyDatabase._init();
 
-  Future<Database> get database async {
+  Future get database async {
     if (_database != null) return _database!;
     _database = await _initDB('OdysseyDB.db');
     return _database!;
   }
 
-  Future<Database> _initDB(String fpath) async {
+  Future _initDB(String fpath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, fpath);
     print(path);
@@ -70,34 +137,41 @@ class OdysseyDatabase {
   }
 
   Future addPinDB(
-      id, caption, date, color, shape, latLng, location, note) async {
+      int id,
+      String caption,
+      String date,
+      Color color,
+      String shape,
+      LatLng latLng,
+      String location,
+      String note,
+      var photo,
+      int? waypoint) async {
     final db = await instance.database;
 
     caption = caption.toString();
 
     //Split latlng and make it a two parter float
-
-    var latLngBuffer = latLng.toString();
-    latLngBuffer = latLngBuffer.replaceAll("LatLng(", "");
-    latLngBuffer = latLngBuffer.replaceAll(")", "");
-    var latLngBuffer2 = latLngBuffer.split(", ");
-    var lat = double.parse(latLngBuffer2[0].trim());
-    var lng = double.parse(latLngBuffer2[1].trim());
+    var latLngBuffer = (locationToString(latLng)).split(", ");
+    var lat = double.parse(latLngBuffer[0].trim());
+    var lng = double.parse(latLngBuffer[1].trim());
 
     location.toString();
 
     db.rawInsert(
-        'INSERT INTO Pins (id, caption, color, lat, lng, date, location, shape, note) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO Pins (id, caption, color, lat, lng, date, location, shape, note, photo, waypoint) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           '$id',
-          '$caption',
+          caption,
           colorToString(color),
           '$lat',
           '$lng',
           date,
-          '$location',
-          '$shape',
-          '$note'
+          location,
+          shape,
+          note,
+          photo,
+          waypoint
         ]);
   }
 
@@ -106,7 +180,7 @@ class OdysseyDatabase {
     db.close();
   }
 
-  Future updatePrefsDB(mapZoom, bearing, mt) async {
+  Future updatePrefsDB(double mapZoom, double bearing, MapType mt) async {
     final db = await instance.database;
     print(
         "Updating values (Zoom, Bearing, Map Details): $mapZoom, $bearing, $mt");
@@ -121,13 +195,56 @@ class OdysseyDatabase {
         [mapZoom, bearing, mt.toString(), '0xffff0000']);
   }
 
-  Future updatePinsDB(id, caption, note, color, shape) async {
-    //This function will include other pin elements later
+  Future updatePinsDB(int id, content, String type) async {
+    //What are we updating, it's new contents and what kind it is
     final db = await instance.database;
 
-    db.rawUpdate(
-        '''UPDATE Pins SET caption = ?, note = ?, color = ?, shape = ? WHERE id = ?''',
-        [caption, note, colorToString(color), shape, id]);
+    switch (type) {
+      case "latlng":
+        var latLngBuffer = (locationToString(content)).split(", ");
+        var lat = double.parse(latLngBuffer[0].trim());
+        var lng = double.parse(latLngBuffer[1].trim());
+
+        db.rawUpdate('''UPDATE Pins SET lat = ? WHERE id = ?''', [lat, id]);
+        db.rawUpdate('''UPDATE Pins SET lng = ? WHERE id = ?''', [lng, id]);
+        break;
+
+      case "location":
+        db.rawUpdate(
+            '''UPDATE Pins SET location = ? WHERE id = ?''', [content, id]);
+        break;
+
+      case "caption":
+        db.rawUpdate(
+            '''UPDATE Pins SET caption = ? WHERE id = ?''', [content, id]);
+        break;
+
+      case "note":
+        db.rawUpdate(
+            '''UPDATE Pins SET note = ? WHERE id = ?''', [content, id]);
+        break;
+
+      case "color":
+        db.rawUpdate('''UPDATE Pins SET color = ? WHERE id = ?''',
+            [colorToString(content), id]);
+        break;
+
+      case "shape":
+        db.rawUpdate(
+            '''UPDATE Pins SET shape = ? WHERE id = ?''', [content, id]);
+        break;
+
+      case "photo":
+        db.rawUpdate(
+            '''UPDATE Pins SET photo = ? WHERE id = ?''', [content, id]);
+        break;
+
+      case "waypoint":
+        //We Need To Rebalance The Test Of The Waypoint IDs
+        db.rawUpdate(
+            '''UPDATE Pins SET waypoint = ? WHERE id = ?''', [content, id]);
+        break;
+    }
   }
 
   Future initStatefromDB() async {
@@ -138,31 +255,38 @@ class OdysseyDatabase {
 
     if (pathBuffer != null) {
       //Load Prefs Data
-
-      var mapZoomBuffer = await db.query("Prefs", columns: ["mapzoom"]);
-      mapZoom = double.parse(mapZoomBuffer[0]['mapzoom'].toString());
-
-      var mapTypeBuffer = await db.query("Prefs", columns: ["maplayer"]);
-      mapTypeHandler(mapTypeBuffer[0]['maplayer'].toString());
-      //mapType = mapTypeBuffer[0]['maplayer'].toString() as MapType; //Tried casting this one didn't work...
-
-      var bearingBuffer = await db.query("Prefs", columns: ["bearing"]);
-      bearing = double.parse(bearingBuffer[0]['bearing'].toString());
+      var prefsdbResults = await db.query("Prefs");
+      mapZoom = double.parse(prefsdbResults[0]['mapzoom'].toString());
+      stringToMapType(prefsdbResults[0]['maplayer'].toString());
+      bearing = double.parse(prefsdbResults[0]['bearing'].toString());
 
       //Load User Data
-      var counterBuffer = await db.query("Pins", columns: ["MAX(id)"]);
-      var counter = int.tryParse(counterBuffer[0]['MAX(id)'].toString());
-      var colorBuffer = await db.query("Pins", columns: ["color"]);
+      var pinsdbResults = await db.query("Pins");
 
-      counter ??= 0;
+      var pinCounterBuffer = await db.query("Pins", columns: ["MAX(id)"]);
+      var pinCounterBuffer2 =
+          int.tryParse(pinCounterBuffer[0]['MAX(id)'].toString());
 
-      pinCounter = counter;
-/*       This part is the star of the show, we are parsing everything from the Pins DB
-      Then by counter we are attempting, one by one to place everything on the map */
-      for (var i = 0; i <= counter - 1; i++) {
+      if (await db.query("Pins", columns: ["MAX(waypoint)"]) != null) {
+        var waypointCounterBuffer =
+            await db.query("Pins", columns: ["MAX(waypoint)"]);
+        var waypointCounterBuffer2 =
+            int.tryParse(waypointCounterBuffer[0]['MAX(waypoint)'].toString());
+        waypointCounterBuffer2 ??= 0;
+        waypointCounter = waypointCounterBuffer2;
+      }
+
+      pinCounterBuffer2 ??= 0;
+      pinCounter = pinCounterBuffer2;
+
+/*    This part is the star of the show, we are parsing everything from the Pins DB
+      Then by counter  we are attempting, one by one to place everything on the map */
+      for (var i = 0; i <= pinCounter - 1; i++) {
         //Parse the Pin's Color
-
-        if (!(colorBuffer[i]["color"].toString()).startsWith("0xff")) {
+        //If for whatever reason there is an issue parsing the color HEX...
+        if (!(pinsdbResults[i]["color"].toString())
+            .toLowerCase()
+            .startsWith("0xff")) {
           print("Error With Pin: ${i + 1}");
           print(
               "We're going to need to fix it otherwise we will run into issues...");
@@ -170,47 +294,38 @@ class OdysseyDatabase {
               [defaultPinColor, i + 1]);
         }
 
-        var colorBuffer2 = colorBuffer[i]["color"].toString();
-        pincolor = Color(int.parse(colorBuffer2));
-
-        //Parse the Caption
-        captionBuffer = await db.query("Pins", columns: ["caption"]);
-        caption = captionBuffer[i]["caption"].toString();
-
-        //Parse the Location
-
-        //We can't reuse locationBuffer because we can't assign it an array
-        var locationBuffer2 = await db.query("Pins", columns: ["location"]);
-        var location = locationBuffer2[i]["location"].toString();
-
-        //Parse the Pin's date
-        var dateBuffer = await db.query("Pins", columns: ["date"]);
-        var date = dateBuffer[i]["date"].toString();
-
-        //Parse the Pin's note
-        var noteBuffer = await db.query("Pins", columns: ["note"]);
-        var note = noteBuffer[i]["note"].toString();
-
-        //Parse the Pin's shape
-        var shapeBuffer = await db.query("Pins", columns: ["shape"]);
-        var shape = shapeBuffer[i]["shape"].toString();
+        pincolor = Color(int.parse(pinsdbResults[i]["color"].toString()));
 
         //Parse the Pin's Lat and Lng
-        var locationBufferlat = await db.query("Pins", columns: ["lat"]);
-        var locationBufferlng = await db.query("Pins", columns: ["lng"]);
-        LatLng latLng = LatLng(
-            double.parse(locationBufferlat[i]["lat"].toString()),
-            double.parse(locationBufferlng[i]["lng"].toString()));
+        LatLng latLng = const LatLng(0, 0);
+        if (double.tryParse(pinsdbResults[i]["lat"].toString()) == null ||
+            double.tryParse(pinsdbResults[i]["lng"].toString()) == null) {
+          //If we run into an issue or something else, let's just not display the pin...
+
+          print("Error With Pin: ${i + 1}");
+          print(
+              "We're going to need to fix it otherwise we will run into issues...");
+          latLng = const LatLng(0, 0);
+          await db.rawUpdate('''UPDATE Pins SET lat = ? WHERE id = ?''',
+              [latLng.latitude, i + 1]);
+          await db.rawUpdate('''UPDATE Pins SET lng = ? WHERE id = ?''',
+              [latLng.longitude, i + 1]);
+        } else {
+          latLng = LatLng(double.parse(pinsdbResults[i]["lat"].toString()),
+              double.parse(pinsdbResults[i]["lng"].toString()));
+        }
 
         pins.add(PinData(
             pinid: i,
             pincolor: pincolor,
             pincoor: latLng,
-            pindate: date,
-            pinnote: note,
-            pincaption: caption,
-            pinshape: shape,
-            pinlocation: location));
+            pindate: pinsdbResults[i]["date"].toString(),
+            pinnote: pinsdbResults[i]["note"].toString(),
+            pincaption: pinsdbResults[i]["caption"].toString(),
+            pinshape: pinsdbResults[i]["shape"].toString(),
+            pinlocation: pinsdbResults[i]["location"].toString(),
+            pinphoto: pinsdbResults[i]["photo"],
+            pinwaypoint: pinsdbResults[i]["waypoint"]));
       }
     } else {
       print("Empty/No DB, Skipping...");
@@ -228,7 +343,9 @@ class OdysseyDatabase {
           pins[i].pinshape,
           pins[i].pincoor,
           pins[i].pinlocation,
-          pins[i].pinnote);
+          pins[i].pinnote,
+          pins[i].pinphoto,
+          pins[i].pinwaypoint);
     }
   }
 
@@ -272,7 +389,7 @@ class OdysseyDatabase {
     }
   }
 
-  Future deletePinDB(id) async {
+  Future deletePinDB(int id) async {
     final db = await instance.database;
     db.query("Pins");
     db.execute("DELETE FROM Pins WHERE id = $id");
@@ -282,30 +399,16 @@ class OdysseyDatabase {
     final db = await instance.database;
     db.delete("Pins");
   }
-}
 
-void mapTypeHandler(String mt) {
-//We're going to use this function to "do a String conversion to MapType"
-  switch (mt) {
-    case ("MapType.normal"):
-      mapType = MapType.normal;
-      break;
-
-    case ("MapType.hybrid"):
-      mapType = MapType.hybrid;
-      break;
-
-    case ("MapType.terrain"):
-      mapType = MapType.terrain;
-      break;
-
-    case ("MapType.satellite"):
-      mapType = MapType.satellite;
-      break;
-
-    default:
-      mapType = MapType.normal;
-      break;
+  Future clearWaypointsDB() async {
+    final db = await instance.database;
+    db.execute("ALTER TABLE Pins DROP COLUMN waypoint");
+    db.execute("ALTER TABLE Pins ADD COLUMN waypoint INTEGER;");
   }
-  print(mapType);
+
+  Future clearPhotosDB() async {
+    final db = await instance.database;
+    db.execute("ALTER TABLE Pins DROP COLUMN photo");
+    db.execute("ALTER TABLE Pins ADD COLUMN photo LONGBLOB;");
+  }
 }

@@ -269,6 +269,46 @@ header {
         user-select: none;
     }
 
+    .cirsqubtn {
+        text-align: center;
+        padding: 20px 20px;
+        height: 30px;
+        width: 30px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        margin-bottom: 5px;
+        margin-right: 5px;
+        opacity: 0.9;
+        border-radius: 32%;
+        vertical-align: middle;
+        font-size: 26px;
+        background-color: #006994;
+        color: #ffffff;
+        font-family: "Quicksand", sans-serif;
+        font-family: bolder;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .cirsqubtn:active {
+        text-align: center;
+        padding: 20px 20px;
+        height: 30px;
+        width: 30px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        margin-bottom: 5px;
+        margin-right: 5px;
+        opacity: 0.9;
+        border-radius: 32%;
+        vertical-align: middle;
+        font-size: 26px;
+        background-color: #00084a;
+        color: #ffffff;
+        font-family: "Quicksand", sans-serif;
+        font-family: bolder;
+        cursor: pointer;
+        user-select: none;
+    }
+
     .sqbtn {
         text-align: center;
         height: 50px;
@@ -423,31 +463,32 @@ header {
         animation: fadeinout 4s linear forwards;
         -webkit-animation: fadeinout 4s linear forwards;
     }
+
     #customize {
-            width: 40vw;
-            height: 100%;
-            background-color: #006994;
-            z-index: 100000;
-            display: none;
-            overflow-y: scroll;
-            overflow-x: hidden;
-            justify-content: center;
-            line-height: 20px;
-            font-weight: bold;
-            font-size: 30px;
-            text-align: left;
-            color: #ffffff;
-            position: fixed;
-            font-size: 14px;
-            opacity: 0.98;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-            top: 0;
-            left: 0;
-            border-radius: 0px 5px 5px 0px;
-            animation: fadeinout 4s linear forwards;
-            -webkit-animation: fadeinout 4s linear forwards;
+        width: 40vw;
+        height: 100%;
+        background-color: #006994;
+        z-index: 100000;
+        display: none;
+        overflow-y: scroll;
+        overflow-x: hidden;
+        justify-content: center;
+        line-height: 20px;
+        font-weight: bold;
+        font-size: 30px;
+        text-align: left;
+        color: #ffffff;
+        position: fixed;
+        font-size: 14px;
+        opacity: 0.98;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        top: 0;
+        left: 0;
+        border-radius: 0px 5px 5px 0px;
+        animation: fadeinout 4s linear forwards;
+        -webkit-animation: fadeinout 4s linear forwards;
     }
-    
+
 
     @media (max-width: 600px) {
         #journal {
@@ -550,6 +591,46 @@ header {
         margin-right: 5px;
         opacity: 0.9;
         border-radius: 50%;
+        vertical-align: middle;
+        font-size: 26px;
+        background-color: #006994;
+        color: #ffffff;
+        font-family: "Quicksand", sans-serif;
+        font-family: bolder;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .cirsqubtn {
+        text-align: center;
+        padding: 20px 20px;
+        height: 30px;
+        width: 30px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        margin-bottom: 5px;
+        margin-right: 5px;
+        opacity: 0.9;
+        border-radius: 32%;
+        vertical-align: middle;
+        font-size: 26px;
+        background-color: #00084a;
+        color: #ffffff;
+        font-family: "Quicksand", sans-serif;
+        font-family: bolder;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .cirsqubtn:active {
+        text-align: center;
+        padding: 20px 20px;
+        height: 30px;
+        width: 30px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        margin-bottom: 5px;
+        margin-right: 5px;
+        opacity: 0.9;
+        border-radius: 32%;
         vertical-align: middle;
         font-size: 26px;
         background-color: #006994;
@@ -778,7 +859,7 @@ input[type="submit"]:active {
     margin-bottom: 5px;
     margin-right: 5px;
     opacity: 0.9;
-    border-radius: 50%;
+    border-radius: 32%;
     vertical-align: middle;
     font-size: 26px;
     color: #ffffff;
