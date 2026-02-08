@@ -2205,7 +2205,7 @@ class OdysseyMainState extends State<OdysseyMain> {
           location.changeSettings(accuracy: prefix.LocationAccuracy.balanced);
       }
       final prefix.LocationData currentPosition =
-          await location.getLocation().timeout(const Duration(seconds: 10));
+          await location.getLocation().timeout(const Duration(seconds: 20));
 
       currentLocation = LatLng(
         currentPosition.latitude!,

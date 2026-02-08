@@ -18,7 +18,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.5.0+1
 
 environment:
-  sdk: ">=2.17.0 <3.0.0"
+  sdk: ">=2.17.0 <4.0.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -33,24 +33,27 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.6
-  google_fonts: ^4.0.4
-  google_maps_flutter: ^2.6.0
-  google_maps_flutter_web: ^0.5.4+2
+  cupertino_icons: ^1.0.8
+  google_fonts: ^8.0.1
+  google_maps_flutter: ^2.13.1
+  google_maps_flutter_web: ^0.5.14+2
   flutter_colorpicker:
     git:
       url: https://github.com/frankpape/flutter_colorpicker.git
       ref: 6c81102ebeb7bd446c704edd1d2ee9335b5d3430
   geocoding: ^4.0.0
   flutter_svg: ^2.0.9
-  sqflite: ^2.3.0
-  location: ^8.0.0
-  url_launcher: ^6.2.1
-  path: ^1.8.3
-  google_maps_webservice: ^0.0.20-nullsafety.5
-  image_picker: ^1.0.4
+  sqflite: ^2.4.2
+  location: ^8.0.1
+  url_launcher: ^6.3.2
+  path: ^1.9.1
+  google_maps_webservice: 
+      git:
+        url: https://github.com/lejard-h/google_maps_webservice.git
+        ref: 22f27249c28bf139a8bff0ff889a1e7484b1bde8
+  image_picker: ^1.2.0
   qr_flutter: ^4.1.0
-  mobile_scanner: ^7.0.0
+  mobile_scanner: ^7.0.1
   sqflite_common_ffi_web: ^1.0.1+1
   pointer_interceptor: ^0.10.1+2
 
