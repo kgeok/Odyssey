@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors, prefer_typing_uninitialized_variables, avoid_print, use_build_context_synchronously, prefer_interpolation_to_compose_strings
+// ignore_for_file: prefer_const_constructors, avoid_print, use_build_context_synchronously, prefer_interpolation_to_compose_strings
 
 import 'dart:collection';
 import 'dart:math';
@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:odyssey/dialogs.dart';
 import 'package:odyssey/theme/custom_theme.dart';
 import 'package:odyssey/data_management.dart';
+import 'package:odyssey/auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
@@ -24,7 +25,6 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   runApp(MaterialApp(
     debugShowCheckedModeBanner: false,
     theme: CustomTheme.lightTheme,
@@ -56,10 +56,9 @@ class SettingsPage extends StatefulWidget {
 GlobalKey<OdysseyMainState> key = GlobalKey();
 //Variables that we will be using, will try to minimize in the future
 const String sku = "Odyssey";
-const String version = "1.5";
-const String release = "Release";
-const String apikey =
-    "AIzaSyD8TrymPJaJVDXvXja2O6woa7B_-R-fi9w"; //Google Maps API Key
+const String version = "1.5.1";
+const String release = "Pre-Release";
+const debug = true;
 late GoogleMapController mapController;
 Color pincolor = Color(int.parse(defaultPinColor));
 String colorBuffer =
@@ -72,7 +71,7 @@ LatLng center =
     LatLng(defaultCenterLat, defaultCenterLng); //Default center of Map
 LatLng currentLocation = center; //Using center as a buffer
 MapType mapType = defaultMapType; //Default Map Type
-var pinshape = defaultPinShape; //Default Pin shape
+String pinshape = defaultPinShape; //Default Pin shape
 double bearing = defaultBearing; //Rotation of Map
 double mapZoom = defaultMapZoom; //Zoom of Map
 String shape =
@@ -95,10 +94,9 @@ String svgString =
 int onboarding = 0;
 List pins =
     []; //Pins is a seperate list from statemarkers, independent from whats used by GMapsController
-var waypoints = SplayTreeMap<int,
-    LatLng>(); //Need a SplayTreeMap Object to keep track of IDs and LatLngs
+SplayTreeMap<int, LatLng> waypoints = SplayTreeMap<int, LatLng>(); //Need a SplayTreeMap Object to keep track of IDs and LatLngs
 List<int> journal = [];
-var nearbyresults = [];
+List<NearByData> nearbyresults = [];
 Set<Marker> statemarkers = {};
 Set<Polyline> statepolylines = {};
 Set<Circle> statecircles = {};
@@ -701,7 +699,7 @@ class SettingsPageState extends State<SettingsPage> {
                                       Navigator.pop(context);
                                       Navigator.pop(context);
 
-                                      var waypointToPinId = pins
+                                      int waypointToPinId = pins
                                           .firstWhere((element) =>
                                               element.pincoor ==
                                               waypoints[index + 1])
@@ -853,6 +851,17 @@ class SettingsPageState extends State<SettingsPage> {
                   mainAxisSize: MainAxisSize.max,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    debug
+                    ? ListTile(
+                        leading: Icon(Icons.settings_applications_sharp),
+                        title: Text("Debug Menu - INTERNAL",
+                            style: GoogleFonts.quicksand(color: Colors.black, fontWeight: FontWeight.w500)),
+                        onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const DebugPage())),
+                      )
+                    : SizedBox(),
                 ListTile(
                   leading: Icon(Icons.group),
                   title: Text("Acknowledgements",
@@ -1034,6 +1043,11 @@ class OdysseyMainState extends State<OdysseyMain> {
   Future populateMapfromState({bool startup = false}) async {
     await OdysseyDatabase.instance.initStatefromDB();
 
+    Set<Marker> tempMarkers = {};
+    Set<Polyline> tempPolylines = {};
+    List<int> tempJournal = [];
+   
+
     setState(() {
       statemarkers.clear();
       statepolylines.clear();
@@ -1041,7 +1055,7 @@ class OdysseyMainState extends State<OdysseyMain> {
       waypoints.clear();
     });
 
-    var pinCounterBuffer =
+    int pinCounterBuffer =
         pinCounter; //I need to freeze the state of the counter so that it doesn't keep iterating on append
     for (int i = 0; i < pinCounterBuffer; i++) {
       pincolor = pins[i].pincolor;
@@ -1059,8 +1073,7 @@ class OdysseyMainState extends State<OdysseyMain> {
             .updatePinsDB(i + 1, pins[i].pinlocation, "location");
       }
 
-      setState(() {
-        statemarkers.add(
+        tempMarkers.add(
           Marker(
               markerId: MarkerId((i + 1).toString()),
               position: pins[i].pincoor,
@@ -1082,22 +1095,28 @@ class OdysseyMainState extends State<OdysseyMain> {
           //Let's do a compare, we want all the keys from highest to lowest
           waypoints[pins[i].pinwaypoint] = pins[i].pincoor;
         }
-        journal.add(i - 1);
-      });
+        tempJournal.add(i - 1);
+    
       center = pins[i]
           .pincoor; //For whatever reason this was the only way that Center sticks after every cycle
       print("Restored Pin: ${i + 1}");
     }
     if (waypoints.isNotEmpty) {
-      statepolylines.add(Polyline(
+      tempPolylines.add(Polyline(
           polylineId: PolylineId(waypointCounter.toString()),
           points: (waypoints.values.toList()),
           width: 5,
           color: Color(int.parse(
               routeColors[Random().nextInt(routeColors.length - 1)]
                   .toString()))));
-      cleanBuffers();
+      
     }
+
+    setState(() {
+      statemarkers = tempMarkers;
+      statepolylines = tempPolylines;
+      journal = tempJournal;
+    });
 
     if (startup) {
       //We only want to move the camera when the app is started up otherwise it causes too much movement
@@ -1111,6 +1130,7 @@ class OdysseyMainState extends State<OdysseyMain> {
         ),
       );
     }
+    cleanBuffers();
   }
 
   Future appendMarker(LatLng latLng) async {
@@ -1142,7 +1162,7 @@ class OdysseyMainState extends State<OdysseyMain> {
             draggable: true,
             onDragEnd: (newPos) async {
               //We need to find this Pin's ID because it's not sticky, kind of a dumb way of doing it but
-              var pinCounterBuffer = statemarkers
+              Marker pinCounterBuffer = statemarkers
                   .firstWhere((marker) => marker.position == latLng);
               OdysseyDatabase.instance.updatePinsDB(
                   int.parse(pinCounterBuffer.markerId.value), newPos, "latlng");
@@ -1295,7 +1315,7 @@ class OdysseyMainState extends State<OdysseyMain> {
       int id) {
     final bool isLight = color.computeLuminance() > 0.5;
     final Color contentColor = isLight ? Colors.black : Colors.white;
-    var target = latlng;
+    LatLng target = latlng;
     return Center(
         child: Wrap(
       direction: Axis.vertical,
@@ -1621,7 +1641,7 @@ class OdysseyMainState extends State<OdysseyMain> {
           final Color contentColor = isLight ? Colors.black : Colors.white;
           return Container(
               constraints: BoxConstraints(maxWidth: 500),
-              color: Colors.white, // Consider using theme color
+
               child: SingleChildScrollView(
                   child: ListBody(children: <Widget>[
                 ListTile(
@@ -1775,7 +1795,6 @@ class OdysseyMainState extends State<OdysseyMain> {
       builder: (BuildContext context) {
         return Container(
           constraints: BoxConstraints(maxWidth: 500),
-          color: Colors.white, // Consider using theme color
           child: SingleChildScrollView(
             child: ListBody(
               children: [
@@ -3084,7 +3103,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                                           bytes =
                                               await googlePlacePhotoReftoBytes(
                                                   nearbyresults[index]
-                                                      .photoRef);
+                                                      .photoRef!);
                                         }
                                         nearbyDialog(
                                             context,
@@ -3095,7 +3114,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                                             nearbyresults[index]
                                                 .rating
                                                 .toString(),
-                                            nearbyresults[index].price,
+                                            nearbyresults[index].price ?? '',
                                             bytes);
                                       } else {
                                         null;
@@ -3180,7 +3199,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                 onPressed: () async {
                   Navigator.pop(context);
                   try {
-                    final selectedPhotoToData;
+                    late final Uint8List selectedPhotoToData;
                     final XFile? selectedPhoto =
                         await photo.pickImage(source: ImageSource.gallery);
                     if (selectedPhoto != null) {
@@ -3200,7 +3219,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                 onPressed: () async {
                   Navigator.pop(context);
                   try {
-                    final selectedPhotoToData;
+                    late final Uint8List selectedPhotoToData;
                     final XFile? selectedPhoto =
                         await photo.pickImage(source: ImageSource.camera);
                     if (selectedPhoto != null) {
@@ -3383,7 +3402,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                                   return Container(
                                       constraints:
                                           BoxConstraints(maxWidth: 500),
-                                      color: Colors.white,
+                                     
                                       child: SingleChildScrollView(
                                           child: ListBody(children: <Widget>[
                                         ListTile(
@@ -3657,5 +3676,93 @@ class OdysseyMainState extends State<OdysseyMain> {
                     SizedBox(height: 85.0, width: 85.0, child: actionMenu())),
           ]),
         ));
+  }
+}
+class DebugPage extends StatefulWidget {
+  const DebugPage({super.key});
+  @override
+  State<DebugPage> createState() => DebugPageState();
+}
+
+class DebugPageState extends State<DebugPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        backgroundColor:
+            MediaQuery.of(context).platformBrightness == Brightness.light
+                ? lightMode.withValues(alpha: 1)
+                : darkMode.withValues(alpha: 1),
+        appBar: AppBar(
+          title: Text("", style: GoogleFonts.quicksand(color: Colors.white)),
+        ),
+        body: SingleChildScrollView(
+            child: Column(children: [
+          Card(
+              child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                ListTile(
+                    leading: Icon(Icons.key),
+                    title: Text("View Current API Keys",
+                        style: GoogleFonts.quicksand(color: Colors.black)),
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                              title:
+                                  Text("Current API Keys", style: dialogHeader),
+                              content: SingleChildScrollView(
+                                child: ListBody(
+                                  children: <Widget>[
+                                    Text("Google Maps Key: $apikey \n",
+                                        style: dialogBody),
+
+                                  ],
+                                ),
+                              ),
+                              actions: <Widget>[
+                                TextButton(
+                                  child: Text('OK', style: dialogBody),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                )
+                              ]);
+                        },
+                      );
+                    }),
+              ])),
+
+
+          Card(
+              child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              ListTile(
+                leading: Icon(Icons.radio_button_checked),
+                title: Text("Test Function",
+                    style: GoogleFonts.quicksand(color: Colors.black)),
+                onTap: () => setState(() {
+                  null;
+                }),
+              ),
+            ],
+          )),
+          Card(
+              child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                ListTile(
+                  leading: Icon(Icons.delete_forever),
+                  title: Text("Reset DB (Will Crash!)",
+                      style: GoogleFonts.quicksand(color: Colors.red)),
+                  onTap: () => OdysseyDatabase.instance.resetDB(),
+                ),
+              ])),
+        ])));
   }
 }

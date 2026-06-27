@@ -13,15 +13,15 @@ These will also be the values to fall back on in case DB can't be loaded
 They will also be loaded into DB on init */
 
 //Center of the USA is used for default value
-var defaultCenterLat = 41.850033;
-var defaultCenterLng = -87.6500523;
-var defaultMapType = MapType.normal;
-var defaultPinShape = 'circle';
+double defaultCenterLat = 41.850033;
+double defaultCenterLng = -87.6500523;
+MapType defaultMapType = MapType.normal;
+String defaultPinShape = 'circle';
 double defaultBearing = 0;
-var defaultPinColor = '0xffff0000';
+String defaultPinColor = '0xffff0000';
 String defaultShape = 'circle';
 double defaultMapZoom = 4.0;
-var pathBuffer = "";
+String pathBuffer = "";
 
 //We can use these functions to do different types of conversions that we normally wouldn't be able to do
 
@@ -30,7 +30,7 @@ String colorToString(Color color) {
 }
 
 String locationToString(LatLng latLng) {
-  var latLngBuffer = latLng.toString();
+  String latLngBuffer = latLng.toString();
   latLngBuffer = latLngBuffer.replaceAll("LatLng(", "");
   latLngBuffer = latLngBuffer.replaceAll(")", "");
 
@@ -44,7 +44,7 @@ LatLng stringToLocation(String string) {
   if (RegExp(
           r'([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))?,([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))?')
       .hasMatch(string)) {
-    var latLngBuffer = string.split(",");
+    List<String> latLngBuffer = string.split(",");
     return LatLng(double.parse(latLngBuffer[0].trim()),
         double.parse(latLngBuffer[1].trim()));
   } else {
@@ -53,28 +53,19 @@ LatLng stringToLocation(String string) {
   }
 }
 
-void stringToMapType(String maptype) {
+MapType stringToMapType(String maptype) {
 //We're going to use this function to "do a String conversion to MapType"
   switch (maptype) {
     case ("MapType.normal"):
-      mapType = MapType.normal;
-      break;
-
+      return MapType.normal;
     case ("MapType.hybrid"):
-      mapType = MapType.hybrid;
-      break;
-
+      return MapType.hybrid;    
     case ("MapType.terrain"):
-      mapType = MapType.terrain;
-      break;
-
+      return MapType.terrain;
     case ("MapType.satellite"):
-      mapType = MapType.satellite;
-      break;
-
+      return MapType.satellite;
     default:
-      mapType = MapType.normal;
-      break;
+      return MapType.normal;
   }
 }
 
@@ -151,10 +142,8 @@ class OdysseyDatabase {
 
     caption = caption.toString();
 
-    //Split latlng and make it a two parter float
-    var latLngBuffer = (locationToString(latLng)).split(", ");
-    var lat = double.parse(latLngBuffer[0].trim());
-    var lng = double.parse(latLngBuffer[1].trim());
+    double lat = latLng.latitude;
+    double lng = latLng.longitude;
 
     location.toString();
 
@@ -201,12 +190,9 @@ class OdysseyDatabase {
 
     switch (type) {
       case "latlng":
-        var latLngBuffer = (locationToString(content)).split(", ");
-        var lat = double.parse(latLngBuffer[0].trim());
-        var lng = double.parse(latLngBuffer[1].trim());
-
-        db.rawUpdate('''UPDATE Pins SET lat = ? WHERE id = ?''', [lat, id]);
-        db.rawUpdate('''UPDATE Pins SET lng = ? WHERE id = ?''', [lng, id]);
+        double lat = content.latitude;
+        double lng = content.longitude;
+        db.rawUpdate('''UPDATE Pins SET lat = ?, lng = ? WHERE id = ?''', [lat, lng, id]);
         break;
 
       case "location":
@@ -255,29 +241,22 @@ class OdysseyDatabase {
 
     if (pathBuffer != null) {
       //Load Prefs Data
-      var prefsdbResults = await db.query("Prefs");
-      mapZoom = double.parse(prefsdbResults[0]['mapzoom'].toString());
-      stringToMapType(prefsdbResults[0]['maplayer'].toString());
-      bearing = double.parse(prefsdbResults[0]['bearing'].toString());
+      List<Map<String, dynamic>> prefsdbResults = await db.query("Prefs");
+      mapZoom = double.tryParse(prefsdbResults[0]['mapzoom']?.toString() ?? '') ?? defaultMapZoom;
+      mapType = stringToMapType(prefsdbResults[0]['maplayer']?.toString() ?? defaultMapType.toString());
+      bearing = double.tryParse(prefsdbResults[0]['bearing']?.toString() ?? '') ?? defaultBearing;
 
       //Load User Data
-      var pinsdbResults = await db.query("Pins");
+      List<Map<String, dynamic>> pinsdbResults = await db.query("Pins");
+      if (pinsdbResults.isEmpty) return;
 
-      var pinCounterBuffer = await db.query("Pins", columns: ["MAX(id)"]);
-      var pinCounterBuffer2 =
-          int.tryParse(pinCounterBuffer[0]['MAX(id)'].toString());
-
-      if (await db.query("Pins", columns: ["MAX(waypoint)"]) != null) {
-        var waypointCounterBuffer =
+      List<Map<String, dynamic>> waypointCounterBuffer =
             await db.query("Pins", columns: ["MAX(waypoint)"]);
-        var waypointCounterBuffer2 =
-            int.tryParse(waypointCounterBuffer[0]['MAX(waypoint)'].toString());
-        waypointCounterBuffer2 ??= 0;
-        waypointCounter = waypointCounterBuffer2;
+      if (waypointCounterBuffer.isNotEmpty) {
+        waypointCounter = int.tryParse(waypointCounterBuffer[0]['MAX(waypoint)']?.toString() ?? '0') ?? 0;
       }
 
-      pinCounterBuffer2 ??= 0;
-      pinCounter = pinCounterBuffer2;
+      pinCounter = pinsdbResults.length;
 
 /*    This part is the star of the show, we are parsing everything from the Pins DB
       Then by counter  we are attempting, one by one to place everything on the map */
@@ -294,7 +273,7 @@ class OdysseyDatabase {
               [defaultPinColor, i + 1]);
         }
 
-        pincolor = Color(int.parse(pinsdbResults[i]["color"].toString()));
+        pincolor = Color(int.tryParse(pinsdbResults[i]["color"].toString()) ?? int.parse(defaultPinColor));
 
         //Parse the Pin's Lat and Lng
         LatLng latLng = const LatLng(0, 0);
@@ -305,14 +284,14 @@ class OdysseyDatabase {
           print("Error With Pin: ${i + 1}");
           print(
               "We're going to need to fix it otherwise we will run into issues...");
-          latLng = const LatLng(0, 0);
-          await db.rawUpdate('''UPDATE Pins SET lat = ? WHERE id = ?''',
-              [latLng.latitude, i + 1]);
-          await db.rawUpdate('''UPDATE Pins SET lng = ? WHERE id = ?''',
-              [latLng.longitude, i + 1]);
+
+          await db.rawUpdate(
+            '''UPDATE Pins SET lat = ?, lng = ? WHERE id = ?''',
+            [0.0, 0.0, i + 1]
+          );
         } else {
-          latLng = LatLng(double.parse(pinsdbResults[i]["lat"].toString()),
-              double.parse(pinsdbResults[i]["lng"].toString()));
+          latLng = LatLng(double.tryParse(pinsdbResults[i]["lat"].toString()) ?? 0.0,
+              double.tryParse(pinsdbResults[i]["lng"].toString()) ?? 0.0);
         }
 
         pins.add(PinData(
