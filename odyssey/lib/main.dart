@@ -1,10 +1,11 @@
-// ignore_for_file: prefer_const_constructors, avoid_print, use_build_context_synchronously, prefer_interpolation_to_compose_strings
+// ignore_for_file: use_build_context_synchronously, avoid_print
 
 import 'dart:collection';
 import 'dart:math';
 import 'dart:ui' as ui;
 import 'dart:io';
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:odyssey/dialogs.dart';
@@ -94,7 +95,8 @@ String svgString =
 int onboarding = 0;
 List pins =
     []; //Pins is a seperate list from statemarkers, independent from whats used by GMapsController
-SplayTreeMap<int, LatLng> waypoints = SplayTreeMap<int, LatLng>(); //Need a SplayTreeMap Object to keep track of IDs and LatLngs
+SplayTreeMap<int, LatLng> waypoints = SplayTreeMap<int,
+    LatLng>(); //Need a SplayTreeMap Object to keep track of IDs and LatLngs
 List<int> journal = [];
 List<NearByData> nearbyresults = [];
 Set<Marker> statemarkers = {};
@@ -313,8 +315,8 @@ List<double> latLngDifferenceToKmMiles({LatLng? inputOne, LatLng? inputTwo}) {
   if (inputOne != null && inputTwo != null) {
     //Using Harversine Formulas
 
-    const int R =
-        6371; //Radius of the Earth, I guess I'll Update This Later If We Take Over Mars Or Something
+    const double R =
+        6371.0; //Radius of the Earth, I guess I'll Update This Later If We Take Over Mars Or Something
     double dLat = (inputOne.latitude - inputTwo.latitude) * (pi / 180);
     double dLng = (inputOne.longitude - inputTwo.longitude) * (pi / 180);
 
@@ -814,16 +816,29 @@ class SettingsPageState extends State<SettingsPage> {
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ListTile(
-                  leading: Icon(Icons.info),
-                  title: Text(sku,
-                      style: GoogleFonts.quicksand(
-                          color: Colors.black, fontWeight: FontWeight.w500)),
-                  subtitle: Text("Version $version, ($release)",
-                      style: GoogleFonts.quicksand(
-                          color: Color.fromRGBO(81, 81, 81, 1),
-                          fontWeight: FontWeight.w500)),
-                ),
+                (kIsWeb)
+                    ? ListTile(
+                        leading: Icon(Icons.info),
+                        title: Text("$sku (Web, Beta)",
+                            style: GoogleFonts.quicksand(
+                                color: Colors.black,
+                                fontWeight: FontWeight.w500)),
+                        subtitle: Text("Version $version, ($release)",
+                            style: GoogleFonts.quicksand(
+                                color: Color.fromRGBO(81, 81, 81, 1),
+                                fontWeight: FontWeight.w500)),
+                      )
+                    : ListTile(
+                        leading: Icon(Icons.info),
+                        title: Text(sku,
+                            style: GoogleFonts.quicksand(
+                                color: Colors.black,
+                                fontWeight: FontWeight.w500)),
+                        subtitle: Text("Version $version",
+                            style: GoogleFonts.quicksand(
+                                color: Color.fromRGBO(81, 81, 81, 1),
+                                fontWeight: FontWeight.w500)),
+                      )
               ],
             ),
           ),
@@ -851,11 +866,13 @@ class SettingsPageState extends State<SettingsPage> {
                   mainAxisSize: MainAxisSize.max,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    debug
+                debug
                     ? ListTile(
                         leading: Icon(Icons.settings_applications_sharp),
                         title: Text("Debug Menu - INTERNAL",
-                            style: GoogleFonts.quicksand(color: Colors.black, fontWeight: FontWeight.w500)),
+                            style: GoogleFonts.quicksand(
+                                color: Colors.black,
+                                fontWeight: FontWeight.w500)),
                         onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -922,42 +939,62 @@ class SettingsPageState extends State<SettingsPage> {
                   },
                 )
               ])),
-          Card(
-              child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                ListTile(
-                  leading: Icon(Icons.flashlight_on),
-                  subtitle: Text(camFlashlight ? "On" : "Off",
-                      style: GoogleFonts.quicksand(
-                          color: Color.fromRGBO(81, 81, 81, 1),
-                          fontWeight: FontWeight.w500)),
-                  title: Text("Toggle \"Scan QR Code\" Flashlight",
-                      style: GoogleFonts.quicksand(
-                          color: Colors.black, fontWeight: FontWeight.w500)),
-                  onTap: () {
-                    Navigator.pop(context);
-                    camFlashlight = !camFlashlight;
-                    onUpdate?.call();
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.zoom_in_map),
-                  subtitle: Text(camAutozoom ? "On" : "Off",
-                      style: GoogleFonts.quicksand(
-                          color: Color.fromRGBO(81, 81, 81, 1),
-                          fontWeight: FontWeight.w500)),
-                  title: Text("Toggle \"Scan QR Code\" Auto Zoom",
-                      style: GoogleFonts.quicksand(
-                          color: Colors.black, fontWeight: FontWeight.w500)),
-                  onTap: () {
-                    Navigator.pop(context);
-                    camAutozoom = !camAutozoom;
-                    onUpdate?.call();
-                  },
-                )
-              ])),
+          (!kIsWeb)
+              ? Card(
+                  child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                      ListTile(
+                        leading: Icon(Icons.flashlight_on),
+                        subtitle: Text(camFlashlight ? "On" : "Off",
+                            style: GoogleFonts.quicksand(
+                                color: Color.fromRGBO(81, 81, 81, 1),
+                                fontWeight: FontWeight.w500)),
+                        title: Text("Toggle \"Scan QR Code\" Flashlight",
+                            style: GoogleFonts.quicksand(
+                                color: Colors.black,
+                                fontWeight: FontWeight.w500)),
+                        onTap: () {
+                          Navigator.pop(context);
+                          camFlashlight = !camFlashlight;
+                          onUpdate?.call();
+                        },
+                      ),
+                      ListTile(
+                        leading: Icon(Icons.zoom_in_map),
+                        subtitle: Text(camAutozoom ? "On" : "Off",
+                            style: GoogleFonts.quicksand(
+                                color: Color.fromRGBO(81, 81, 81, 1),
+                                fontWeight: FontWeight.w500)),
+                        title: Text("Toggle \"Scan QR Code\" Auto Zoom",
+                            style: GoogleFonts.quicksand(
+                                color: Colors.black,
+                                fontWeight: FontWeight.w500)),
+                        onTap: () {
+                          Navigator.pop(context);
+                          camAutozoom = !camAutozoom;
+                          onUpdate?.call();
+                        },
+                      )
+                    ]))
+              : Card(
+                  child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                      ListTile(
+                        leading: Icon(Icons.launch),
+                        title: Text("Open $sku (Web, Legacy)",
+                            style: GoogleFonts.quicksand(
+                                color: Colors.black,
+                                fontWeight: FontWeight.w500)),
+                        onTap: () {
+                          redirectURL(
+                              "https://kgeok.github.io/Odyssey/Legacy/");
+                        },
+                      )
+                    ])),
           Card(
               child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -1046,7 +1083,6 @@ class OdysseyMainState extends State<OdysseyMain> {
     Set<Marker> tempMarkers = {};
     Set<Polyline> tempPolylines = {};
     List<int> tempJournal = [];
-   
 
     setState(() {
       statemarkers.clear();
@@ -1073,30 +1109,30 @@ class OdysseyMainState extends State<OdysseyMain> {
             .updatePinsDB(i + 1, pins[i].pinlocation, "location");
       }
 
-        tempMarkers.add(
-          Marker(
-              markerId: MarkerId((i + 1).toString()),
-              position: pins[i].pincoor,
-              draggable: true,
-              onDragEnd: (newPos) async {
-                OdysseyDatabase.instance.updatePinsDB(i + 1, newPos, "latlng");
-                OdysseyDatabase.instance.updatePinsDB(
-                    i + 1, await reverseGeocoder(newPos), "location");
-                reenumerateState();
-                cleanBuffers();
-              },
-              infoWindow: InfoWindow(
-                title: pins[i].pinlocation,
-                snippet: caption,
-              ),
-              icon: bitmapDescriptor),
-        );
-        if (pins[i].pinwaypoint != null) {
-          //Let's do a compare, we want all the keys from highest to lowest
-          waypoints[pins[i].pinwaypoint] = pins[i].pincoor;
-        }
-        tempJournal.add(i - 1);
-    
+      tempMarkers.add(
+        Marker(
+            markerId: MarkerId((i + 1).toString()),
+            position: pins[i].pincoor,
+            draggable: true,
+            onDragEnd: (newPos) async {
+              OdysseyDatabase.instance.updatePinsDB(i + 1, newPos, "latlng");
+              OdysseyDatabase.instance.updatePinsDB(
+                  i + 1, await reverseGeocoder(newPos), "location");
+              reenumerateState();
+              cleanBuffers();
+            },
+            infoWindow: InfoWindow(
+              title: pins[i].pinlocation,
+              snippet: caption,
+            ),
+            icon: bitmapDescriptor),
+      );
+      if (pins[i].pinwaypoint != null) {
+        //Let's do a compare, we want all the keys from highest to lowest
+        waypoints[pins[i].pinwaypoint] = pins[i].pincoor;
+      }
+      tempJournal.add(i - 1);
+
       center = pins[i]
           .pincoor; //For whatever reason this was the only way that Center sticks after every cycle
       print("Restored Pin: ${i + 1}");
@@ -1109,7 +1145,6 @@ class OdysseyMainState extends State<OdysseyMain> {
           color: Color(int.parse(
               routeColors[Random().nextInt(routeColors.length - 1)]
                   .toString()))));
-      
     }
 
     setState(() {
@@ -1164,12 +1199,21 @@ class OdysseyMainState extends State<OdysseyMain> {
               //We need to find this Pin's ID because it's not sticky, kind of a dumb way of doing it but
               Marker pinCounterBuffer = statemarkers
                   .firstWhere((marker) => marker.position == latLng);
-              OdysseyDatabase.instance.updatePinsDB(
-                  int.parse(pinCounterBuffer.markerId.value), newPos, "latlng");
-              OdysseyDatabase.instance.updatePinsDB(
-                  int.parse(pinCounterBuffer.markerId.value),
-                  await reverseGeocoder(newPos),
-                  "location");
+              if (!kIsWeb) {
+                OdysseyDatabase.instance.updatePinsDB(
+                    int.parse(pinCounterBuffer.markerId.value),
+                    newPos,
+                    "latlng");
+                OdysseyDatabase.instance.updatePinsDB(
+                    int.parse(pinCounterBuffer.markerId.value),
+                    await reverseGeocoder(newPos),
+                    "location");
+              } else {
+                OdysseyDatabaseWeb.instance.updatePinsDB(
+                    int.parse(pinCounterBuffer.markerId.value),
+                    newPos,
+                    "latlng");
+              }
               reenumerateState();
               cleanBuffers();
             },
@@ -1182,7 +1226,7 @@ class OdysseyMainState extends State<OdysseyMain> {
     });
 
     mapZoom = await mapController.getZoomLevel();
-    await OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
+    //await OdysseyDatabase.instance.updatePrefsDB(mapZoom, bearing, mapType);
     cleanBuffers();
   }
 
@@ -1311,7 +1355,7 @@ class OdysseyMainState extends State<OdysseyMain> {
       final String date,
       final String note,
       final String shape,
-      var photo,
+      final Uint8List? photo,
       int id) {
     final bool isLight = color.computeLuminance() > 0.5;
     final Color contentColor = isLight ? Colors.black : Colors.white;
@@ -1393,7 +1437,7 @@ class OdysseyMainState extends State<OdysseyMain> {
       String date,
       String note,
       String shape,
-      var photo,
+      Uint8List? photo,
       int id) {
     final bool isLight = color.computeLuminance() > 0.5;
     final Color contentColor = isLight ? Colors.black : Colors.white;
@@ -1461,7 +1505,7 @@ class OdysseyMainState extends State<OdysseyMain> {
   }
 
   void nearbyDialog(BuildContext context, String caption, String location,
-      LatLng latlng, String rating, String price, var photo) {
+      LatLng latlng, String rating, String price, Uint8List? photo) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -1502,7 +1546,11 @@ class OdysseyMainState extends State<OdysseyMain> {
   }
 
   void showMapOptionsDialog(BuildContext context, LatLng latlng) {
-    if (Platform.isIOS) {
+    if (kIsWeb) {
+      redirectURL(
+          "http://maps.google.com/maps?q=${latlng.latitude},${latlng.longitude}");
+    }
+    if (Platform.isIOS || Platform.isMacOS) {
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -1551,7 +1599,7 @@ class OdysseyMainState extends State<OdysseyMain> {
               ]);
         },
       );
-    } else if (Platform.isAndroid) {
+    } else if (Platform.isAndroid || Platform.isFuchsia) {
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -1641,7 +1689,6 @@ class OdysseyMainState extends State<OdysseyMain> {
           final Color contentColor = isLight ? Colors.black : Colors.white;
           return Container(
               constraints: BoxConstraints(maxWidth: 500),
-
               child: SingleChildScrollView(
                   child: ListBody(children: <Widget>[
                 ListTile(
@@ -1651,7 +1698,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                   onTap: () {
                     Navigator.pop(context);
                     Clipboard.setData(ClipboardData(
-                        text: "${caption + " " + location}, $date $note"));
+                        text: "${"$caption $location"}, $date $note"));
                     scaffoldMessengerKey.currentState?.showSnackBar(
                         const SnackBar(content: Text('Copied to Clipboard.')));
                   },
@@ -1784,7 +1831,7 @@ class OdysseyMainState extends State<OdysseyMain> {
       String date,
       String note,
       String shape,
-      var photo,
+      Uint8List? photo,
       int id) {
     showModalBottomSheet(
       context: context,
@@ -2017,6 +2064,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                   await OdysseyDatabase.instance.updatePinsDB(id, note, "note");
                   //captionTextController.dispose();
                   //noteTextController.dispose();
+                  if (!context.mounted) return;
                   Navigator.pop(context);
                   reenumerateState();
                 },
@@ -2026,6 +2074,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                     style: GoogleFonts.quicksand(
                         fontWeight: FontWeight.w700, color: contentColor)),
                 onPressed: () {
+                  if (!context.mounted) return;
                   Navigator.of(context).pop();
                   //captionTextController.dispose();
                   //noteTextController.dispose();
@@ -2040,6 +2089,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                   note = noteTextController.text;
                   OdysseyDatabase.instance.updatePinsDB(id, caption, "caption");
                   OdysseyDatabase.instance.updatePinsDB(id, note, "note");
+                  if (!context.mounted) return;
                   Navigator.pop(context);
                   reenumerateState();
                 },
@@ -2081,6 +2131,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                 TextButton(
                   child: Text('Cancel', style: dialogBody),
                   onPressed: () {
+                    if (!context.mounted) return;
                     Navigator.of(context).pop();
                   },
                 ),
@@ -2091,6 +2142,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                     colorToHex(pincolor); // Update global colorBuffer
                     OdysseyDatabase.instance
                         .updatePinsDB(id, pincolor, "color");
+                    if (!context.mounted) return;
                     Navigator.pop(context); // Pop color picker dialog
                     reenumerateState(); // Re-render map/journal
                   },
@@ -2383,16 +2435,17 @@ class OdysseyMainState extends State<OdysseyMain> {
                                         if ((barcode.rawValue)
                                             .toString()
                                             .startsWith("odyssey://")) {
-                                          var capturedValue =
+                                          List<String> capturedValue =
                                               (barcode.rawValue.toString())
                                                   .split(RegExp(r'[&=]'));
-                                          var location = await reverseGeocoder(
-                                              stringToLocation(capturedValue[
-                                                  capturedValue.indexWhere(
-                                                          (element) =>
-                                                              element ==
-                                                              "latlng") +
-                                                      1]));
+                                          LatLng location =
+                                              await reverseGeocoder(
+                                                  stringToLocation(capturedValue[
+                                                      capturedValue.indexWhere(
+                                                              (element) =>
+                                                                  element ==
+                                                                  "latlng") +
+                                                          1]));
                                           pincolor = Color(int.parse(
                                               capturedValue[
                                                       (capturedValue.indexWhere(
@@ -2436,7 +2489,9 @@ class OdysseyMainState extends State<OdysseyMain> {
                                                                       color:
                                                                           contentColor)),
                                                               const Text(""),
-                                                              Text(location,
+                                                              Text(
+                                                                  locationToString(
+                                                                      location),
                                                                   style: GoogleFonts.quicksand(
                                                                       fontWeight:
                                                                           FontWeight
@@ -2820,6 +2875,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                 onPressed: () async {
                   if (await reverseGeocoder(stringToLocation(addressBuffer)) ==
                       "Location N/A") {
+                    if (!context.mounted) return;
                     simpleDialog(
                         context,
                         "Coordinates Invalid",
@@ -2827,6 +2883,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                         "",
                         "error");
                   } else {
+                    if (!context.mounted) return;
                     setState(() {
                       if (addressBuffer.isEmpty) {
                         addressBuffer = " ";
@@ -2863,6 +2920,7 @@ class OdysseyMainState extends State<OdysseyMain> {
               label: 'More Info',
               textColor: Colors.white,
               onPressed: () {
+                if (!context.mounted) return;
                 simpleDialog(
                     context,
                     "Pre-Release Version",
@@ -3209,6 +3267,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                       reenumerateState();
                     }
                   } catch (e) {
+                    if (!context.mounted) return;
                     simpleDialog(context, "Unable To Retrieve Photos",
                         "Check Your Settings And Try Again", "", "error");
                   }
@@ -3229,6 +3288,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                       reenumerateState();
                     }
                   } catch (e) {
+                    if (!context.mounted) return;
                     simpleDialog(context, "Unable To Use Camera",
                         "Check Your Settings And Try Again", "", "error");
                   }
@@ -3297,15 +3357,16 @@ class OdysseyMainState extends State<OdysseyMain> {
                   onTap: () {
                     appendFromCurrentLocation();
                   }),
-              PopupMenuItem(
-                  value: 5,
-                  child: Text(
-                    "Scan QR Code",
-                    style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
-                  ),
-                  onTap: () {
-                    scanQRcode(context);
-                  }),
+              if ((!kIsWeb))
+                PopupMenuItem(
+                    value: 5,
+                    child: Text(
+                      "Scan QR Code",
+                      style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
+                    ),
+                    onTap: () {
+                      scanQRcode(context);
+                    }),
               const PopupMenuDivider(height: 20),
               PopupMenuItem(
                 value: 6,
@@ -3402,7 +3463,6 @@ class OdysseyMainState extends State<OdysseyMain> {
                                   return Container(
                                       constraints:
                                           BoxConstraints(maxWidth: 500),
-                                     
                                       child: SingleChildScrollView(
                                           child: ListBody(children: <Widget>[
                                         ListTile(
@@ -3678,6 +3738,7 @@ class OdysseyMainState extends State<OdysseyMain> {
         ));
   }
 }
+
 class DebugPage extends StatefulWidget {
   const DebugPage({super.key});
   @override
@@ -3718,7 +3779,6 @@ class DebugPageState extends State<DebugPage> {
                                   children: <Widget>[
                                     Text("Google Maps Key: $apikey \n",
                                         style: dialogBody),
-
                                   ],
                                 ),
                               ),
@@ -3734,8 +3794,6 @@ class DebugPageState extends State<DebugPage> {
                       );
                     }),
               ])),
-
-
           Card(
               child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -3746,7 +3804,7 @@ class DebugPageState extends State<DebugPage> {
                 title: Text("Test Function",
                     style: GoogleFonts.quicksand(color: Colors.black)),
                 onTap: () => setState(() {
-                  null;
+                  OdysseyDatabaseWeb.instance.updatePinsDB(1, "test", "note");
                 }),
               ),
             ],

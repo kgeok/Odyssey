@@ -1,12 +1,12 @@
-// ignore_for_file: avoid_print, unnecessary_null_comparison
+// ignore_for_file: avoid_print
+import 'package:flutter/foundation.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:path/path.dart';
 import 'package:odyssey/main.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-//import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /* These are the default value we use for settings
 These will also be the values to fall back on in case DB can't be loaded
@@ -59,7 +59,7 @@ MapType stringToMapType(String maptype) {
     case ("MapType.normal"):
       return MapType.normal;
     case ("MapType.hybrid"):
-      return MapType.hybrid;    
+      return MapType.hybrid;
     case ("MapType.terrain"):
       return MapType.terrain;
     case ("MapType.satellite"):
@@ -89,12 +89,6 @@ class OdysseyDatabase {
   static Database? _database;
   OdysseyDatabase._init();
 
-  Future get database async {
-    if (_database != null) return _database!;
-    _database = await _initDB('OdysseyDB.db');
-    return _database!;
-  }
-
   Future _initDB(String fpath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, fpath);
@@ -104,6 +98,12 @@ class OdysseyDatabase {
 
     return await openDatabase(path,
         version: 2, onCreate: createDB, onUpgrade: upgradeDB);
+  }
+
+  Future get database async {
+    if (_database != null) return _database!;
+    _database = await _initDB('OdysseyDB.db');
+    return _database!;
   }
 
   Future createDB(Database db, int version) async {
@@ -136,16 +136,12 @@ class OdysseyDatabase {
       LatLng latLng,
       String location,
       String note,
-      var photo,
+      Uint8List? photo,
       int? waypoint) async {
     final db = await instance.database;
 
-    caption = caption.toString();
-
     double lat = latLng.latitude;
     double lng = latLng.longitude;
-
-    location.toString();
 
     db.rawInsert(
         'INSERT INTO Pins (id, caption, color, lat, lng, date, location, shape, note, photo, waypoint) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
@@ -192,7 +188,8 @@ class OdysseyDatabase {
       case "latlng":
         double lat = content.latitude;
         double lng = content.longitude;
-        db.rawUpdate('''UPDATE Pins SET lat = ?, lng = ? WHERE id = ?''', [lat, lng, id]);
+        db.rawUpdate('''UPDATE Pins SET lat = ?, lng = ? WHERE id = ?''',
+            [lat, lng, id]);
         break;
 
       case "location":
@@ -239,28 +236,35 @@ class OdysseyDatabase {
     Probably not but I'll figure something out later maybe type type-casting is the right way to go */
     final db = await instance.database;
 
-    if (pathBuffer != null) {
+    if (pathBuffer != "") {
       //Load Prefs Data
       List<Map<String, dynamic>> prefsdbResults = await db.query("Prefs");
-      mapZoom = double.tryParse(prefsdbResults[0]['mapzoom']?.toString() ?? '') ?? defaultMapZoom;
-      mapType = stringToMapType(prefsdbResults[0]['maplayer']?.toString() ?? defaultMapType.toString());
-      bearing = double.tryParse(prefsdbResults[0]['bearing']?.toString() ?? '') ?? defaultBearing;
+      mapZoom =
+          double.tryParse(prefsdbResults[0]['mapzoom']?.toString() ?? '') ??
+              defaultMapZoom;
+      mapType = stringToMapType(prefsdbResults[0]['maplayer']?.toString() ??
+          defaultMapType.toString());
+      bearing =
+          double.tryParse(prefsdbResults[0]['bearing']?.toString() ?? '') ??
+              defaultBearing;
 
       //Load User Data
       List<Map<String, dynamic>> pinsdbResults = await db.query("Pins");
       if (pinsdbResults.isEmpty) return;
 
       List<Map<String, dynamic>> waypointCounterBuffer =
-            await db.query("Pins", columns: ["MAX(waypoint)"]);
+          await db.query("Pins", columns: ["MAX(waypoint)"]);
       if (waypointCounterBuffer.isNotEmpty) {
-        waypointCounter = int.tryParse(waypointCounterBuffer[0]['MAX(waypoint)']?.toString() ?? '0') ?? 0;
+        waypointCounter = int.tryParse(
+                waypointCounterBuffer[0]['MAX(waypoint)']?.toString() ?? '0') ??
+            0;
       }
 
       pinCounter = pinsdbResults.length;
 
 /*    This part is the star of the show, we are parsing everything from the Pins DB
       Then by counter  we are attempting, one by one to place everything on the map */
-      for (var i = 0; i <= pinCounter - 1; i++) {
+      for (int i = 0; i <= pinCounter - 1; i++) {
         //Parse the Pin's Color
         //If for whatever reason there is an issue parsing the color HEX...
         if (!(pinsdbResults[i]["color"].toString())
@@ -273,7 +277,8 @@ class OdysseyDatabase {
               [defaultPinColor, i + 1]);
         }
 
-        pincolor = Color(int.tryParse(pinsdbResults[i]["color"].toString()) ?? int.parse(defaultPinColor));
+        pincolor = Color(int.tryParse(pinsdbResults[i]["color"].toString()) ??
+            int.parse(defaultPinColor));
 
         //Parse the Pin's Lat and Lng
         LatLng latLng = const LatLng(0, 0);
@@ -286,11 +291,11 @@ class OdysseyDatabase {
               "We're going to need to fix it otherwise we will run into issues...");
 
           await db.rawUpdate(
-            '''UPDATE Pins SET lat = ?, lng = ? WHERE id = ?''',
-            [0.0, 0.0, i + 1]
-          );
+              '''UPDATE Pins SET lat = ?, lng = ? WHERE id = ?''',
+              [0.0, 0.0, i + 1]);
         } else {
-          latLng = LatLng(double.tryParse(pinsdbResults[i]["lat"].toString()) ?? 0.0,
+          latLng = LatLng(
+              double.tryParse(pinsdbResults[i]["lat"].toString()) ?? 0.0,
               double.tryParse(pinsdbResults[i]["lng"].toString()) ?? 0.0);
         }
 
@@ -313,7 +318,7 @@ class OdysseyDatabase {
 
   Future initDBfromState() async {
     clearPinsDB(); //We need to clean out the existing DB and reappend it
-    for (var i = 0; i < pins.length; i++) {
+    for (int i = 0; i < pins.length; i++) {
       addPinDB(
           i + 1,
           pins[i].pincaption,
@@ -389,5 +394,86 @@ class OdysseyDatabase {
     final db = await instance.database;
     db.execute("ALTER TABLE Pins DROP COLUMN photo");
     db.execute("ALTER TABLE Pins ADD COLUMN photo LONGBLOB;");
+  }
+}
+
+class OdysseyDatabaseWeb {
+  static final OdysseyDatabaseWeb instance = OdysseyDatabaseWeb._init();
+  OdysseyDatabaseWeb._init();
+
+  Future updatePinsDB(int id, content, String type) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    switch (type) {
+      case "latlng":
+        double lat = content.latitude;
+        double lng = content.longitude;
+        prefs.setInt('pin_$id', [
+          content,
+          lat,
+          lng
+        ].hashCode);
+        break;
+
+      case "location":
+        prefs.setInt('pin_$id', [content].hashCode);
+        break;
+
+      case "caption":
+        prefs.setInt('pin_$id', [content].hashCode);
+        break;
+
+      case "note":
+        prefs.setInt('pin_$id', [content].hashCode);
+        break;
+
+      case "color":
+        prefs.setInt('pin_$id', [colorToString(content)].hashCode);
+        break;
+
+      case "shape":
+        prefs.setInt('pin_$id', [content].hashCode);
+        break;
+
+      case "photo":
+        prefs.setInt('pin_$id', [content].hashCode);
+        break;
+
+      case "waypoint":
+        prefs.setInt('pin_$id', [content].hashCode);
+        break;
+    }
+  }
+
+  Future addPinDB(
+      int id,
+      String caption,
+      String date,
+      Color color,
+      String shape,
+      LatLng latLng,
+      String location,
+      String note,
+      Uint8List? photo,
+      int? waypoint) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    double lat = latLng.latitude;
+    double lng = latLng.longitude;
+
+    prefs.setInt(
+        'pin_$id',
+        [
+          caption,
+          date,
+          colorToString(color),
+          '$lat',
+          '$lng',
+          shape,
+          location,
+          note,
+          photo,
+          waypoint
+        ].hashCode);
   }
 }
