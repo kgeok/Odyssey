@@ -59,7 +59,7 @@ GlobalKey<OdysseyMainState> key = GlobalKey();
 const String sku = "Odyssey";
 const String version = "1.5.1";
 const String release = "Pre-Release";
-const debug = true;
+const debug = false;
 late GoogleMapController mapController;
 Color pincolor = Color(int.parse(defaultPinColor));
 String colorBuffer =
@@ -76,7 +76,7 @@ String pinshape = defaultPinShape; //Default Pin shape
 double bearing = defaultBearing; //Rotation of Map
 double mapZoom = defaultMapZoom; //Zoom of Map
 String shape =
-    defaultShape; //This variable is used to the BitMapDescriptor exclusively
+    defaultPinShape; //This variable is used to the BitMapDescriptor exclusively
 int pinCounter = 0;
 int waypointCounter = 0;
 String caption = ""; //Null if not initilized
@@ -88,12 +88,11 @@ String locationBuffer =
     ""; //Temp Buffer for the results for reverseGeocoder before it goes into PinData
 String addressBuffer =
     ""; //Temp Buffer for Pin From Address before it goes into geocoder
-//var currentTheme; //Light or Dark theme
 int? catselection; //Category Selection for NearBy
 String svgString =
     ""; //We're just leaving this blank to init it, shapeHandler will return the real value
 int onboarding = 0;
-List pins =
+List<PinData> pins =
     []; //Pins is a seperate list from statemarkers, independent from whats used by GMapsController
 SplayTreeMap<int, LatLng> waypoints = SplayTreeMap<int,
     LatLng>(); //Need a SplayTreeMap Object to keep track of IDs and LatLngs
@@ -118,11 +117,11 @@ class PinData {
   int? pinwaypoint;
   late String? pincaption = "";
   late String? pindate;
-  late Color pincolor;
+  late Color pincolor = Color(int.parse(defaultPinColor));
   late LatLng pincoor;
-  late String pinlocation;
+  late String pinlocation = "";
   late String? pinnote = "";
-  late String pinshape;
+  late String pinshape = defaultPinShape;
   late Uint8List? pinphoto;
 
   PinData(
@@ -216,8 +215,8 @@ String shapeHandler(String shape) {
 <path d="M8 6L68 6L68 66L8 66L8 6Z" fill="#$colorBuffer" fill-rule="evenodd" opacity="1" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
 </g>
 </svg>
-
 ''';
+
     case "diamond":
       return svgString = '''
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -229,7 +228,6 @@ String shapeHandler(String shape) {
 <path d="M38 6L68 36L38 66L8 36L38 6Z" fill="#$colorBuffer" fill-rule="evenodd" opacity="1" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
 </g>
 </svg>
-
 ''';
 
     case "star":
@@ -268,7 +266,8 @@ String shapeHandler(String shape) {
 <path d="M32 22L43.97 22L44 149L51 149L37.9156 173.735L25 149L32 149L32 22Z" fill="#$colorBuffer" fill-rule="evenodd" opacity="1" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
 <path d="M8 35.6558C8 19.0873 21.4315 5.65582 38 5.65582C54.5685 5.65582 68 19.0873 68 35.6558C68 52.2244 54.5685 65.6558 38 65.6558C21.4315 65.6558 8 52.2244 8 35.6558Z" fill="#$colorBuffer" fill-rule="evenodd" opacity="1" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
 </g>
-</svg>''';
+</svg>
+''';
   }
 }
 
@@ -834,7 +833,7 @@ class SettingsPageState extends State<SettingsPage> {
                             style: GoogleFonts.quicksand(
                                 color: Colors.black,
                                 fontWeight: FontWeight.w500)),
-                        subtitle: Text("Version $version",
+                        subtitle: Text("Version $version ($release)",
                             style: GoogleFonts.quicksand(
                                 color: Color.fromRGBO(81, 81, 81, 1),
                                 fontWeight: FontWeight.w500)),
@@ -1001,7 +1000,7 @@ class SettingsPageState extends State<SettingsPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               ListTile(
-                leading: Icon(Icons.copy),
+                leading: Icon(Icons.file_copy),
                 title: Text("Copy Journal Contents",
                     style: GoogleFonts.quicksand(
                         color: Colors.black, fontWeight: FontWeight.w500)),
@@ -1024,6 +1023,146 @@ class SettingsPageState extends State<SettingsPage> {
                 },
               ),
               ListTile(
+                leading: Icon(Icons.upload_file),
+                title: Text("Import Journal Contents",
+                    style: GoogleFonts.quicksand(
+                        color: Colors.black, fontWeight: FontWeight.w500)),
+                onTap: () {
+                  final TextEditingController noteTextController =
+                      TextEditingController(text: "");
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                            title: Text('Import Journal Content',
+                                style: GoogleFonts.quicksand(
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white)),
+                            content: SingleChildScrollView(
+                              child: ListBody(
+                                children: [
+                                  Padding(
+                                      padding: EdgeInsets.all(5.0),
+                                      child: Text(
+                                        "Import Each Entry As A New Line",
+                                        style: GoogleFonts.quicksand(
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.white),
+                                      )),
+                                  Padding(
+                                      padding: EdgeInsets.all(5.0),
+                                      child: Text(
+                                        "Color HEX Must Be 6-digit Alphanumeric",
+                                        style: GoogleFonts.quicksand(
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.white),
+                                      )),
+                                  Padding(
+                                      padding: EdgeInsets.all(5.0),
+                                      child: Text(
+                                        "Example:\n<Caption>; <Note>; <Latitude>; <Longitude>; <Color HEX>; <Shape>",
+                                        style: GoogleFonts.quicksand(
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.white),
+                                      )),
+                                  SizedBox(height: 10),
+                                  SizedBox(
+                                      height: 100,
+                                      child: TextField(
+                                        controller: noteTextController,
+                                        autofocus: true,
+                                        keyboardType: TextInputType.multiline,
+                                        maxLines:
+                                            100, //Only Allowing For 100 New Entries
+                                        //expands: true,
+                                        decoration: InputDecoration(
+                                            fillColor: Colors.grey[300],
+                                            filled: true,
+                                            border: const OutlineInputBorder()),
+                                      )),
+                                ],
+                              ),
+                            ),
+                            actions: <Widget>[
+                              TextButton(
+                                child: Text('Cancel',
+                                    style: GoogleFonts.quicksand(
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white)),
+                                onPressed: () {
+                                  if (!context.mounted) return;
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                              TextButton(
+                                child: Text('OK',
+                                    style: GoogleFonts.quicksand(
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white)),
+                                onPressed: () async {
+                                  Navigator.pop(context);
+                                  try {
+                                    String fullImport = noteTextController.text;
+                                    List<String> lines = fullImport
+                                        .split('\n')
+                                        .map((line) => line.trim())
+                                        .where((line) => line.isNotEmpty)
+                                        .toList();
+                                    for (String line in lines) {
+                                      List<String> elements =
+                                          line.split(RegExp(r'; ?'));
+                                      if (elements.length < 6) continue;
+                                      if ((!hexColorRegexWeb
+                                          .hasMatch(elements[4]))) {
+                                        elements[4] = defaultPinColor;
+                                      }
+                                      Color color = Color(int.tryParse(
+                                              "0xff${elements[4].replaceAll('#', '').toLowerCase()}") ??
+                                          int.parse(defaultPinColor));
+                                      LatLng latLng = LatLng(
+                                          double.tryParse(elements[2]) ?? 0.0,
+                                          double.tryParse(elements[3]) ?? 0.0);
+                                      String shape = elements[5].toLowerCase();
+                                      const validShapes = {
+                                        'circle',
+                                        'square',
+                                        'diamond',
+                                        "star",
+                                        "heart"
+                                      };
+
+                                      if (!validShapes.contains(shape)) {
+                                        shape = defaultPinShape;
+                                      }
+                                      pinCounter++;
+                                      OdysseyDatabase.instance.addPinDB(
+                                          pinCounter,
+                                          elements[0],
+                                          date,
+                                          color,
+                                          shape,
+                                          latLng,
+                                          "Location N/A",
+                                          elements[1],
+                                          null,
+                                          null);
+                                    }
+                                  } catch (e) {
+                                    simpleDialog(
+                                        context,
+                                        "Error Importing",
+                                        "There Was An Error With Importing Entries",
+                                        "Please Check Content And Try Again",
+                                        "error");
+                                  }
+                                  //reenumerateState();
+                                },
+                              )
+                            ]);
+                      });
+                },
+              ),
+              ListTile(
                 leading: Icon(Icons.draw_rounded),
                 title: Text("Manage Waypoints",
                     style: GoogleFonts.quicksand(
@@ -1039,11 +1178,10 @@ class SettingsPageState extends State<SettingsPage> {
                         "You Can Add A Waypoint By Opening A Journal Entry And Going To \"Options\"",
                         "info");
                   }
-                  //clearAllWaypointsWarning(context);
                 },
               ),
               ListTile(
-                leading: Icon(Icons.no_photography),
+                leading: Icon(Icons.hide_image),
                 title: Text("Clear All Pin Photos",
                     style: GoogleFonts.quicksand(
                         color: Colors.red, fontWeight: FontWeight.w500)),
@@ -1078,7 +1216,9 @@ class SettingsPageState extends State<SettingsPage> {
 
 class OdysseyMainState extends State<OdysseyMain> {
   Future populateMapfromState({bool startup = false}) async {
-    await OdysseyDatabase.instance.initStatefromDB();
+    (!kIsWeb)
+        ? await OdysseyDatabase.instance.initStatefromDB()
+        : await OdysseyDatabaseWeb.instance.initStatefromDB();
 
     Set<Marker> tempMarkers = {};
     Set<Polyline> tempPolylines = {};
@@ -1100,8 +1240,8 @@ class OdysseyMainState extends State<OdysseyMain> {
       shape = pins[i].pinshape;
       BitmapDescriptor bitmapDescriptor =
           await bitmapDescriptorFromSvg(context, shape);
-      caption = pins[i].pincaption;
-      note = pins[i].pinnote;
+      caption = pins[i].pincaption ?? "";
+      note = pins[i].pinnote ?? "";
       if (pins[i].pinlocation == "Location N/A") {
         //Correction for if we didn't fine a location before due to connection issues, etc.
         pins[i].pinlocation = await reverseGeocoder(pins[i].pincoor);
@@ -1127,9 +1267,10 @@ class OdysseyMainState extends State<OdysseyMain> {
             ),
             icon: bitmapDescriptor),
       );
-      if (pins[i].pinwaypoint != null) {
+      final waypointIndex = pins[i].pinwaypoint;
+      if (waypointIndex != null) {
         //Let's do a compare, we want all the keys from highest to lowest
-        waypoints[pins[i].pinwaypoint] = pins[i].pincoor;
+        waypoints[waypointIndex] = pins[i].pincoor;
       }
       tempJournal.add(i - 1);
 
@@ -1185,8 +1326,11 @@ class OdysseyMainState extends State<OdysseyMain> {
         pinshape: shape,
         pinlocation: locationBuffer));
 
-    OdysseyDatabase.instance.addPinDB(pinCounter, caption, date, pincolor,
-        shape, latLng, locationBuffer, note, null, null);
+    (!kIsWeb)
+        ? OdysseyDatabase.instance.addPinDB(pinCounter, caption, date, pincolor,
+            shape, latLng, locationBuffer, note, null, null)
+        : OdysseyDatabaseWeb.instance.addPinDB(pinCounter, caption, date,
+            pincolor, shape, latLng, locationBuffer, note, null, null);
 
     setState(() {
       journal.add(pinCounter - 1);
@@ -1209,10 +1353,11 @@ class OdysseyMainState extends State<OdysseyMain> {
                     await reverseGeocoder(newPos),
                     "location");
               } else {
-                OdysseyDatabaseWeb.instance.updatePinsDB(
+                //TODO: Finish Implementation of updatePinsDB For Web
+                /* OdysseyDatabaseWeb.instance.updatePinsDB(
                     int.parse(pinCounterBuffer.markerId.value),
                     newPos,
-                    "latlng");
+                    "latlng"); */
               }
               reenumerateState();
               cleanBuffers();
@@ -1256,8 +1401,9 @@ class OdysseyMainState extends State<OdysseyMain> {
 
   Future reverseGeocoder(LatLng latLng) async {
     try {
-      List<Placemark> placeMarks =
-          await placemarkFromCoordinates(latLng.latitude, latLng.longitude);
+      final Geocoding geocoding = Geocoding();
+      List<Placemark> placeMarks = await geocoding.placemarkFromCoordinates(
+          latLng.latitude, latLng.longitude);
       if (placeMarks.isNotEmpty) {
         final Placemark placeMark = placeMarks[0];
         if (placeMark.locality != null &&
@@ -1283,7 +1429,8 @@ class OdysseyMainState extends State<OdysseyMain> {
 
   Future geocoder(String address) async {
     try {
-      List<Location> locations = await locationFromAddress(address);
+      final Geocoding geocoding = Geocoding();
+      List<Location> locations = await geocoding.locationFromAddress(address);
       if (locations.isNotEmpty) {
         appendMarker(LatLng(locations[0].latitude, locations[0].longitude));
       } else {
@@ -1294,20 +1441,12 @@ class OdysseyMainState extends State<OdysseyMain> {
             "",
             "error");
       }
-    } on NoResultFoundException {
-      simpleDialog(
-          context,
-          "Address Invalid",
-          "The address you entered couldn't be found, check and try again.",
-          "",
-          "error");
+    } on PlatformException {
+      simpleDialog(context, "An Error Occurred",
+          "Check your Connection or Settings.", "", "error");
     } catch (e) {
-      simpleDialog(
-          context,
-          "Address Invalid",
-          "The address you entered couldn't be found, check and try again.",
-          "",
-          "error");
+      simpleDialog(context, "An Error Occurred",
+          "Check your Connection or Settings.", "", "error");
     }
   }
 
@@ -1315,8 +1454,9 @@ class OdysseyMainState extends State<OdysseyMain> {
     switch (type) {
       case "caption":
         try {
-          List<Placemark> placeMarks =
-              await placemarkFromCoordinates(latLng.latitude, latLng.longitude);
+          final Geocoding geocoding = Geocoding();
+          List<Placemark> placeMarks = await geocoding.placemarkFromCoordinates(
+              latLng.latitude, latLng.longitude);
           if (placeMarks.isNotEmpty) {
             return placeMarks[0].name ?? pins[id - 1].pindate;
           }
@@ -1822,6 +1962,59 @@ class OdysseyMainState extends State<OdysseyMain> {
     );
   }
 
+  void filterEntriesByArea(BuildContext context) {
+    List<String> filteredAreas = [];
+    for (final pin in pins) {
+      String cleanItem = pin.pinlocation;
+      if (cleanItem.contains(":")) {
+        List cleanItemBuffer = cleanItem
+            .split(": ")
+            .map((line) => line.trim())
+            .where((line) => line.isNotEmpty)
+            .toList();
+        if (!filteredAreas.contains(cleanItemBuffer[1])) {
+          filteredAreas.add(cleanItemBuffer[1]);
+        }
+      }
+    }
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+              title: Text(
+                "Filter Entries By Area",
+                style: dialogHeader,
+              ),
+              content: SingleChildScrollView(
+                child: ListBody(
+                    children: List<Widget>.generate(filteredAreas.length,
+                        (int index) {
+                  return ListTile(
+                    onTap: () {
+                      setState(() {
+                        filter = "Area: ${filteredAreas[index]}";
+                      });
+                      Navigator.pop(context);
+                    },
+                    title: Text(filteredAreas[index],
+                        style: GoogleFonts.quicksand(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        )),
+                  );
+                })),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('Cancel', style: dialogBody),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                )
+              ]);
+        });
+  }
+
   void showJournalOptionsBottomSheet(
       BuildContext context,
       String caption,
@@ -1974,7 +2167,7 @@ class OdysseyMainState extends State<OdysseyMain> {
                   pins.removeAt(id - 1);
                   await OdysseyDatabase.instance.initDBfromState();
                   //OdysseyDatabase.instance.deletePinDB(id);
-                  reenumerateState(); // Re-render map/journal
+                  reenumerateState();
                 },
               )
             ]);
@@ -2033,8 +2226,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                         controller: noteTextController,
                         autofocus: true,
                         keyboardType: TextInputType.multiline,
-                        maxLines: null,
-                        expands: true,
+                        maxLines: 10,
+                        //expands: true,
                         decoration: InputDecoration(
                             fillColor: Colors.grey[300],
                             filled: true,
@@ -2143,8 +2336,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                     OdysseyDatabase.instance
                         .updatePinsDB(id, pincolor, "color");
                     if (!context.mounted) return;
-                    Navigator.pop(context); // Pop color picker dialog
-                    reenumerateState(); // Re-render map/journal
+                    Navigator.pop(context);
+                    reenumerateState();
                   },
                 )
               ]);
@@ -2153,37 +2346,55 @@ class OdysseyMainState extends State<OdysseyMain> {
 
   List<Widget> makeJournalEntry(BuildContext context, String filters) {
     if (pins.isNotEmpty) {
-      switch (filters) {
-        case "Today":
-          setState(() {
-            pins.removeWhere((item) => (item.pindate) != date);
-            journal.removeRange(pins.length, journal.length);
-          });
-          return List<Widget>.generate(journal.length, (int index) {
-            return journalEntry(
-                pins[index].pincaption,
-                pins[index].pincolor,
-                pins[index].pinlocation,
-                pins[index].pincoor,
-                pins[index].pindate,
-                pins[index].pinnote,
-                pins[index].pinshape,
-                pins[index].pinphoto,
-                (index + 1));
-          });
-        default:
-          return List<Widget>.generate(journal.length, (int index) {
-            return journalEntry(
-                pins[index].pincaption,
-                pins[index].pincolor,
-                pins[index].pinlocation,
-                pins[index].pincoor,
-                pins[index].pindate,
-                pins[index].pinnote,
-                pins[index].pinshape,
-                pins[index].pinphoto,
-                (index + 1));
-          });
+      if (filters.contains("Today")) {
+        setState(() {
+          pins.removeWhere((item) => (item.pindate) != date);
+          journal.removeRange(pins.length, journal.length);
+        });
+        return List<Widget>.generate(journal.length, (int index) {
+          return journalEntry(
+              pins[index].pincaption ?? "",
+              pins[index].pincolor,
+              pins[index].pinlocation,
+              pins[index].pincoor,
+              pins[index].pindate ?? "",
+              pins[index].pinnote ?? "",
+              pins[index].pinshape,
+              pins[index].pinphoto,
+              (index + 1));
+        });
+      } else if (filters.contains("Area: ")) {
+        List filterBuffer = filters.split(": ");
+        setState(() {
+          pins.removeWhere(
+              (item) => !(item.pinlocation.contains(filterBuffer[1])));
+          journal.removeRange(pins.length, journal.length);
+        });
+        return List<Widget>.generate(journal.length, (int index) {
+          return journalEntry(
+              pins[index].pincaption ?? "",
+              pins[index].pincolor,
+              pins[index].pinlocation,
+              pins[index].pincoor,
+              pins[index].pindate ?? "",
+              pins[index].pinnote ?? "",
+              pins[index].pinshape,
+              pins[index].pinphoto,
+              (index + 1));
+        });
+      } else {
+        return List<Widget>.generate(journal.length, (int index) {
+          return journalEntry(
+              pins[index].pincaption ?? "",
+              pins[index].pincolor,
+              pins[index].pinlocation,
+              pins[index].pincoor,
+              pins[index].pindate ?? "",
+              pins[index].pinnote ?? "",
+              pins[index].pinshape,
+              pins[index].pinphoto,
+              (index + 1));
+        });
       }
     } else {
       final bool isLightMode =
@@ -2212,6 +2423,7 @@ class OdysseyMainState extends State<OdysseyMain> {
     pins.clear();
     waypoints.clear();
     setState(() {
+      filter = "";
       statemarkers = {};
       statepolylines = {};
       journal = [];
@@ -2279,8 +2491,8 @@ class OdysseyMainState extends State<OdysseyMain> {
           await location.getLocation().timeout(const Duration(seconds: 20));
 
       currentLocation = LatLng(
-        currentPosition.latitude!,
-        currentPosition.longitude!,
+        currentPosition.latitude,
+        currentPosition.longitude,
       );
       return currentLocation;
     } catch (e) {
@@ -2730,8 +2942,8 @@ class OdysseyMainState extends State<OdysseyMain> {
                       child: TextField(
                           autofocus: true,
                           keyboardType: TextInputType.multiline,
-                          maxLines: null,
-                          expands: true,
+                          maxLines: 10,
+                          //expands: true,
                           decoration: InputDecoration(
                               fillColor: Colors.grey[300],
                               filled: true,
@@ -3476,7 +3688,33 @@ class OdysseyMainState extends State<OdysseyMain> {
                                           },
                                         ),
                                         ListTile(
-                                          title: filter == "Today"
+                                          title: filter.contains("Area: ")
+                                              ? Text(
+                                                  "Show All Entries",
+                                                  style: GoogleFonts.quicksand(
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color: Colors.black),
+                                                )
+                                              : Text(
+                                                  "Filter Entries By Area",
+                                                  style: GoogleFonts.quicksand(
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color: Colors.black),
+                                                ),
+                                          onTap: () {
+                                            if (filter.contains("Area: ")) {
+                                              Navigator.pop(context);
+                                              reenumerateState();
+                                            } else {
+                                              Navigator.pop(context);
+                                              filterEntriesByArea(context);
+                                            }
+                                          },
+                                        ),
+                                        ListTile(
+                                          title: filter.contains("Today")
                                               ? Text(
                                                   "Show All Entries",
                                                   style: GoogleFonts.quicksand(
@@ -3496,6 +3734,15 @@ class OdysseyMainState extends State<OdysseyMain> {
                                             setState(() {
                                               if (filter == "") {
                                                 filter = "Today";
+                                              } else if (filter
+                                                  .contains("Area: ")) {
+                                                //reenumerateState();
+                                                simpleDialog(
+                                                    context,
+                                                    "Unable To Apply Filter",
+                                                    "Unable To Apply Filter When Another Filter Is Applied.",
+                                                    "Please Clear Filter And Try Again.",
+                                                    "error");
                                               } else {
                                                 filter = "";
                                                 reenumerateState();
@@ -3804,7 +4051,7 @@ class DebugPageState extends State<DebugPage> {
                 title: Text("Test Function",
                     style: GoogleFonts.quicksand(color: Colors.black)),
                 onTap: () => setState(() {
-                  OdysseyDatabaseWeb.instance.updatePinsDB(1, "test", "note");
+                  //OdysseyDatabaseWeb.instance.updatePinsDB(1, "test", "note");
                 }),
               ),
             ],

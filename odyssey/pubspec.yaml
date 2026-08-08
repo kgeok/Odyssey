@@ -35,16 +35,16 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   google_fonts: ^8.0.1
-  google_maps_flutter: ^2.17.1
+  google_maps_flutter: ^2.18.0
   google_maps_flutter_web: ^0.6.2
   flutter_colorpicker:
     git:
       url: https://github.com/frankpape/flutter_colorpicker.git
       ref: 6c81102ebeb7bd446c704edd1d2ee9335b5d3430
-  geocoding: ^4.0.0
+  geocoding: ^5.0.0
   flutter_svg: ^2.0.9
   sqflite: ^2.4.2
-  location: ^8.0.1
+  location: ^10.0.2
   url_launcher: ^6.3.2
   path: ^1.9.1
   google_maps_webservice: 
@@ -55,9 +55,10 @@ dependencies:
   qr_flutter: ^4.1.0
   mobile_scanner: ^7.0.1
   sqflite_common_ffi_web: ^1.0.1+1
-  pointer_interceptor: ^0.10.1+2
+ # pointer_interceptor: ^0.10.1+2
   web: ^1.1.1
   shared_preferences: ^2.5.5
+  google_maps_flutter_ios_sdk9: ^2.18.6
 
 dev_dependencies:
   flutter_test:

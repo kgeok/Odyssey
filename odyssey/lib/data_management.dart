@@ -19,9 +19,10 @@ MapType defaultMapType = MapType.normal;
 String defaultPinShape = 'circle';
 double defaultBearing = 0;
 String defaultPinColor = '0xffff0000';
-String defaultShape = 'circle';
 double defaultMapZoom = 4.0;
 String pathBuffer = "";
+final hexColorRegexFull = RegExp(r'^0x[fF]{2}[a-fA-F0-9]{6}$'); //Full Flutter 8-digit HEX
+final hexColorRegexWeb = RegExp(r'^#?[a-fA-F0-9]{6}$'); //Short Web 6-digit HEX
 
 //We can use these functions to do different types of conversions that we normally wouldn't be able to do
 
@@ -267,9 +268,9 @@ class OdysseyDatabase {
       for (int i = 0; i <= pinCounter - 1; i++) {
         //Parse the Pin's Color
         //If for whatever reason there is an issue parsing the color HEX...
-        if (!(pinsdbResults[i]["color"].toString())
-            .toLowerCase()
-            .startsWith("0xff")) {
+
+        if ((!hexColorRegexFull
+            .hasMatch(pinsdbResults[i]["color"].toString()))) {
           print("Error With Pin: ${i + 1}");
           print(
               "We're going to need to fix it otherwise we will run into issues...");
@@ -321,13 +322,13 @@ class OdysseyDatabase {
     for (int i = 0; i < pins.length; i++) {
       addPinDB(
           i + 1,
-          pins[i].pincaption,
-          pins[i].pindate,
+          pins[i].pincaption ?? "",
+          pins[i].pindate ?? "",
           pins[i].pincolor,
           pins[i].pinshape,
           pins[i].pincoor,
           pins[i].pinlocation,
-          pins[i].pinnote,
+          pins[i].pinnote ?? "",
           pins[i].pinphoto,
           pins[i].pinwaypoint);
     }
@@ -357,7 +358,7 @@ class OdysseyDatabase {
           print("Updating DB to Version 2...");
           //Version 2 Changes
           db.execute(
-              "ALTER TABLE Pins ADD COLUMN shape TEXT DEFAULT 'circle' NOT NULL;");
+              "ALTER TABLE Pins ADD COLUMN shape TEXT DEFAULT '$defaultPinShape' NOT NULL;");
           db.execute(
               "ALTER TABLE Pins ADD COLUMN note MEDIUMTEXT DEFAULT '' NOT NULL;");
           db.execute("ALTER TABLE Pins ADD COLUMN photo LONGBLOB;");
@@ -397,52 +398,58 @@ class OdysseyDatabase {
   }
 }
 
+//This code will be reserved for a future version of Odyssey for the Web
 class OdysseyDatabaseWeb {
   static final OdysseyDatabaseWeb instance = OdysseyDatabaseWeb._init();
   OdysseyDatabaseWeb._init();
 
-  Future updatePinsDB(int id, content, String type) async {
+  Future initStatefromDB() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
+    mapZoom = prefs.getDouble("mapZoom") ?? defaultMapZoom;
+    mapType = stringToMapType(
+        prefs.getString("mapType") ?? defaultMapType.toString());
+    bearing = prefs.getDouble("bearing") ?? defaultBearing;
 
-    switch (type) {
-      case "latlng":
-        double lat = content.latitude;
-        double lng = content.longitude;
-        prefs.setInt('pin_$id', [
-          content,
-          lat,
-          lng
-        ].hashCode);
-        break;
+    pinCounter = prefs.getInt("counter") ?? pinCounter;
 
-      case "location":
-        prefs.setInt('pin_$id', [content].hashCode);
-        break;
+    pinCounter = 1;
 
-      case "caption":
-        prefs.setInt('pin_$id', [content].hashCode);
-        break;
+    for (int i = 0; i <= pinCounter - 1; i++) {
+      pincolor = Color(
+          int.tryParse(prefs.getStringList("pin_$i")?[2] ?? defaultPinColor) ??
+              int.parse(defaultPinColor));
 
-      case "note":
-        prefs.setInt('pin_$id', [content].hashCode);
-        break;
+      LatLng latLng = LatLng(
+          double.tryParse(
+                  prefs.getStringList("pin_$i")?[2].toString() ?? "0.0") ??
+              0.0,
+          double.tryParse(
+                  prefs.getStringList("pin_$i")?[2].toString() ?? "0.0") ??
+              0.0);
 
-      case "color":
-        prefs.setInt('pin_$id', [colorToString(content)].hashCode);
-        break;
-
-      case "shape":
-        prefs.setInt('pin_$id', [content].hashCode);
-        break;
-
-      case "photo":
-        prefs.setInt('pin_$id', [content].hashCode);
-        break;
-
-      case "waypoint":
-        prefs.setInt('pin_$id', [content].hashCode);
-        break;
+      pins.add(PinData(
+          pinid: i,
+          pincolor: pincolor,
+          pincoor: latLng,
+          pindate: prefs.getStringList("pin_$i")?[1].toString(),
+          pinnote: prefs.getStringList("pin_$i")?[8].toString(),
+          pincaption: prefs.getStringList("pin_$i")?[9].toString(),
+          pinshape:
+              prefs.getStringList("pin_$i")?[1].toString() ?? defaultPinShape,
+          pinlocation:
+              prefs.getStringList("pin_$i")?[6].toString() ?? "Location N/A",
+          //pinphoto: Uint8List(int.tryParse(prefs.getStringList("pin_$i")?[7].toString())),
+          pinwaypoint: int.tryParse(
+                  prefs.getStringList("pin_$i")?[2].toString() ?? "0") ??
+              0));
     }
+  }
+
+  Future updatePrefsDB(double mapZoom, double bearing, MapType mt) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setDouble("mapZoom", mapZoom);
+    prefs.setDouble("bearing", bearing);
+    prefs.setString("mapType", mt.toString());
   }
 
   Future addPinDB(
@@ -461,19 +468,27 @@ class OdysseyDatabaseWeb {
     double lat = latLng.latitude;
     double lng = latLng.longitude;
 
-    prefs.setInt(
-        'pin_$id',
-        [
-          caption,
-          date,
-          colorToString(color),
-          '$lat',
-          '$lng',
-          shape,
-          location,
-          note,
-          photo,
-          waypoint
-        ].hashCode);
+    prefs.setStringList('pin_$id', [
+      caption,
+      date,
+      colorToString(color),
+      '$lat',
+      '$lng',
+      shape,
+      location,
+      note,
+      photo.toString(),
+      waypoint.toString()
+    ]);
+  }
+
+  Future deletePinDB(int id) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.remove('pin_$id');
+  }
+
+  Future clearPinsDB() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.clear();
   }
 }

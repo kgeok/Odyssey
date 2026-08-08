@@ -28,6 +28,8 @@
 	<string>public.app-category.travel</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Odyssey needs to access your Camera for “Edit Photo” to add or edit a photo to your Journal Entry or "Scan QR Code"</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Odyssey needs your Location for "Pin My Location", "Near By" or using a Location-based feature of the Map</string>
 	<key>NSLocationAlwaysUsageDescription</key>
@@ -40,6 +42,22 @@
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
 		<false/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneClassName</key>
+					<string>UIWindowScene</string>
+					<key>UISceneConfigurationName</key>
+					<string>flutter</string>
+					<key>UISceneDelegateClassName</key>
+					<string>FlutterSceneDelegate</string>
+					<key>UISceneStoryboardFile</key>
+					<string>Main</string>
+				</dict>
+			</array>
+		</dict>
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>

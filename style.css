@@ -59,6 +59,17 @@ header {
         -ms-animation: fadeIn ease 0.25s;
     }
 
+    #modalOverlay {
+        animation: fadeIn ease 0.25s;
+        align-items: center;
+        justify-content: center;
+        display: flex;
+        height: 100%;
+        width: 100%;
+        animation: fadeinout 4s linear forwards;
+    }
+
+
     #journal {
         width: 40vw;
         height: 100%;
@@ -412,6 +423,16 @@ header {
         -moz-animation: fadeIn ease 0.25s;
         -o-animation: fadeIn ease 0.25s;
         -ms-animation: fadeIn ease 0.25s;
+    }
+
+    #modalOverlay {
+        animation: fadeIn ease 0.25s;
+        align-items: center;
+        justify-content: center;
+        display: flex;
+        height: 100%;
+        width: 100%;
+        animation: fadeinout 4s linear forwards;
     }
 
     #journal {
@@ -776,6 +797,7 @@ input[type="submit"] {
     padding: 5px;
     -webkit-appearance: none;
     -moz-appearance: none;
+    appearance: none;
 }
 
 input[type="color"] {
@@ -788,6 +810,7 @@ input[type="color"] {
     padding: 1px;
     -webkit-appearance: none;
     -moz-appearance: none;
+    appearance: none;
 }
 
 input[type="button"]:active,
@@ -800,6 +823,7 @@ input[type="submit"]:active {
     padding: 1px;
     -webkit-appearance: none;
     -moz-appearance: none;
+    appearance: none;
 }
 
 #journal-content {
@@ -877,6 +901,7 @@ button {
     padding: 5px;
     -webkit-appearance: none;
     -moz-appearance: none;
+    appearance: none;
 }
 
 button:active {
@@ -888,6 +913,7 @@ button:active {
     padding: 5px;
     -webkit-appearance: none;
     -moz-appearance: none;
+    appearance: none;
 }
 
 select {
@@ -899,6 +925,7 @@ select {
     padding: 5px;
     -webkit-appearance: none;
     -moz-appearance: none;
+    appearance: none;
 }
 
 .label {
@@ -920,17 +947,18 @@ select {
     font-family: "Quicksand", sans-serif;
     -webkit-appearance: none;
     -moz-appearance: none;
+    appearance: none;
 }
 
 #journalEntry {
     padding: 14px 20px;
-    width: 92%;
+    width: 95%;
     height: 95px;
     font-family: "Quicksand", sans-serif;
     font-size: 18px;
-    border-radius: 7px;
+    border-radius: 10px;
     color: #ffffff;
-    margin-bottom: 1px;
+    margin-bottom: 5px;
     font-weight: bolder;
     animation: fadeIn ease 0.25s;
     -webkit-animation: fadeIn ease 0.25s;
@@ -979,5 +1007,6 @@ select {
     transform: translate(-50%, -50%);
     -webkit-appearance: none;
     -moz-appearance: none;
+    appearance: none;
     overflow: hidden;
 }

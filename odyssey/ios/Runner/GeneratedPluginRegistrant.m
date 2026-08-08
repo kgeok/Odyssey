@@ -6,16 +6,16 @@
 
 #import "GeneratedPluginRegistrant.h"
 
-#if __has_include(<geocoding_ios/GeocodingPlugin.h>)
-#import <geocoding_ios/GeocodingPlugin.h>
+#if __has_include(<geocoding_darwin/GeocodingDarwinPlugin.h>)
+#import <geocoding_darwin/GeocodingDarwinPlugin.h>
 #else
-@import geocoding_ios;
+@import geocoding_darwin;
 #endif
 
-#if __has_include(<google_maps_flutter_ios/FGMGoogleMapsPlugin.h>)
-#import <google_maps_flutter_ios/FGMGoogleMapsPlugin.h>
+#if __has_include(<google_maps_flutter_ios_sdk9/FGMGoogleMapsPlugin.h>)
+#import <google_maps_flutter_ios_sdk9/FGMGoogleMapsPlugin.h>
 #else
-@import google_maps_flutter_ios;
+@import google_maps_flutter_ios_sdk9;
 #endif
 
 #if __has_include(<image_picker_ios/FLTImagePickerPlugin.h>)
@@ -34,12 +34,6 @@
 #import <mobile_scanner/MobileScannerPlugin.h>
 #else
 @import mobile_scanner;
-#endif
-
-#if __has_include(<pointer_interceptor_ios/PointerInterceptorIosPlugin.h>)
-#import <pointer_interceptor_ios/PointerInterceptorIosPlugin.h>
-#else
-@import pointer_interceptor_ios;
 #endif
 
 #if __has_include(<shared_preferences_foundation/SharedPreferencesPlugin.h>)
@@ -63,12 +57,11 @@
 @implementation GeneratedPluginRegistrant
 
 + (void)registerWithRegistry:(NSObject<FlutterPluginRegistry>*)registry {
-  [GeocodingPlugin registerWithRegistrar:[registry registrarForPlugin:@"GeocodingPlugin"]];
+  [GeocodingDarwinPlugin registerWithRegistrar:[registry registrarForPlugin:@"GeocodingDarwinPlugin"]];
   [FGMGoogleMapsPlugin registerWithRegistrar:[registry registrarForPlugin:@"FGMGoogleMapsPlugin"]];
   [FLTImagePickerPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTImagePickerPlugin"]];
   [LocationPlugin registerWithRegistrar:[registry registrarForPlugin:@"LocationPlugin"]];
   [MobileScannerPlugin registerWithRegistrar:[registry registrarForPlugin:@"MobileScannerPlugin"]];
-  [PointerInterceptorIosPlugin registerWithRegistrar:[registry registrarForPlugin:@"PointerInterceptorIosPlugin"]];
   [SharedPreferencesPlugin registerWithRegistrar:[registry registrarForPlugin:@"SharedPreferencesPlugin"]];
   [SqflitePlugin registerWithRegistrar:[registry registrarForPlugin:@"SqflitePlugin"]];
   [URLLauncherPlugin registerWithRegistrar:[registry registrarForPlugin:@"URLLauncherPlugin"]];

@@ -87,7 +87,7 @@
             </div>
             <br />
             <div id="settings-item">
-                <div id="settingsEntry" onclick="exportJSONFile()">Export Data</div>
+                <div id="settingsEntry" onclick="exportJSONFile()">Export Data (JSON)</div>
             </div>
             <br />
             <div id="settings-item">
@@ -139,7 +139,7 @@
     <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
     <script type="text/javascript">
         let product = "Odyssey";
-        let version = "1.5";
+        let version = "1.5.1";
         let release = "Release";
         let map;
         let markers = [];
@@ -278,7 +278,6 @@
                 CurrCorrX = LoadState["PinCoor_" + parseInt(localStorage.getItem("Counter"))].split(",").shift();
                 CurrCorrY = LoadState["PinCoor_" + parseInt(localStorage.getItem("Counter"))].split(", ").pop();
 
-
                 map.moveCamera(google.maps.CameraOptions = {
                     tilt: 0,
                     heading: 0,
@@ -340,7 +339,6 @@
         }
 
         function zoomLocation(position) {
-
             map.setCenter({ lat: parseFloat(position.coords.latitude, 10), lng: parseFloat(position.coords.longitude, 10) });
             console.log(position.coords.latitude, position.coords.longitude);
             map.setZoom(map.getZoom() + 8);
@@ -502,11 +500,13 @@
 
 
         function About() {
-            prompt("Odyssey, Version " + version + " (" + release + "), With 💖 by Kevin George.\n" + "Powered by Google Maps.\n", "http://kgeok.github.io");
+            document.getElementById("settings").style.display = "none";
+            openModal("Odyssey", "Version " + version + " (" + release + "), With 💖 by Kevin George.", "Powered by Google Maps.", " http://kgeok.github.io/", "", "");
         }
 
         function helpDialog() {
-            alert("Tap anywhere on the map to set a Pin\n\n" + "Tap the Menu button to open the Journal and see an overview of all your entries\n\n" + "Tap the Radar button to to move the map to your current location (Requires your current location)\n\n" + "Tap the Layer button to pan the camera out\n\n" + "Tap the + - to zoom in and out of the map");
+            document.getElementById("settings").style.display = "none";
+            openModal("Quick Start", "Tap anywhere on the map to set a Pin", "Tap the Menu button to open the Journal and see an overview of all your entries", "Tap the Radar button to to move the map to your current location (Requires your current location)", "Tap the Layer button to pan the camera out", "Tap the + - to zoom in and out of the map");
         }
 
         function copyJournalEntries() {
@@ -524,15 +524,56 @@
 
         function appendJournal(caption, location, color) {
             var date = new Date();
-            var dateNow = "Added - " + date.toDateString();
+            var dateNow = "" + date.toDateString();
             let journalEntry = document.createElement("div");
             journalEntry.id = "journalEntry";
             journalEntry.style.backgroundColor = color;
             journalEntry.innerHTML = caption + "<br/><br/>" + location + "<br/>";
+
+            journalEntry.onclick = function () {
+                document.getElementById("journal").style.display = "none";
+                openModal(caption, location, dateNow, "", "", "");
+            };
+
             let lineBreak = document.createElement("br");
             lineBreak.id = "br";
             document.getElementById("journal-item").insertAdjacentElement("afterend", journalEntry);
-            document.getElementById("journalEntry").insertAdjacentElement("afterend", lineBreak);
+
+        }
+
+        function openModal(title, message, message2, message3, message4, message5) {
+
+            let overlay = document.createElement("div");
+            overlay.id = "modalOverlay";
+            overlay.style.position = "fixed";
+            overlay.style.top = "0";
+            overlay.style.left = "0";
+            overlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+
+            let modalBox = document.createElement("div");
+            modalBox.style.backgroundColor = "#006994";
+            modalBox.style.padding = "20px";
+            modalBox.style.borderRadius = "20px";
+            modalBox.style.width = "500px";
+            modalBox.innerHTML = `<h3>${title}</h3><p>${message}</p><p>${message2}</p><p>${message3}</p><p>${message4}</p><p>${message5}</p>`;
+
+            let closeBtn = document.createElement("button");
+            closeBtn.innerText = "OK";
+            closeBtn.style.fontSize = "15px"
+            closeBtn.style.border = "none";
+            closeBtn.style.outline = "none";
+            closeBtn.style.background = "transparent";
+            closeBtn.style.color = "#fff"
+            closeBtn.style.marginTop = "10px";
+
+            closeBtn.onclick = function () {
+                document.body.removeChild(overlay);
+            };
+
+            // 4. Assemble and inject into the DOM
+            modalBox.appendChild(closeBtn);
+            overlay.appendChild(modalBox);
+            document.body.appendChild(overlay);
         }
 
         function exportJSONFile() {
